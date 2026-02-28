@@ -39,6 +39,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
