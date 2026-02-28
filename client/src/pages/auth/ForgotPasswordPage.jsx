@@ -3,7 +3,16 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 const ForgotPasswordPage = () => {
-  return <></>;
+  const [email,setEmail] = useState("")
+  const [isSubmitted,setIsSubmitted]=  useState("")
+  const [error,setError]= useState("")
+
+  const dispatch = useDispatch()
+  const handleSubmit = (e)=>{
+
+    
+  }
+  return <>ForgotPasswordPage</>;
 };
 
 export default ForgotPasswordPage;
