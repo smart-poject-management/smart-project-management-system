@@ -20,6 +20,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   generateToken(user, 201, "User registered successfully", res);
 });
 
+
 export const login = asyncHandler(async (req, res, next) => {
     const { email, password , role } = req.body;
     if (!email || !password || !role) {
