@@ -53,7 +53,7 @@ export const logout = asyncHandler(async (req, res) => {
   }).json({ success: true, message: "User logged out successfully" });
 });
 
-export const forgotPassword = asyncHandler(async (req, res, next) => {
+export const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
     return res.status(404).json({ error: "User not found with this email" });
@@ -61,31 +61,23 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 
   const resetToken = user.getResetPasswordToken();
 
-  await user.save({ validateBeforeSave: false });
-
-  const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
+  
+  await sendEmail({
+    to: user.email,
+    subject: "FYP SYSTEM - 🔒 Password Reset Request",
+    message
+  });
 
-  try {
-    await sendEmail({
-      to: user.email,
-      subject: "FYP SYSTEM - 🔒 Password Reset Request",
-      message
-    });
-    res.status(200).json({
-      success: true,
-      message: `Email send to ${user.email} successfully`
-    });
-  } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save({ validateBeforeSave: false });
-    return res.status(500).json({ error: error.message || "Can not send email" });
-  }
+  return res.status(200).json({
+    success: true,
+    message: `Email sent to ${user.email} successfully`
+  });
 });
 
-export const resetPassword = asyncHandler(async (req, res, next) => {
+export const resetPassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
 
