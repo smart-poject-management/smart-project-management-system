@@ -33,13 +33,13 @@ import ProjectsPage from "./pages/admin/ProjectsPage";
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { Loader } from "lucide-react";
+import DemoHomePage from "./pages/DemoHomePage";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
