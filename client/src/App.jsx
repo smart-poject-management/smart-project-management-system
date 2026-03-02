@@ -4,7 +4,6 @@ import { useEffect } from "react";
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 // Dashboard Layouts
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -34,14 +33,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { Loader } from "lucide-react";
 import DemoHomePage from "./pages/DemoHomePage";
+import Register from "./pages/auth/Register";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage copy";
+
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<LoginPage />} />
+        {/* <Route path="/" element={<Navigate to="/login" />} /> */}
+        <Route path="/" element={<DemoHomePage/>} />
+        <Route path="/register" element={<Register/>} />
+
+        <Route path="/sign-in" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
