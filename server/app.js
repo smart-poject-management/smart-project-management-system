@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { errorMiddleware } from './middlewares/error.js';
 import userRouter from './router/userRouters.js';
+import adminRoutes from './router/adminRoutes.js'
 
 config();
 
