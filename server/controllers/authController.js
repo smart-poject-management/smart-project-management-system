@@ -60,21 +60,30 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   }
 
   const resetToken = user.getResetPasswordToken();
-
-  const resetPasswordUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-  const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
   
-  await sendEmail({
-    to: user.email,
-    subject: "FYP SYSTEM - 🔒 Password Reset Request",
-    message
-  });
+  await user.save({ validateBeforeSave: false });
 
-  return res.status(200).json({
-    success: true,
-    message: `Email sent to ${user.email} successfully`
-  });
+  const resetPasswordUrl =
+    ` ${process.env.FRONTEND_URL}/reset-password?token=${resetToken} `;
+  const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
+
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: "FYP SYSTEM - 🔒 Password Reset Request",
+      message
+    });
+    res.status(200).json({
+      success: true,
+      message: `Email send to ${user.email} successfully`
+    });
+
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+    return res.status(500).json({ error: error.message || "Can not send email" });
+  }
 });
 
 export const resetPassword = asyncHandler(async (req, res) => {
