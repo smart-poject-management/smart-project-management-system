@@ -23,8 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use("/api/auth", userRouter);
-
+app.use("/api", userRouter);
+app.use("/api/admin", adminRoutes);
 
 app.use(errorMiddleware);
 
