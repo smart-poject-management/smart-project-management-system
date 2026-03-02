@@ -6,38 +6,28 @@ class ErrorHandler extends Error {
 }
 
 export const errorMiddleware = (err, req, res, next) => {
-  console.error("Error Middleware Caught:", err);
-
-  let statusCode = err.statusCode || 500;
-  let message = err.message || "Internal Server Error";
-
-  // Handle Mongoose/JWT specific errors
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(statusCode).json({ error: message });
   if (err.code === 11000) {
-    statusCode = 400;
-    message = "Duplicate key error";
+    res.status(400).json({ error: "Duplicate key error" });
   }
   if (err.name === "jsonWebTokenError") {
-    statusCode = 401;
-    message = "Invalid token";
-  }
-  if (err.name === "TokenExpiredError") {
-    statusCode = 401;
-    message = "Token expired";
+    res.status(401).json({ error: "Invalid token" });
+  } 
+     if (err.name === "TokenExpiredError") {
+    res.status(401).json({ error: "Token expired" });
   }
   if (err.name === "CastError") {
-    statusCode = 400;
-    message = "Invalid ID format";
-  }
-  if (err.errors) {
-    message = Object.values(err.errors).map((val) => val.message).join(", ");
-    statusCode = 400;
+    res.status(400).json({ error: "Invalid ID format" });
   }
 
-  // Final single response
-  return res.status(statusCode).json({
-    success: false,
-    message,
-  });
+  const errorMessage = err.errors
+    ? Object.values(err.errors)
+        .map((val) => val.message)
+        .join(", ")
+    : "Internal Server Error";
+  res.status(statusCode).json({ error: errorMessage });
 };
 
 export default ErrorHandler;
