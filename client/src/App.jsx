@@ -40,7 +40,8 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<DemoHomePage />} /> //demo home page only testing auth fun
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

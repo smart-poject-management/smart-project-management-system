@@ -41,7 +41,7 @@ const LoginPage = () => {
 
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.length < 8) {
+    } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters";
     }
 
@@ -86,8 +86,6 @@ const LoginPage = () => {
   }, [authUser]);
 
   return (
-
-    
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         {/* Header */}
@@ -149,7 +147,7 @@ const LoginPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`input ${errors.email ? "input-error" : ""}`}
+                className={`input ${errors.password ? "input-error" : ""}`}
                 placeholder="Enter your password"
               />
               {errors.password && (

@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+coverage
+*.log
+*.lock
+
+.vscode
+.idea
+*.env
+*.env.local
+*.env.development
+*.env.test
+*.env.production

@@ -8,5 +8,10 @@ export const generateToken = (user, statusCode, message, res) => {
       ),
       httpOnly: true,
     })
-    .json({ success: true, user, message, token });
+    .json({
+      success: true,
+      message,
+      user,
+      token,
+    });
 };
