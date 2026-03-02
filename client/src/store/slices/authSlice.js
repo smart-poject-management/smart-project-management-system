@@ -31,10 +31,8 @@ export const login = createAsyncThunk("auth/login", async (data, thunkAPI) => {
     toast.success(res.data.message);
     return res.data.user;
   } catch (error) {
-    toast.error(error.response?.data?.message || "Login failed");
-    return thunkAPI.rejectWithValue(
-      error.response?.data?.message || "Login failed",
-    );
+    toast.error(error.response.data.message);
+    return thunkAPI.rejectWithValue(error.response.data.message);
   }
 });
 
@@ -109,20 +107,8 @@ const authSlice = createSlice({
     isRequestingForToken: false,
     isCheckingAuth: true,
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
-
-      .addCase(registerUser.pending, (state) => {
-        state.isSigningUp = true;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isSigningUp = false;
-        state.authUser = action.payload;
-      })
-      .addCase(registerUser.rejected, (state) => {
-        state.isSigningUp = false;
-      })
-
       .addCase(login.pending, (state) => {
         state.isLoggingIn = true;
       })
@@ -130,44 +116,18 @@ const authSlice = createSlice({
         state.isLoggingIn = false;
         state.authUser = action.payload;
       })
-      .addCase(login.rejected, (state) => {
+      .addCase(login.rejected, state => {
         state.isLoggingIn = false;
       })
-
-      .addCase(getUser.pending, (state) => {
-        state.isCheckingAuth = true;
-      })
-      .addCase(getUser.fulfilled, (state, action) => {
-        state.isCheckingAuth = false;
-        state.authUser = action.payload;
-      })
-      .addCase(getUser.rejected, (state) => {
-        state.isCheckingAuth = false;
-      })
-
-      .addCase(logout.fulfilled, (state) => {
-        state.authUser = null;
-      })
-
-      .addCase(forgotPassword.pending, (state) => {
+      .addCase(getUser.pending, state => {
         state.isRequestingForToken = true;
       })
-      .addCase(forgotPassword.fulfilled, (state) => {
+      .addCase(getUser.fulfilled, (state, action) => {
         state.isRequestingForToken = false;
-      })
-      .addCase(forgotPassword.rejected, (state) => {
-        state.isRequestingForToken = false;
-      })
-
-      .addCase(resetPassword.pending, (state) => {
-        state.isUpdatingPassword = true;
-      })
-      .addCase(resetPassword.fulfilled, (state, action) => {
-        state.isUpdatingPassword = false;
         state.authUser = action.payload;
       })
-      .addCase(resetPassword.rejected, (state) => {
-        state.isUpdatingPassword = false;
+      .addCase(getUser.rejected, state => {
+        state.isLoggingIn = false;
       });
   },
 });
