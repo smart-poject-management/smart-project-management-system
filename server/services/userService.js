@@ -28,8 +28,15 @@ export const getUserById = async (id) => {
 
 export const deleteUser = async (id) => {
     const user = await User.findById(id);
-    if(!user) {
+    if (!user) {
         throw new Error("User not found");
     }
     return await user.deleteOne();
+};
+
+export const getAllUsers = async () => {
+    const query = { role: { $ne: "Admin" } };
+    const users = await User.find(query).select("-password -resetPasswordToken -resetPasswordExpire").sort({ createdAt: -1 });
+
+    return users;
 };
