@@ -58,13 +58,13 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({ error: "User not found with this email" });
   }
-
+a
   const resetToken = user.getResetPasswordToken();
   
   await user.save({ validateBeforeSave: false });
 
   const resetPasswordUrl =
-    ` ${process.env.FRONTEND_URL}/reset-password?token=${resetToken} `;
+    ` ${process.env.FRONTEND_URL}/password/reset/${resetToken} `;
   const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
 
   try {

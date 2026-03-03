@@ -48,7 +48,7 @@ const ForgotPasswordPage = () => {
             <span className="font-semibold">{email}</span>.
           </p>
           <Link
-            to="/sign-in"
+            to="/login"
             className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-full font-medium transition"
           >
             Back to Login

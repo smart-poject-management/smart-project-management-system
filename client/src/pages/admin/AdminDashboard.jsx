@@ -15,7 +15,11 @@ import AddTeacher from "../../components/modal/AddTeacher";
 import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
-  return <></>;
+  return (
+    <>
+      <h1>Admin Dashboard</h1>
+    </>
+  )
 };
 
 export default AdminDashboard;

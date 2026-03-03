@@ -36,19 +36,20 @@ import DemoHomePage from "./pages/DemoHomePage";
 import Register from "./pages/auth/Register";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage copy";
 
-
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
         {/* <Route path="/" element={<Navigate to="/login" />} /> */}
-        <Route path="/" element={<DemoHomePage/>} />
-        <Route path="/register" element={<Register/>} />
-
+        <Route path="/" element={<DemoHomePage />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/Student" element={<StudentDashboard />} />
+        <Route path="/Admin" element={<AdminDashboard />} />
+        <Route path="/Teacher" element={<TeacherDashboard />} />
+        <Route path="/password/forgot" element={<ForgotPasswordPage />} />
+        <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
       </Routes>
       <ToastContainer theme="dark" />
     </BrowserRouter>

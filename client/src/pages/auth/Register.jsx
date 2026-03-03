@@ -100,7 +100,7 @@ const RegisterPage = () => {
   }, [authUser]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-700 via-purple-700 to-indigo-900 px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-700 via-purple-700 to-indigo-900 px-4 sm:px-6 lg:px-8 py-4">
       <div className="w-full max-w-md sm:max-w-3xl xl:max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
         {/* LEFT SIDE - Form */}
         <div className="w-full lg:w-1/2 bg-[#f6f4ed] px-6 sm:px-10 lg:px-14 py-10 flex flex-col justify-center">
@@ -156,7 +156,7 @@ const RegisterPage = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Enter your full name"
+              placeholder="Enter your name"
               className={`w-full bg-white border rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition ${
                 errors.name ? "border-red-400" : "border-gray-300"
               }`}
@@ -255,7 +255,7 @@ const RegisterPage = () => {
           <p className="text-sm text-center mt-8 text-gray-600">
             Already have an account?{" "}
             <Link to="/login" className="text-indigo-600 hover:underline">
-              Sign In
+              Login
             </Link>
           </p>
         </div>
