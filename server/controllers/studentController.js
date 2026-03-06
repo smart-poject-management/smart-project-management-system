@@ -50,3 +50,31 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const uploadFiles = asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  const studentId = req.user._id;
+  const project = await projectServices.getProjectById(projectId);
+
+  if (!project || project.student.toString() !== studentId.toString()) {
+    return res.status(403).json({ error: "Not authorized to upload files to this project." });
+  }
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
+  const updatedProject = await projectServices.addFilesToProject(projectId, req.files);
+
+  res.status(200).json({
+    success: true,
+    message: "Files uploaded successfully",
+    data: { project: updatedProject }
+  })
+});
+
+export const getAvailableSupervisors = asyncHandler(async (req, res) => {
+  const supervisors = await User.find({ role: "Teacher" }).select("name email department expertise").lean();
+  res.status(200).json({
+    success: true,
+    data: { supervisors },
+    message: "Available supervisors fetched successfully"
+  })
+});
