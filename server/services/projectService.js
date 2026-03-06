@@ -11,7 +11,7 @@ export const createProject = async (projectData) => {
 };
 
 export const getProjectById = async (id) => {
-    const project = await Project.findById(id).populate("Student", "name email").populate("supervisor", "name email");
+    const project = await Project.findById(id).populate("student", "name email").populate("supervisor", "name email");
     if (!project) {
         return new Error("Project not found", 404);
     }
