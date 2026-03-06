@@ -1,17 +1,16 @@
 import { asyncHandler } from "../middlewares/asyncHandler.js";
-import * as userServices from "../services/userService.js";
 import { User } from "../models/user.js";
 import * as projectServices from "../services/projectService.js";
 
 export const getStudentProject = asyncHandler(async (req, res) => {
-  const studentId = req.user.id;
-  const { project } = await projectServices.getStudentProject(studentId);
+  const studentId = req.user._id;
+  const project = await projectServices.getStudentProject(studentId);
 
-  if (project) {
+  if (!project) {
     return res.status(200).json({
       success: true,
       data: { project: null },
-      message: "No project found for the student",
+      message: "No project found for this student",
     });
   }
   res.status(200).json({
@@ -36,7 +35,7 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   }
 
   const projectData = {
-    status: studentId,
+    student: studentId,
     title,
     description,
   };
@@ -50,3 +49,31 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const uploadFiles = asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  const studentId = req.user._id;
+  const project = await projectServices.getProjectById(projectId);
+
+  if (!project || project.student._id.toString() !== studentId.toString()) {
+    return res.status(403).json({ error: "Not authorized to upload files to this project." });
+  }
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
+  const updatedProject = await projectServices.addFilesToProject(projectId, req.files);
+
+  res.status(200).json({
+    success: true,
+    message: "Files uploaded successfully",
+    data: { project: updatedProject }
+  })
+});
+
+export const getAvailableSupervisors = asyncHandler(async (req, res) => {
+  const supervisors = await User.find({ role: "Teacher" }).select("name email department expertise").lean();
+  res.status(200).json({
+    success: true,
+    data: { supervisors },
+    message: "Available supervisors fetched successfully"
+  })
+});
