@@ -58,7 +58,7 @@ const projectSchema = new mongoose.Schema({
       type: {
         type: mongoose.Schema.Types.ObjectId,
         enum: ["general", "file", "positive"],
-        default: general,
+        default: "general",
       },
       title: {
         type: String,
@@ -74,12 +74,12 @@ const projectSchema = new mongoose.Schema({
   deadline: {
     type: Date,
   }
-} , {
-    timestamps: true,
+}, {
+  timestamps: true,
 });
 
 
- //indexing for better query performance
+//indexing for better query performance
 projectSchema.index({ student: 1 });
 projectSchema.index({ supervisor: 1 });
 projectSchema.index({ status: 1 });
