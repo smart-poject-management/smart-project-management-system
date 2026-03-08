@@ -10,7 +10,6 @@ import { toggleTeacherModel } from "../../store/slices/popupSlice";
 import {
   AlertTriangle,
   BadgeCheck,
-  CheckCircle,
   Plus,
   Search,
   TriangleAlert,
@@ -36,11 +35,8 @@ const ManageTeachers = () => {
     maxStudents: 1,
   });
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(getAllUsers());
-  }, []);
   const teachers = useMemo(() => {
-    (users || []).filter(user => user.role?.toLowerCase() === "teacher");
+    return (users || []).filter(user => user.role?.toLowerCase() === "teacher");
   }, [users]);
 
   const departments = useMemo(() => {
@@ -180,8 +176,7 @@ const ManageTeachers = () => {
                 </p>
                 <p className="text-2xl font-bold text-slate-800">
                   {teachers.reduce(
-                    (sum, total) =>
-                      sum + (total.assignedStudents?.length() || 0),
+                    (sum, total) => sum + (total.assignedStudents?.length || 0),
                     0
                   )}
                 </p>
@@ -207,7 +202,7 @@ const ManageTeachers = () => {
                   Departments
                 </p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {departments.length()}
+                  {departments.length}
                 </p>
               </div>
             </div>
@@ -465,6 +460,8 @@ const ManageTeachers = () => {
                   <input
                     type="number"
                     required
+                    max={10} //update the value max or min
+                    min={1}
                     value={teacherData.maxStudents}
                     onChange={e =>
                       setTeacherData({

@@ -36,6 +36,7 @@ import DemoHomePage from "./pages/DemoHomePage";
 import Register from "./pages/auth/Register";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import { getUser } from "./store/slices/authSlice";
+import { getAllUsers } from "./store/slices/adminSlice";
 
 const App = () => {
   const { authUser, isCheckingAuth } = useSelector(state => state.auth);
@@ -45,6 +46,11 @@ const App = () => {
     dispatch(getUser());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (authUser?.role === "Admin") {
+      dispatch(getAllUsers());
+    }
+  }, [authUser]);
   const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!authUser) {
       return <Navigate to={"/login"} replace />;
@@ -53,7 +59,7 @@ const App = () => {
     if (
       allowedRoles?.length &&
       authUser?.role &&
-      !allowedRoles.includes(authUser.role)
+      !allowedRoles.includes(authUser.role) // fixing the bug iscloudes thaaa ya per
     ) {
       const redirectPath =
         authUser.role === "Admin"
@@ -101,6 +107,24 @@ const App = () => {
           <Route path="assign-supervisor" element={<AssignSupervisor />} />
           <Route path="deadline" element={<DeadlinesPage />} />
           <Route path="projects" element={<ProjectsPage />} />
+        </Route>
+
+        {/* Student Routes */}
+
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute allowedRoles={["Student"]}>
+              <DashboardLayout userRole={"Student"} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<StudentDashboard />} />
+          <Route path="submit-proposal" element={<SubmitProposal />} />
+          <Route path="upload-files" element={<UploadFiles />} />
+          <Route path="supervisor" element={<SupervisorPage />} />
+          <Route path="feedback" element={<FeedbackPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
       </Routes>
       <ToastContainer theme="dark" />

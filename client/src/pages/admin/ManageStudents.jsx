@@ -33,9 +33,6 @@ const ManageStudents = () => {
     department: "",
   });
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(getAllUsers());
-  }, []);
   const students = useMemo(() => {
     const studentUsers = (users || []).filter(
       user => user.role?.toLowerCase() === "student"
