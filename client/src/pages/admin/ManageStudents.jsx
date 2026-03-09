@@ -394,7 +394,6 @@ const ManageStudents = () => {
                     className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
                   />
                 </div>
-
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600 mb-1">Email</label>
                   <input
@@ -407,7 +406,6 @@ const ManageStudents = () => {
                     className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
                   />
                 </div>
-
                 {/* Department */}
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600 mb-1">
@@ -424,14 +422,12 @@ const ManageStudents = () => {
                   >
                     <option value="Computer Science">Computer Science</option>
                     <option value="Mathematics">Mathematics</option>
-                    <option value="Biology">Biology</option>
+                    <option value="Data Science">Data Science</option>
                     <option value="Physics">Physics</option>
                     <option value="Chemistry">Chemistry</option>
-                    <option value="Engineering">Engineering</option>
                   </select>
                 </div>
-
-                {/* Buttons */}
+                a{/* Buttons */}
                 <div className="flex justify-end gap-3 pt-3">
                   <button
                     type="button"

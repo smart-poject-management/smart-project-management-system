@@ -416,10 +416,9 @@ const ManageTeachers = () => {
                   >
                     <option value="Computer Science">Computer Science</option>
                     <option value="Mathematics">Mathematics</option>
-                    <option value="Biology">Biology</option>
+                    <option value="Data Science">Data Science</option>
                     <option value="Physics">Physics</option>
                     <option value="Chemistry">Chemistry</option>
-                    <option value="Engineering">Engineering</option>
                   </select>
                 </div>
 
