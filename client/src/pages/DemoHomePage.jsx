@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 function DemoHomePage() {
   const token = localStorage.getItem("token");
 
-  console.log(token);
+  // console.log(token);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-6 bg-gray-100">

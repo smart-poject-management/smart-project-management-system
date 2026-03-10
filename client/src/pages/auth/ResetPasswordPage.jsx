@@ -1,24 +1,23 @@
 import { BookOpen, Loader, Eye, EyeOff } from "lucide-react";
 import { resetPassword } from "../../store/slices/authSlice";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 
 const ResetPasswordPage = () => {
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const [searchParams] = useSearchParams();
+  const { token } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isUpdatingPassword } = useSelector(state => state.auth);
 
-  const token = searchParams.get("token");
+  const [formData, setFormData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -57,7 +56,13 @@ const ResetPasswordPage = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+
     if (!validateForm()) return;
+
+    if (!token) {
+      setErrors({ general: "Invalid or missing reset token" });
+      return;
+    }
 
     try {
       await dispatch(
@@ -79,7 +84,7 @@ const ResetPasswordPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 px-4">
       <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md relative">
-        {/* EDU watermark */}
+        {/* Watermark */}
         <div className="absolute bottom-4 right-6 text-7xl font-bold text-indigo-100 opacity-20 pointer-events-none">
           EDU
         </div>
@@ -93,7 +98,6 @@ const ResetPasswordPage = () => {
           <p className="text-gray-600 mt-2">Create a new secure password</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {errors.general && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -169,7 +173,7 @@ const ResetPasswordPage = () => {
             )}
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isUpdatingPassword}

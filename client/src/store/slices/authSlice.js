@@ -44,7 +44,7 @@ export const forgotPassword = createAsyncThunk(
     try {
       const res = await axiosInstance.post("/password/forgot", { email });
       toast.success(res.data.message);
-      return res.data;
+      return null;
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to send reset email"
@@ -88,7 +88,7 @@ export const getUser = createAsyncThunk("me", async (_, thunkAPI) => {
 
 export const logout = createAsyncThunk("logout", async (_, thunkAPI) => {
   try {
-    await axiosInstance.post("/logout");
+    await axiosInstance.get("/logout");
     return null;
   } catch (error) {
     toast.error(error.response?.data?.message || "Failed to logout");
