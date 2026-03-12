@@ -5,7 +5,7 @@ import { handleUploadError, upload } from '../middlewares/upload.js';
 
 const router = express.Router();
 
-router.post('/project', isAuthenticated, isAuthorized("Student"), getStudentProject);
+router.get('/project', isAuthenticated, isAuthorized("Student"), getStudentProject)
 
 router.post('/project-proposal', isAuthenticated, isAuthorized("Student"), submitProposal)
 

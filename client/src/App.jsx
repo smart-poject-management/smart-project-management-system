@@ -34,22 +34,98 @@ import { ToastContainer } from "react-toastify";
 import { Loader } from "lucide-react";
 import DemoHomePage from "./pages/DemoHomePage";
 import Register from "./pages/auth/Register";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage copy";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import { getUser } from "./store/slices/authSlice";
+import { getAllUsers } from "./store/slices/adminSlice";
 
 const App = () => {
+  const { authUser, isCheckingAuth } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getUser());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (authUser?.role === "Admin") {
+      dispatch(getAllUsers());
+    }
+  }, [authUser]);
+  const ProtectedRoute = ({ children, allowedRoles }) => {
+    if (!authUser) {
+      return <Navigate to={"/login"} replace />;
+    }
+
+    if (
+      allowedRoles?.length &&
+      authUser?.role &&
+      !allowedRoles.includes(authUser.role) // fixing the bug iscloudes thaaa ya per
+    ) {
+      const redirectPath =
+        authUser.role === "Admin"
+          ? "/admin"
+          : authUser.role === "Teacher"
+            ? "/teacher"
+            : "/student";
+
+      return <Navigate to={redirectPath} replace />;
+    }
+
+    return children;
+  };
+
+  if (isCheckingAuth && !authUser) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
-        {/* <Route path="/" element={<Navigate to="/login" />} /> */}
         <Route path="/" element={<DemoHomePage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/Student" element={<StudentDashboard />} />
-        <Route path="/Admin" element={<AdminDashboard />} />
-        <Route path="/Teacher" element={<TeacherDashboard />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
+
+        {/* Admin Routes */}
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <DashboardLayout userRole={"Admin"} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="students" element={<ManageStudents />} />
+          <Route path="teachers" element={<ManageTeachers />} />
+          <Route path="assign-supervisor" element={<AssignSupervisor />} />
+          <Route path="deadline" element={<DeadlinesPage />} />
+          <Route path="projects" element={<ProjectsPage />} />
+        </Route>
+
+        {/* Student Routes */}
+
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute allowedRoles={["Student"]}>
+              <DashboardLayout userRole={"Student"} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<StudentDashboard />} />
+          <Route path="submit-proposal" element={<SubmitProposal />} />
+          <Route path="upload-files" element={<UploadFiles />} />
+          <Route path="supervisor" element={<SupervisorPage />} />
+          <Route path="feedback" element={<FeedbackPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+        </Route>
       </Routes>
       <ToastContainer theme="dark" />
     </BrowserRouter>

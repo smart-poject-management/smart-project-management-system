@@ -21,7 +21,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "Student",
+    role: "",
   });
 
   const [errors, setErrors] = useState({});
