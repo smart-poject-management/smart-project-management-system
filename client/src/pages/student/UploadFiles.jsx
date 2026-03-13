@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { fetchProject, uploadFiles } from "../../store/slices/studentSlice";
-import { Archive, File, FileCode, FileText } from "lucide-react";
+import { Archive, File, FileCode, FilePlus, FileText } from "lucide-react";
 const UploadFiles = () => {
   const dispatch = useDispatch();
 
@@ -43,7 +43,7 @@ const UploadFiles = () => {
   };
 
   const getFileIcon = fileName => {
-    const extension = fileName.split(".").pop().lowerCase();
+    const extension = fileName.split(".").pop().toLowerCase();
     const Icon = ({ className }) => <File className={className} />;
     const color =
       extension === "pdf"
@@ -185,6 +185,43 @@ const UploadFiles = () => {
       )}
 
       {/* Uploaded files list */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Uploaded Files</h2>
+          <p className="card-subtitle">Manage your Uploaded Project Files</p>
+        </div>
+        {
+          (files || []).length === 0 ? (
+            <div className="text-center py-4">
+              <FilePlus className="w-16 h-16 text-slate-300
+      mx-auto mb-4"/>
+              <p className="text-slate-500">No Files Uploaded yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {
+                files.map(file => (
+                  <div key={file._id || file.fileUrl} className=" flex item-center justify-center
+      p-4 bg-slate-50 rounded-lg
+      ">
+                    <div className="flex item-center space-x-4">
+                      {getFileIcon(file.originalName)}
+                      <div>
+                        <p className="text-slate-800">{file.originalName}</p>
+                        <div className="flex item-center space-x-4 text-sm text-slate-600">
+                          <span>{file.fileType || "File"}</span>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <div className="btn-outline btn-small">Download</div>
+                  </div>
+                ))
+              } </div>
+          )
+        }
+      </div>
     </div>
   );
 };
