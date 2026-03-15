@@ -4,6 +4,7 @@ import {
   isAuthorized,
 } from "../middlewares/authMiddleware.js";
 import {
+  downloadFile,
   getAvailableSupervisors,
   getDashboardStats,
   getFeedback,
@@ -73,6 +74,13 @@ router.get(
   isAuthenticated,
   isAuthorized("student"),
   getDashboardStats,
+);
+
+router.get(
+  "/download/:projectId/:fileId",
+  isAuthenticated,
+  isAuthorized("Student"),
+  downloadFile,
 );
 
 export default router;
