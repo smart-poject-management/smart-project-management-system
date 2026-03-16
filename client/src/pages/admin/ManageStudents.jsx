@@ -39,7 +39,7 @@ const ManageStudents = () => {
     );
     return studentUsers.map(student => {
       const studentProject = (projects || []).find(
-        project => project.student?._id === student._id
+        project => project.student === student._id
       );
 
       return {
@@ -313,9 +313,7 @@ const ManageStudents = () => {
                       <td className="px-6 py-4">
                         {student.supervisor ? (
                           <span>
-                            {typeof student.supervisor === "object"
-                              ? student.supervisor.name || "-"
-                              : student.supervisor}
+                            {users?.find(user => user._id === student.supervisor)?.name || "-"}
                           </span>
                         ) : (
                           <span className="text-yellow-600 text-xs">

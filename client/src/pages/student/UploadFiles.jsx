@@ -215,7 +215,7 @@ const UploadFiles = () => {
           ) : (
             <div className="space-y-3">
               {
-                files.map(file => (
+                files.map((file) => (
                   <div key={file._id || file.fileUrl} className=" flex item-center justify-center
       p-4 bg-slate-50 rounded-lg
       ">
@@ -231,12 +231,13 @@ const UploadFiles = () => {
                     </div>
                     {/* download btn  */}
                     <div className="flex item-center space-x-2">
-                      <button className="btn-outline btn-small" 
-                      onClick={() => handleDownloadFile(file)}>Download</button>
+                      <button className="btn-outline btn-small"
+                        onClick={() => handleDownloadFile(file)}>Download</button>
                     </div>
 
                   </div>
                 ))
+
               } </div>
           )
         }

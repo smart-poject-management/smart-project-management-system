@@ -71,7 +71,7 @@ export const requestSupervisor = createAsyncThunk(
   "student/requestSupervisor",
   async (_, thunkAPI) => {
     try {
-      const res = await axiosInstance.get("/student/request-supervisor");
+      const res = await axiosInstance.post("/student/request-supervisor")
       thunkAPI.dispatch(getSupervisor());
       return res.data.data?.supervisor;
     } catch (error) {
@@ -90,7 +90,7 @@ export const uploadFiles = createAsyncThunk(
       const form = new FormData();
       for (const file of files) form.append("files", file);
       const res = await axiosInstance.post(
-        `/student//upload/${projectId}`,
+        `/student/upload/${projectId}`,
         form,
         {
           headers: {
@@ -112,7 +112,7 @@ export const fetchDashboardStats = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get(
-        "/student/fetchDashboardStats")
+        "/student/fetch-dashboard-stats")
       return res.data.data || res.data
     } catch (error) {
       toast.error(error?.response?.data?.message || "failed to fetch student dashboard Stats ");
@@ -125,8 +125,7 @@ export const getFeedback = createAsyncThunk(
   "getFeedback",
   async (projectId, thunkAPI) => {
     try {
-      const res = await axiosInstance.get(
-        `/student/feedback/:${projectId}`)
+      const res = await axiosInstance.get(`/student/feedback/${projectId}`)
       return res.data.data?.feedback || res.data.data || res.data
     } catch (error) {
       toast.error(error?.response?.data?.message || "failed to feedback ");
@@ -178,9 +177,10 @@ const studentSlice = createSlice({
       .addCase(fetchAllSupervisor.fulfilled, (state, action) => {
         state.supervisors = action.payload?.supervisor || action.payload || [];
       })
+
       .addCase(uploadFiles.fulfilled, (state, action) => {
-        const newFiles = action.payload?.project?.files || action.payload || [];
-        state.files = [...state.files, ...newFiles];
+        const newFiles = action.payload?.project?.files || action.payload?.files || [];
+        state.files = Array.isArray(newFiles) ? newFiles : [];
       })
       .addCase(getFeedback.fulfilled, (state, action) => {
         state.feedback = action.payload || []
