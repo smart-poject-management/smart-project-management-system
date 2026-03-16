@@ -22,7 +22,6 @@ const SupervisorPage = () => {
     dispatch(fetchProject());
     dispatch(getSupervisor());
   }, [dispatch]);
-
   const hasSupervisor = useMemo(
     () => !!(supervisor && supervisor._id),
     [supervisor]

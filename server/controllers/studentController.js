@@ -239,7 +239,7 @@ export const downloadFile = asyncHandler(async (req, res, next) => {
       ),
     );
   }
-  if (project.student.toString() !== studentId.toString()) {
+  if (project.student._id.toString() !== studentId.toString()) {
     return next(
       new ErrorHandler(
         "Not authorized to download files for this project",
