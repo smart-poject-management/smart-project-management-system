@@ -14,7 +14,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
 
   const handleLogout = () => {
     dispatch(logout()).then(() => {
-      navigate("/login");
+      navigate("/");
     });
   };
 

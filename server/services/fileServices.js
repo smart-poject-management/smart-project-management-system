@@ -1,31 +1,36 @@
+
 import fs from "fs";
+import path from "path";
 import ErrorHandler from "../middlewares/error.js";
 
-export const streamDownload = (fileUrl, res, originalName) => {
-  try {
+/**
+ * Streams a file download to the client
+ * @param {string} fileUrl - Local path to the file
+ * @param {string} originalName - Original filename for the download
+ * @param {object} res - Express response object
+ */
+export const streamDownload = (fileUrl, originalName, res) => {
+  return new Promise((resolve, reject) => {
+
     if (!fs.existsSync(fileUrl)) {
-      throw new ErrorHandler("File not found", 404);
+      return reject(new ErrorHandler("File not found on server", 404));
     }
 
-    res.download(fileUrl, originalName, (err) => {
-      if (err) {
-        console.error("Error downloading file:", err);
+    const absolutePath = path.resolve(fileUrl);
 
-        if (!res.headersSent) {
-          res.status(500).json({
-            success: false,
-            message: "Error downloading file",
-          });
-        }
-      }
+
+    res.setHeader("Content-Disposition", `attachment; filename="${originalName}"`);
+    res.setHeader("Content-Type", "application/octet-stream");
+
+    const fileStream = fs.createReadStream(absolutePath);
+
+    fileStream.on("error", (err) => {
+      console.error("File stream error:", err);
+      reject(new ErrorHandler("Error reading file", 500));
     });
 
-  } catch (error) {
-    if (!res.headersSent) {
-      res.status(error.statusCode || 500).json({
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
-    }
-  }
+    fileStream.on("end", () => resolve());
+
+    fileStream.pipe(res);
+  });
 };

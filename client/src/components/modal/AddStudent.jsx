@@ -91,6 +91,11 @@ const AddStudent = () => {
                 }
                 className="border rounded-md px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
               >
+                {/* explain this one Department  Select  all  */}
+
+                <option value="" disabled>
+                  Select Department
+                </option>
                 <option value="Computer Science">Computer Science</option>
                 <option value="Mathematics">Mathematics</option>
                 <option value="Data Science">Data Science</option>

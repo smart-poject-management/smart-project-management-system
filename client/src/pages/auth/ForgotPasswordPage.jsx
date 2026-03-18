@@ -48,7 +48,7 @@ const ForgotPasswordPage = () => {
             <span className="font-semibold">{email}</span>.
           </p>
           <Link
-            to="/login"
+            to="/"
             className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-full font-medium transition"
           >
             Back to Login
@@ -119,7 +119,7 @@ const ForgotPasswordPage = () => {
 
           <div className="text-center">
             <Link
-              to="/login"
+              to="/"
               className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500 font-medium"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

@@ -88,7 +88,7 @@ const LoginPage = () => {
           navigate("/admin");
           break;
         default:
-          navigate("/login");
+          navigate("/");
       }
     }
   }, [authUser]);
@@ -212,13 +212,7 @@ const LoginPage = () => {
             )}
           </button>
 
-          {/* Register */}
-          <p className="text-sm text-center mt-8 text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-indigo-600 hover:underline">
-              Register
-            </Link>
-          </p>
+     
         </div>
 
         {/* RIGHT SIDE - Quote */}
@@ -226,7 +220,7 @@ const LoginPage = () => {
           <div className="max-w-md">
             <div className="flex gap-4 items-start">
               <FaQuoteLeft className="text-3xl opacity-80 mt-1" />{" "}
-              {/* ✅ now imported */}
+            
               <p className="text-lg leading-relaxed">
                 This educational project management system makes tracking
                 assignments and collaborating with teachers incredibly easy.

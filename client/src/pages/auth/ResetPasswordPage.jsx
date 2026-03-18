@@ -73,7 +73,7 @@ const ResetPasswordPage = () => {
         })
       ).unwrap();
 
-      navigate("/login");
+      navigate("/");
     } catch (err) {
       setErrors({
         general: err || "Failed to reset password",
@@ -191,7 +191,7 @@ const ResetPasswordPage = () => {
 
           <div className="text-center">
             <Link
-              to="/login"
+              to="/"
               className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
             >
               Back to Login

@@ -22,7 +22,6 @@ const SupervisorPage = () => {
     dispatch(fetchProject());
     dispatch(getSupervisor());
   }, [dispatch]);
-
   const hasSupervisor = useMemo(
     () => !!(supervisor && supervisor._id),
     [supervisor]
@@ -65,8 +64,7 @@ const SupervisorPage = () => {
     if (!selectedSupervisor) return;
     const message =
       requestMessage?.trim() ||
-      `${authUser.name || "Student"} has request ${
-        selectedSupervisor.name
+      `${authUser.name || "Student"} has request ${selectedSupervisor.name
       } to be their supervisor.`;
     dispatch(
       requestSupervisor({
@@ -163,15 +161,14 @@ const SupervisorPage = () => {
                       <span
                         className={`inline-flex items-center gap-2 
                   px-3 py-1 rounded-full font-medium capitalize text-sm
-                  ${
-                    project?.status === "approved"
-                      ? "bg-green-100 text-green-700"
-                      : project?.status === "pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : project?.status === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-700"
-                  }`}
+                  ${project?.status === "approved"
+                            ? "bg-green-100 text-green-700"
+                            : project?.status === "pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : project?.status === "rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-gray-100 text-gray-700"
+                          }`}
                       >
                         {project?.status || "invalid"}
                       </span>
@@ -243,7 +240,7 @@ const SupervisorPage = () => {
 
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {supervisor &&
+                {supervisors &&
                   supervisors.map(sup => (
                     <div key={sup._id} className="card">
                       <div className="card-header">
