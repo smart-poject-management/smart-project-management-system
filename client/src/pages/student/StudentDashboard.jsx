@@ -148,7 +148,53 @@ const StudentDashboard = () => {
         </div>
 
 
-        {/*  */}
+        {/* Main Content */}
+        <div className="grid grid-col-1 lg:grid-col-2 gap-6">
+          {/* Project Overview */}
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Project Overview</h2>
+            </div>
+            {/* project disc */}
+            <div className="">
+              <label htmlFor="title" className="text-sm font-semibold text-gray-500 tracking-wider uppercase">Title</label>
+              <p id="title" className="text-xl font-bold text-gray-900 mt-1">{project?.title || "No Project"}</p>
+
+              <label htmlFor="description" className="text-sm font-semibold text-gray-500 tracking-wider uppercase">Description</label>
+              <p id="description" className="text-xl font-bold text-gray-900 mt-1">{project?.description || "No Project"}</p>
+            </div>
+
+            {/* projects status */}
+            <div className=" flex items-center gap-2 mt-4">
+              <label htmlFor="text-sm font-medium text-slate-600">Status</label>
+              <span className={
+                `inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                 ${project?.status === "approved" ? "badge-approved" :
+                  project?.status === "pending" ? "badge-pending" :
+                    project?.status === "rejected" ? "badge-rejected" :
+                      "badge-pending"
+                }`
+              }
+
+
+
+              >
+                {project?.status || "Unknown"}
+              </span>
+
+            </div>
+
+            <div className=" flex items-center gap-2 mt-4">
+              <label htmlFor="text-sm font-medium text-slate-600">Submission Deadline</label>
+
+              <p className="text-slate-800 font-medium">
+                {formatDate(project?.deadline) || "N/A"}
+              </p>
+
+            </div>
+          </div>
+
+        </div>
       </div>
 
 
