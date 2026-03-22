@@ -65,14 +65,14 @@ router.post(
 router.get(
   "/feedback/:projectId",
   isAuthenticated,
-  isAuthorized("student"),
+  isAuthorized("Student"),
   getFeedback,
 );
 
 router.get(
   "/fetch-dashboard-stats",
   isAuthenticated,
-  isAuthorized("student"),
+  isAuthorized("Student"),
   getDashboardStats,
 );
 
