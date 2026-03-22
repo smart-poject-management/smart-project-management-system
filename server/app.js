@@ -6,11 +6,12 @@ import { errorMiddleware } from './middlewares/error.js';
 import userRouter from './router/userRouters.js';
 import adminRoutes from './router/adminRoutes.js';
 import studentRoutes from './router/studentRoutes.js';
+import notificationRoutes from './router/notificationRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { setServers } from 'node:dns/promises';
-setServers(['1.1.1.1','8.8.8.8']);
+setServers(['1.1.1.1', '8.8.8.8']);
 config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", userRouter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/notification", notificationRoutes)
 
 app.use(errorMiddleware);
 
