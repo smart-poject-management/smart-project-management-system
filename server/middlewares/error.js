@@ -1,33 +1,44 @@
 class ErrorHandler extends Error {
-  constructor(statusCode, message) {
+  constructor(message, statusCode) {
     super(message);
     this.statusCode = statusCode;
   }
 }
+export const errorMiddleware = (err, res, next) => {
+  if (res.headersSent) {
+    console.error("Error after headers sent:", err.message);
+    return next(err);
+  }
 
-export const errorMiddleware = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(statusCode).json({ error: message });
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Internal Server Error";
+
+
   if (err.code === 11000) {
-    res.status(400).json({ error: "Duplicate key error" });
-  }
-  if (err.name === "jsonWebTokenError") {
-    res.status(401).json({ error: "Invalid token" });
-  } 
-     if (err.name === "TokenExpiredError") {
-    res.status(401).json({ error: "Token expired" });
-  }
-  if (err.name === "CastError") {
-    res.status(400).json({ error: "Invalid ID format" });
+    statusCode = 400;
+    const field = Object.keys(err.keyValue || {}).join(", ");
+    message = `Duplicate value for field: ${field}`;
+  } else if (err.name === "JsonWebTokenError") {
+    statusCode = 401;
+    message = "Invalid token";
+  } else if (err.name === "TokenExpiredError") {
+    statusCode = 401;
+    message = "Token expired";
+  } else if (err.name === "CastError") {
+    statusCode = 400;
+    message = `Invalid ID format: ${err.value}`;
+  } else if (err.errors) {
+    statusCode = 400;
+    message = Object.values(err.errors)
+      .map((val) => val.message)
+      .join(", ");
   }
 
-  const errorMessage = err.errors
-    ? Object.values(err.errors)
-        .map((val) => val.message)
-        .join(", ")
-    : "Internal Server Error";
-  res.status(statusCode).json({ error: errorMessage });
+
+  res.status(statusCode).json({
+    success: false,
+    error: message,
+  });
 };
 
 export default ErrorHandler;

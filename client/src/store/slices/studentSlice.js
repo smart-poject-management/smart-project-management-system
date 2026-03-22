@@ -133,20 +133,29 @@ export const getFeedback = createAsyncThunk(
 
 export const downloadFile = createAsyncThunk(
   "student/downloadFile",
-  async ({ projectId, fileId }, thunkAPI) => {
+  async ({ projectId, fileId, fileName }, thunkAPI) => {
     try {
       const res = await axiosInstance.get(
         `/student/download/${projectId}/${fileId}`,
         { responseType: "blob" }
       );
-      return { blob: res.data, projectId, fileId };
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName || "download");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      return { success: true, fileId };
+
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to download file");
       return thunkAPI.rejectWithValue(error.response?.data?.message);
     }
   }
 );
-
 const studentSlice = createSlice({
   name: "student",
   initialState: {
