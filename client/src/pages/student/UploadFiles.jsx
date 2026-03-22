@@ -9,8 +9,7 @@ import {
 import { Archive, File, FileCode, FilePlus, FileText } from "lucide-react";
 const UploadFiles = () => {
   const dispatch = useDispatch();
-
-  const { project, files } = useSelector(state => state.student);
+  const { project, files, loading } = useSelector((state) => state.student);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const reportRef = useRef(null);
   const presRef = useRef(null);
@@ -28,17 +27,19 @@ const UploadFiles = () => {
     e.target.value = "";
   };
 
-  const handleUpload = e => {
-    const activeProject = project;
-    // if (!activeProject) {
-    //   const action = dispatch(fetchProject());
-    //   if (fetchProject.fulfilled.match(action)) {
-    //     activeProject = project.payload?.project || action.payload;
-    //   }
-    // }
-
-    if (selectedFiles.length === 0) return;
-    dispatch(uploadFiles({ projectId: project?._id, files: selectedFiles }));
+  const handleUpload = () => {
+    if (selectedFiles.length === 0) {
+      toast.warn(" Select the  file.");
+      return;
+    }
+    dispatch(uploadFiles({ projectId: project?._id, files: selectedFiles }))
+      .then((res) => {
+        if (uploadFiles.fulfilled.match(res)) {
+          toast.success("Files upload successfully.");
+        } else {
+          toast.error("Upload failed.");
+        }
+      });
     setSelectedFiles([]);
   };
 
@@ -57,7 +58,7 @@ const UploadFiles = () => {
           : ["ppt", "pptx"].includes(extension)
             ? "text-orange-500"
             : "text-slate-500";
-    return <Icon className={`w-8 h-8 ${color}`} />;
+    return <File className={`w-8 h-8 ${color}`} />;
   };
 
   const handleDownloadFile = async file => {
@@ -86,8 +87,7 @@ const UploadFiles = () => {
             code files.
           </p>
         </div>
-
-        {/* upload section */}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Report files */}
           <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">

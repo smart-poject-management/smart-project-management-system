@@ -11,6 +11,7 @@ export const streamDownload = (fileUrl, res, originalName) => {
         throw new ErrorHandler("Error downloading file", 500);
       }
     });
+<<<<<<< HEAD
   } catch (error) {
     if (error instanceof ErrorHandler) {
       return res.status(error.statusCode).json({
@@ -23,4 +24,11 @@ export const streamDownload = (fileUrl, res, originalName) => {
       message: "Internal Server Error",
     });
   }
+=======
+
+    fileStream.on("end", () => resolve());
+
+    fileStream.pipe(res);
+  });
+>>>>>>> 3bb5eab8e2fc78e5795afd245fd1f9313fcf1d1e
 };
