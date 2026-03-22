@@ -7,7 +7,6 @@ import { Archive, File, FileCode, FilePlus, FileText, Loader } from "lucide-reac
 
 const UploadFiles = () => {
   const dispatch = useDispatch();
-
   const { project, files, loading } = useSelector((state) => state.student);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [downloadingId, setDownloadingId] = useState(null);
@@ -29,15 +28,15 @@ const UploadFiles = () => {
 
   const handleUpload = () => {
     if (selectedFiles.length === 0) {
-      toast.warn("Pehle koi file select karo!");
+      toast.warn(" Select the  file.");
       return;
     }
     dispatch(uploadFiles({ projectId: project?._id, files: selectedFiles }))
       .then((res) => {
         if (uploadFiles.fulfilled.match(res)) {
-          toast.success("Files successfully upload ho gayi!");
+          toast.success("Files upload successfully.");
         } else {
-          toast.error("Upload failed. Dobara try karo.");
+          toast.error("Upload failed.");
         }
       });
     setSelectedFiles([]);
@@ -54,10 +53,10 @@ const UploadFiles = () => {
       extension === "pdf"
         ? "text-red-500"
         : ["doc", "docx"].includes(extension)
-        ? "text-blue-500"
-        : ["ppt", "pptx"].includes(extension)
-        ? "text-orange-500"
-        : "text-slate-500";
+          ? "text-blue-500"
+          : ["ppt", "pptx"].includes(extension)
+            ? "text-orange-500"
+            : "text-slate-500";
     return <File className={`w-8 h-8 ${color}`} />;
   };
 
@@ -98,7 +97,7 @@ const UploadFiles = () => {
             code files.
           </p>
         </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Report */}
           <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
