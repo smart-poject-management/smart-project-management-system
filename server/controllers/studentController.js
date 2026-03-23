@@ -6,6 +6,7 @@ import * as notificationService from "../services/notificationService.js";
 import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
 import * as fileService from "../services/fileServices.js";
+import ErrorHandler from "../middlewares/error.js";
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
