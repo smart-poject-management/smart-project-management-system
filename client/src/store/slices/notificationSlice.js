@@ -7,7 +7,7 @@ export const getNotifications = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/notification");
-      return res.data?.data || res.data;
+      return res.data.data;
     } catch (error) {
       toast.error(
         error.response.data.message || "Failed to fetch notifications"
@@ -45,7 +45,7 @@ export const deleteNotification = createAsyncThunk(
   "deleteNotification",
   async (id, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/notification/${id}/delete`);
+      await axiosInstance.delete(`/notification/${id}/delete`); 
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.message);
@@ -66,50 +66,52 @@ const notificationSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
+    builder.addCase(getNotifications.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
     builder.addCase(getNotifications.fulfilled, (state, action) => {
-      state.list = action.payload?.notifications || action.payload || [];
-      state.unreadCount = action.payload?.unreadOnly || 0;
-      state.readCount = action.payload?.readOnly || 0;
-      state.highPriorityMessages = action.payload?.highPriorityMessages || 0;
-      state.thisWeekNotifications = action.payload?.thisWeekNotifications || 0;
+      state.loading = false;
+      state.list = action.payload?.notifications || [];
+      state.unreadCount = action.payload?.unreadOnly ?? 0;           
+      state.readCount = action.payload?.readOnly ?? 0;               
+      state.highPriorityMessages = action.payload?.highPriorityMessages ?? 0;
+      state.thisWeekNotifications = action.payload?.thisWeekNotifications ?? 0;
+    });
+    builder.addCase(getNotifications.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
     });
     builder.addCase(markAsRead.fulfilled, (state, action) => {
-      state.list = state.list.map(notification =>
-        notification._id === action.payload
-          ? { ...notification, isRead: true }
-          : notification
-      );
-      state.unreadCount = Math.max(0, state.unreadCount - 1);
-      state.readCount = Math.max(0, state.readCount + 1);
+      const notification = state.list.find(n => n._id === action.payload);
+      if (notification && !notification.isRead) {
+        notification.isRead = true;
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
+        state.readCount = state.readCount + 1;
+      }
     });
-
-    builder.addCase(markAllAsRead.fulfilled, (state, action) => {
+    builder.addCase(markAllAsRead.fulfilled, (state) => {
+      const unreadCount = state.list.filter(n => !n.isRead).length;
       state.list = state.list.map(notification => ({
         ...notification,
         isRead: true,
       }));
+      state.readCount = state.readCount + unreadCount;
+      state.unreadCount = 0;
     });
-
     builder.addCase(deleteNotification.fulfilled, (state, action) => {
-      const removed = state.list.find(
-        notification => notification._id === action.payload
-      );
-      state.list = state.list.filter(
-        notification => notification._id !== action.payload
-      );
+      const removed = state.list.find(n => n._id === action.payload);
+      state.list = state.list.filter(n => n._id !== action.payload);
 
       if (removed) {
         if (!removed.isRead) {
-          state.unreadCount = Math.max(0, state.unreadCount - 1);
+          state.unreadCount = Math.max(0, state.unreadCount - 1); 
         }
         if (removed.isRead) {
-          state.unreadCount = Math.max(0, state.readCount - 1);
+          state.readCount = Math.max(0, state.readCount - 1);     
         }
         if (removed.priority === "high") {
-          state.highPriorityMessages = Math.max(
-            0,
-            state.highPriorityMessages - 1
-          );
+          state.highPriorityMessages = Math.max(0, state.highPriorityMessages - 1);
         }
       }
     });

@@ -41,7 +41,7 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   }
   if (existingUser && existingUser.status === "rejected") {
     await Project.findByIdAndDelete(existingUser._id);
-  } 
+  }
 
   const projectData = {
     student: studentId,
@@ -186,8 +186,8 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
   const feedbackNotification =
     project?.feedback && project?.feedback.length > 0
       ? project.feedback
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 2)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 2)
       : [];
 
   const supervisorName = project?.superviosr?.name || null;
@@ -211,7 +211,7 @@ export const getFeedback = asyncHandler(async (req, res, next) => {
 
   const project = await projectService.getProjectById(projectId);
 
-  if (!project || project.student.toString() !== studentId.toString()) {
+  if (!project || project.student._id.toString() !== studentId.toString()) {  // check if the student is authorized to view the feedback and fixing the error of undefined
     return next(
       new ErrorHandler("Not authorized to view feedback for this project", 403),
     );
@@ -237,8 +237,8 @@ export const downloadFile = asyncHandler(async (req, res, next) => {
   }
 
 
-  const projectStudentId = project.student?._id 
-    ? project.student._id.toString() 
+  const projectStudentId = project.student?._id
+    ? project.student._id.toString()
     : project.student.toString();
 
   if (projectStudentId !== studentId.toString()) {
