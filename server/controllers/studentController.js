@@ -219,7 +219,15 @@ export const getFeedback = asyncHandler(async (req, res, next) => {
 
   const sortedFeedback = project.feedback.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-  );
+  ).map((f) => ({
+    _id: f._id,
+    title: f.title,
+    message: f.message,
+    type: f.type,
+    createdAt: f.createdAt,
+    supervisorName: f.supervisorId?.name,
+    supervisorEmail: f.supervisorId?.email
+  }));
 
   res.status(200).json({
     success: true,
