@@ -15,9 +15,12 @@ import {
   ChevronDown,
   Clock,
   Clock5,
+  Info,
   MessageCircle,
+  Send,
   Settings,
   User,
+  XCircle,
 } from "lucide-react";
 const NotificationsPage = () => {
   const dispatch = useDispatch();
@@ -32,18 +35,32 @@ const NotificationsPage = () => {
   const markAllAsReadHandler = () => dispatch(markAllAsRead());
   const deleteNotificationHandler = id => dispatch(deleteNotification(id));
 
-  const getNotificationIcon = type => {
+  const getNotificationIcon = (type) => {
     switch (type) {
       case "feedback":
         return <MessageCircle className="w-6 h-6 text-blue-500" />;
+
       case "deadline":
         return <Clock5 className="w-6 h-6 text-red-500" />;
+
       case "approval":
         return <BadgeCheck className="w-6 h-6 text-green-500" />;
+
       case "meeting":
         return <Calendar className="w-6 h-6 text-purple-500" />;
+
       case "system":
         return <Settings className="w-6 h-6 text-gray-500" />;
+
+      case "general":
+        return <Info className="w-6 h-6 text-blue-400" />;
+
+      case "rejection":
+        return <XCircle className="w-6 h-6 text-red-500" />;
+
+      case "request":
+        return <Send className="w-6 h-6 text-orange-500" />;
+
       default:
         return (
           <div className="relative w-6 h-6 text-slate-500 flex items-center justify-center">
@@ -53,7 +70,6 @@ const NotificationsPage = () => {
         );
     }
   };
-
   const getPriorityColor = priority => {
     switch (priority) {
       case "high":
@@ -84,7 +100,7 @@ const NotificationsPage = () => {
       title: "Total",
       value: notifications.length,
       bg: "bg-blue-50",
-      iconBg: "bg-blue-100",
+      iconBg: "bg-blue-1",
       textColor: "text-blue-600",
       titleColor: "text-blue-800",
       Icon: User,
@@ -128,7 +144,7 @@ const NotificationsPage = () => {
     <div className="space-y-6 p-4">
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
 
-        {/* HEADER */}
+        {/* NOTIFICATION HEADER */}
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">Notifications</h2>
@@ -147,7 +163,7 @@ const NotificationsPage = () => {
           )}
         </div>
 
-        {/* STATS */}
+        {/*NOTIFICATION STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {stats.map((item, i) => (
             <div
@@ -175,12 +191,12 @@ const NotificationsPage = () => {
               className={`relative border rounded-2xl p-5 transition-all duration-300 shadow-sm hover:shadow-md
                 ${getPriorityColor(notification.priority)}
                 ${!notification.isRead
-                  ? "bg-blue-50 border-blue-200"
+                  ? " border-blue-200"
                   : "bg-white hover:bg-slate-50"
                 }`}
             >
               <div className="flex space-x-4">
-                <div className="flex-shrink-0 mt-1 p-2 bg-slate-100 rounded-lg">
+                <div className="flex-shrink-0 mt-1 p-2 ">
                   {getNotificationIcon(notification.type)}
                 </div>
 
@@ -230,7 +246,13 @@ const NotificationsPage = () => {
                               ? "bg-green-100 text-green-700"
                               : notification.type === "meeting"
                                 ? "bg-purple-100 text-purple-700"
-                                : "bg-gray-100 text-gray-700"
+                                : notification.type === "request"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : notification.type === "general"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : notification.type === "rejection"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-gray-100 text-gray-700"
                         }`}
                     >
                       {notification.type}
