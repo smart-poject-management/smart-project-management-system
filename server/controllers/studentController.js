@@ -6,6 +6,7 @@ import * as notificationService from "../services/notificationService.js";
 import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
 import * as fileService from "../services/fileServices.js";
+import ErrorHandler from "../middlewares/error.js";
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
@@ -40,7 +41,7 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   }
   if (existingUser && existingUser.status === "rejected") {
     await Project.findByIdAndDelete(existingUser._id);
-  } 
+  }
 
   const projectData = {
     student: studentId,
@@ -185,8 +186,8 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
   const feedbackNotification =
     project?.feedback && project?.feedback.length > 0
       ? project.feedback
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 2)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 2)
       : [];
 
   const supervisorName = project?.superviosr?.name || null;
@@ -210,7 +211,7 @@ export const getFeedback = asyncHandler(async (req, res, next) => {
 
   const project = await projectService.getProjectById(projectId);
 
-  if (!project || project.student.toString() !== studentId.toString()) {
+  if (!project || project.student._id.toString() !== studentId.toString()) {  // check if the student is authorized to view the feedback and fixing the error of undefined
     return next(
       new ErrorHandler("Not authorized to view feedback for this project", 403),
     );
@@ -218,7 +219,15 @@ export const getFeedback = asyncHandler(async (req, res, next) => {
 
   const sortedFeedback = project.feedback.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-  );
+  ).map((f) => ({
+    _id: f._id,
+    title: f.title,
+    message: f.message,
+    type: f.type,
+    createdAt: f.createdAt,
+    supervisorName: f.supervisorId?.name,
+    supervisorEmail: f.supervisorId?.email
+  }));
 
   res.status(200).json({
     success: true,
@@ -236,8 +245,8 @@ export const downloadFile = asyncHandler(async (req, res, next) => {
   }
 
 
-  const projectStudentId = project.student?._id 
-    ? project.student._id.toString() 
+  const projectStudentId = project.student?._id
+    ? project.student._id.toString()
     : project.student.toString();
 
   if (projectStudentId !== studentId.toString()) {

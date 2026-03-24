@@ -1,5 +1,27 @@
 import mongoose from "mongoose";
 
+const feedbackSchema = new mongoose.Schema({
+  supervisorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+  type: {
+    type: String,
+    enum: ["general", "file", "positive"],
+    default: "general",
+  },
+  title: {
+    type: String,
+    required: [true, "Feedback title is required"],
+  },
+  message: {
+    type: String,
+    required: true,
+    maxlength: [1000, "Title cannot be more than 1000 character"],
+  },
+}, { timestamps: true });
+
 const projectSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
@@ -49,27 +71,7 @@ const projectSchema = new mongoose.Schema({
     },
   ],
   feedback: [
-    {
-      supervisorId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        default: null,
-      },
-      type: {
-        type: mongoose.Schema.Types.ObjectId,
-        enum: ["general", "file", "positive"],
-        default: "general",
-      },
-      title: {
-        type: String,
-        required: [true, "Feedback title is required"],
-      },
-      message: {
-        type: String,
-        required: true,
-        maxlength: [1000, "Title cannot be more than 1000 character"],
-      },
-    },
+    feedbackSchema
   ],
   deadline: {
     type: Date,

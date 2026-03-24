@@ -1,6 +1,9 @@
 import { asyncHandler } from "../middlewares/asyncHandler.js";
 import * as userServices from "../services/userService.js";
 import * as projectServices from "../services/projectService.js";
+import { User } from "../models/user.js";
+import { Project } from "../models/project.js";
+import { SupervisorRequest } from "../models/supervisorRequest.js";
 
 // student controllers
 export const createStudent = asyncHandler(async (req, res) => {
@@ -143,4 +146,37 @@ export const getAllProjects = asyncHandler(async (req, res) => {
     message: "Projects fetched successfully",
     data: { projects },
   });
+});
+
+export const getDashboardStates = asyncHandler(async (req, res) => {
+  const [
+    totalStudents,
+    totalTeachers,
+    totalProjects,
+    pendingRequests,
+    completedProjects,
+    pendingProjects
+  ] = await Promise.all([
+    User.countDocuments({ role: "Student" }),
+    User.countDocuments({ role: "Teacher" }),
+    Project.countDocuments(),
+    SupervisorRequest.countDocuments({ status: "pending" }),
+    Project.countDocuments({ status: "completed" }),
+    Project.countDocuments({ status: "pending" })
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: "Admin Dashboard states fetched",
+    data: {
+      states: {
+        totalStudents,
+        totalTeachers,
+        totalProjects,
+        pendingRequests,
+        completedProjects,
+        pendingProjects
+      }
+    }
+  })
 });
