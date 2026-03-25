@@ -7,6 +7,7 @@ import userRouter from './router/userRouters.js';
 import adminRoutes from './router/adminRoutes.js';
 import studentRoutes from './router/studentRoutes.js';
 import notificationRoutes from './router/notificationRoutes.js';
+import projectRoutes from './router/projectRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -41,7 +42,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", userRouter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/student", studentRoutes);
-app.use("/api/notification", notificationRoutes)
+app.use("/api/notification", notificationRoutes);
+app.use("/api/project", projectRoutes);
 
 app.use(errorMiddleware);
 
