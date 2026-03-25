@@ -177,7 +177,7 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
     .limit(3)
     .lean();
 
-  const topNotification = await Notification.findOne({ user: studentId })
+  const topNotification = await Notification.find({ user: studentId })
     .populate("user", "name")
     .sort({ createdAt: -1 })
     .limit(3)
@@ -190,7 +190,7 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
         .slice(0, 2)
       : [];
 
-  const supervisorName = project?.superviosr?.name || null;
+  const supervisorName = project?.supervisor?.name || null;
 
   res.status(200).json({
     success: true,
