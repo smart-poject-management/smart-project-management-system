@@ -9,6 +9,10 @@ import * as fileService from "../services/fileServices.js";
 import ErrorHandler from "../middlewares/error.js";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
@@ -298,9 +302,8 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
   project.files = project.files.filter((f) => f._id.toString() !== fileId);
   await project.save();
 
-  
   if (filePath) {
-    const absolutePath = path.resolve(filePath);
+    const absolutePath = path.join(__dirname, "../uploads", filePath);
     try {
       if (fs.existsSync(absolutePath)) {
         await fs.promises.unlink(absolutePath);
