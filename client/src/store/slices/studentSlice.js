@@ -156,6 +156,22 @@ export const downloadFile = createAsyncThunk(
     }
   }
 );
+
+export const deleteProjectFile = createAsyncThunk(
+  "student/deleteProjectFile",
+  async ({ projectId, fileId }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.delete(
+        `/student/file/${projectId}/${fileId}`,
+      );
+      toast.success(res.data.message || "File deleted successfully");
+      return { fileId, project: res.data.data?.project || null };
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to delete file");
+      return thunkAPI.rejectWithValue(error.response?.data?.message);
+    }
+  },
+);
 const studentSlice = createSlice({
   name: "student",
   initialState: {
@@ -194,6 +210,19 @@ const studentSlice = createSlice({
       })
       .addCase(fetchDashboardStats.fulfilled, (state, action) => {
         state.dashboardStats = action.payload || [];
+      })
+      .addCase(deleteProjectFile.fulfilled, (state, action) => {
+        const deletedId = action.payload?.fileId;
+        if (deletedId) {
+          state.files = (state.files || []).filter((f) => f._id !== deletedId);
+        }
+
+        
+        const nextProject = action.payload?.project;
+        if (nextProject) {
+          state.project = nextProject;
+          state.files = nextProject.files || state.files || [];
+        }
       });
   },
 });

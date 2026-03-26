@@ -2,7 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { downloadFile, fetchProject, uploadFiles } from "../../store/slices/studentSlice";
+import {
+  deleteProjectFile,
+  downloadFile,
+  fetchProject,
+  uploadFiles,
+} from "../../store/slices/studentSlice";
 import { Archive, File, FileCode, FilePlus, FileText, Loader } from "lucide-react";
 
 const UploadFiles = () => {
@@ -10,6 +15,7 @@ const UploadFiles = () => {
   const { project, files, loading } = useSelector((state) => state.student);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const reportRef = useRef(null);
   const presRef = useRef(null);
   const codeRef = useRef(null);
@@ -82,6 +88,32 @@ const UploadFiles = () => {
       toast.error("Download failed.");
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  const handleDeleteFile = async (file) => {
+    if (deletingId) return;
+    if (!project?._id || !file?._id) return;
+
+    const ok = window.confirm(`Delete "${file.originalName}"?`);
+    if (!ok) return;
+
+    setDeletingId(file._id);
+    try {
+      const res = await dispatch(
+        deleteProjectFile({ projectId: project._id, fileId: file._id }),
+      );
+
+      if (deleteProjectFile.fulfilled.match(res)) {
+        toast.success(`"${file.originalName}" deleted successfully!`);
+      } else {
+        toast.error("Delete failed.");
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Delete failed.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -244,21 +276,39 @@ const UploadFiles = () => {
                   </div>
                 </div>
 
-                {/* Download Button */}
-                <button
-                  className="btn-outline btn-small inline-flex items-center gap-1.5"
-                  onClick={() => handleDownloadFile(file)}
-                  disabled={downloadingId === file._id}
-                >
-                  {downloadingId === file._id ? (
-                    <>
-                      <Loader className="w-3 h-3 animate-spin" />
-                      Downloading...
-                    </>
-                  ) : (
-                    "Download"
-                  )}
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Download Button */}
+                  <button
+                    className="btn-outline btn-small inline-flex items-center gap-1.5"
+                    onClick={() => handleDownloadFile(file)}
+                    disabled={downloadingId === file._id || deletingId === file._id}
+                  >
+                    {downloadingId === file._id ? (
+                      <>
+                        <Loader className="w-3 h-3 animate-spin" />
+                        Downloading...
+                      </>
+                    ) : (
+                      "Download"
+                    )}
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    className="btn-danger btn-small inline-flex items-center gap-1.5"
+                    onClick={() => handleDeleteFile(file)}
+                    disabled={deletingId === file._id || downloadingId === file._id}
+                  >
+                    {deletingId === file._id ? (
+                      <>
+                        <Loader className="w-3 h-3 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
