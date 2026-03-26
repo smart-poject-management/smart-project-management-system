@@ -4,6 +4,7 @@ import {
   isAuthorized,
 } from "../middlewares/authMiddleware.js";
 import {
+  deleteProjectFile,
   downloadFile,
   getAvailableSupervisors,
   getDashboardStats,
@@ -81,6 +82,13 @@ router.get(
   isAuthenticated,
   isAuthorized("Student"),
   downloadFile,
+);
+
+router.delete(
+  "/file/:projectId/:fileId",
+  isAuthenticated,
+  isAuthorized("Student"),
+  deleteProjectFile,
 );
 
 export default router;

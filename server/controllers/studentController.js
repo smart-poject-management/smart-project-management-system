@@ -7,6 +7,12 @@ import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
 import * as fileService from "../services/fileServices.js";
 import ErrorHandler from "../middlewares/error.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
@@ -259,9 +265,58 @@ export const downloadFile = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    await fileService.streamDownload(file.fileUrl, file.originalname, res);
+    await fileService.streamDownload(file.fileUrl, file.originalName, res);
   } catch (error) {
     if (res.headersSent) return res.end();
     return next(error);
   }
+});
+
+export const deleteProjectFile = asyncHandler(async (req, res, next) => {
+  const { projectId, fileId } = req.params;
+  const studentId = req.user._id;
+
+  const project = await projectService.getProjectById(projectId);
+  if (!project) {
+    return next(new ErrorHandler("Project not found", 404));
+  }
+
+  const projectStudentId = project.student?._id
+    ? project.student._id.toString()
+    : project.student.toString();
+
+  if (projectStudentId !== studentId.toString()) {
+    return next(
+      new ErrorHandler("Not authorized to delete files for this project", 403),
+    );
+  }
+
+  const file = project.files.id(fileId);
+  if (!file) {
+    return next(new ErrorHandler("File not found", 404));
+  }
+
+  const filePath = file.fileUrl;
+
+  // Remove from DB first 
+  project.files = project.files.filter((f) => f._id.toString() !== fileId);
+  await project.save();
+
+  if (filePath) {
+    const absolutePath = path.join(__dirname, "../uploads", filePath);
+    try {
+      if (fs.existsSync(absolutePath)) {
+        await fs.promises.unlink(absolutePath);
+      }
+    } catch (err) {
+      
+      console.error("File deletion error:", err);
+    }
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "File deleted successfully",
+    data: { project },
+  });
 });
