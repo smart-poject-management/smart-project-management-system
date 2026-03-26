@@ -19,7 +19,11 @@ import {
 } from "../../store/slices/adminSlice";
 import { getNotifications } from "../../store/slices/notificationSlice";
 import { downloadProjectFile } from "../../store/slices/projectSlice";
-// import { toggleStudentModal, toggleTeacherModal } from "../../store/slices/popupSlice";
+import {
+  toggleStudentModel,
+  toggleTeacherModel,
+} from "../../store/slices/popupSlice";
+
 import {
   AlertCircle,
   AlertTriangle,
@@ -28,6 +32,7 @@ import {
   Folder,
   PlusIcon,
   User,
+  X,
 } from "lucide-react";
 
 const AdminDashboard = () => {
@@ -35,8 +40,7 @@ const AdminDashboard = () => {
     state => state.popup
   );
 
-  const { stats } = useSelector(state => state.admin);
-  const { projects } = useSelector(state => state.project);
+  const { stats, projects } = useSelector(state => state.admin);
   const { notifications } = useSelector(state => state.notification.list);
 
   const dispatch = useDispatch();
@@ -70,6 +74,7 @@ const AdminDashboard = () => {
         const project = projects[index];
         return {
           projectId: project._id,
+          fileId: file._id,
           originalName: file.originalName,
           uploadedAt: file.uploadedAt,
           projectTitle: project.title,
@@ -215,13 +220,13 @@ const AdminDashboard = () => {
   const actionButtons = [
     {
       label: "Add Student",
-      onClick: () => dispatch(toggleStudentModal()),
+      onClick: () => dispatch(toggleStudentModel()),
       btnClass: "btn-primary",
       Icon: PlusIcon,
     },
     {
       label: "Add Teacher",
-      onClick: () => dispatch(toggleTeacherModal()),
+      onClick: () => dispatch(toggleTeacherModel()),
       btnClass: "btn-secondary",
       Icon: PlusIcon,
     },
@@ -379,9 +384,107 @@ const AdminDashboard = () => {
                 </div>
               );
             })}
+
+            {latestNotifications.length === 0 && (
+              <div className="text-slate-500 text-sm ">
+                No recent notifications.
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">Quick Actions</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {actionButtons.map((btn, index) => {
+            return (
+              <button
+                key={index}
+                className={`${btn.btnClass} flex items-center justify-center space-x-2 `}
+                onClick={btn.onClick}
+              >
+                <btn.Icon className="h-5 w-5" />
+                <span>{btn.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* isReportsModelOpen */}
+      {isReportsModelOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-screen overflow-y-auto ">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                All Files
+              </h3>
+              <button
+                onClick={() => setIsReportsModelOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <input
+                type="text"
+                className="input w-full"
+                placeholder="Search by file name, project title, or student name"
+                value={reportSearch}
+                onChange={e => setReportSearch(e.target.value)}
+              />
+            </div>
+
+            {filteredFiles.length === 0 ? (
+              <div className="text-slate-500">No Files Found.</div>
+            ) : (
+              <div className="space-y-2">
+                {filteredFiles.map((file, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-slate-50 rounded"
+                    >
+                      <div>
+                        <div className="font-medium text-slate-800">
+                          {file.originalName}
+                        </div>
+
+                        <div className="font-sm text-slate-500">
+                          {file.projectTitle} - {file.studentName}
+                        </div>
+                      </div>
+
+                      <button
+                        className="btn-outline btn-small"
+                        onClick={() =>
+                          handleDownload(
+                            file.projectId,
+                            file.fileId,
+                            file.originalName
+                          )
+                        }
+                      >
+                        Download
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isCreateStudentModalOpen && <AddStudent />}
+      {isCreateTeacherModalOpen && <AddTeacher />}
     </div>
   );
 };

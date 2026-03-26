@@ -22,7 +22,7 @@ import {
 
 const UploadFiles = () => {
   const dispatch = useDispatch();
-  const { project, files, loading } = useSelector((state) => state.student);
+  const { project, files, loading } = useSelector(state => state.student);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [downloadingId, setDownloadingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
@@ -37,9 +37,9 @@ const UploadFiles = () => {
     }
   }, [dispatch]);
 
-  const handleFilePick = (e) => {
+  const handleFilePick = e => {
     const list = Array.from(e.target.files || []);
-    setSelectedFiles((prev) => [...prev, ...list]);
+    setSelectedFiles(prev => [...prev, ...list]);
     e.target.value = "";
   };
 
@@ -52,12 +52,12 @@ const UploadFiles = () => {
     setSelectedFiles([]);
   };
 
-  const removeSelected = (name) => {
-    setSelectedFiles((prev) => prev.filter((f) => f.name !== name));
+  const removeSelected = name => {
+    setSelectedFiles(prev => prev.filter(f => f.name !== name));
     toast.warn(`"${name}" deleted from upload queue.`);
   };
 
-  const getFileIcon = (fileName) => {
+  const getFileIcon = fileName => {
     const extension = fileName?.split(".").pop().toLowerCase();
     const color =
       extension === "pdf"
@@ -70,7 +70,7 @@ const UploadFiles = () => {
     return <File className={`w-8 h-8 ${color}`} />;
   };
 
-  const handleDownloadFile = async (file) => {
+  const handleDownloadFile = async file => {
     if (downloadingId) return;
     setDownloadingId(file._id);
     await dispatch(
@@ -83,7 +83,7 @@ const UploadFiles = () => {
     setDownloadingId(null);
   };
 
-  const handleDeleteFile = (file) => {
+  const handleDeleteFile = file => {
     setConfirmFile(file);
   };
   // delete file confirmation
@@ -100,8 +100,6 @@ const UploadFiles = () => {
 
   return (
     <div className="space-y-6 p-4">
-
-
       {/* delete file confirmation */}
       {confirmFile && (
         <div
@@ -110,7 +108,7 @@ const UploadFiles = () => {
         >
           <div
             className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-sm mx-4"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-11 h-11 rounded-full bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
@@ -154,18 +152,19 @@ const UploadFiles = () => {
 
       {/*  Upload Section  */}
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
-
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Upload Project Files</h2>
+            <h2 className="text-2xl font-bold text-slate-800">
+              Upload Project Files
+            </h2>
             <p className="text-sm text-slate-500">
-              Upload your project documents including reports, presentations, and code files.
+              Upload your project documents including reports, presentations,
+              and code files.
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-
           {/* Report */}
           <div className="border-2 border-dashed border-blue-500 rounded-lg p-6 text-center ">
             <div className="mb-4">
@@ -194,7 +193,9 @@ const UploadFiles = () => {
             <div className="mb-4">
               <Archive className="w-12 h-12 text-orange-500 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-slate-800 mb-2">Presentation</h3>
+            <h3 className="text-lg font-medium text-slate-800 mb-2">
+              Presentation
+            </h3>
             <p className="text-sm text-slate-600 mb-4">
               Upload your presentation (PPT, PPTX, PDF)
             </p>
@@ -217,7 +218,9 @@ const UploadFiles = () => {
             <div className="mb-4">
               <FileCode className="w-12 h-12 text-gray-500 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-slate-800 mb-2">Code Files</h3>
+            <h3 className="text-lg font-medium text-slate-800 mb-2">
+              Code Files
+            </h3>
             <p className="text-sm text-slate-600 mb-4">
               Upload your source code (ZIP, RAR, TAR)
             </p>
@@ -241,13 +244,17 @@ const UploadFiles = () => {
           <div className="mt-6 border border-slate-200 rounded-2xl bg-white shadow-sm">
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">Ready to Upload</h2>
-                <p className="text-xs text-slate-500">{selectedFiles.length} file(s) selected</p>
+                <h2 className="text-lg font-semibold text-slate-800">
+                  Ready to Upload
+                </h2>
+                <p className="text-xs text-slate-500">
+                  {selectedFiles.length} file(s) selected
+                </p>
               </div>
             </div>
 
             <div className="divide-y divide-slate-200">
-              {selectedFiles.map((file) => (
+              {selectedFiles.map(file => (
                 <div
                   key={file.name}
                   className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition"
@@ -255,7 +262,9 @@ const UploadFiles = () => {
                   <div className="flex items-center gap-4 min-w-0">
                     {getFileIcon(file.name)}
                     <div className="truncate">
-                      <p className="font-medium text-slate-800 truncate">{file.name}</p>
+                      <p className="font-medium text-slate-800 truncate">
+                        {file.name}
+                      </p>
                       <p className="text-xs text-slate-500">
                         {(file.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
@@ -292,8 +301,12 @@ const UploadFiles = () => {
         {/* Uploaded Files List */}
         <div className="mt-6 border border-slate-200 rounded-2xl shadow-sm">
           <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-xl font-semibold text-slate-800">Uploaded Files</h2>
-            <p className="text-sm text-slate-500">Manage your uploaded project files</p>
+            <h2 className="text-xl font-semibold text-slate-800">
+              Uploaded Files
+            </h2>
+            <p className="text-sm text-slate-500">
+              Manage your uploaded project files
+            </p>
           </div>
 
           {(files || []).length === 0 ? (
@@ -303,7 +316,7 @@ const UploadFiles = () => {
             </div>
           ) : (
             <div className="divide-y divide-slate-200">
-              {files.map((file) => (
+              {files.map(file => (
                 <div
                   key={file._id || file.fileUrl}
                   className="flex items-center justify-between px-6 py-4 hover:bg-slate-100 transition"
@@ -311,15 +324,21 @@ const UploadFiles = () => {
                   <div className="flex items-center gap-4 min-w-0">
                     {getFileIcon(file.originalName)}
                     <div className="truncate">
-                      <p className="text-slate-800 font-medium truncate">{file.originalName}</p>
-                      <p className="text-xs text-slate-500">{file.fileType || "File"}</p>
+                      <p className="text-slate-800 font-medium truncate">
+                        {file.originalName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {file.fileType || "File"}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleDownloadFile(file)}
-                      disabled={downloadingId === file._id || deletingId === file._id}
+                      disabled={
+                        downloadingId === file._id || deletingId === file._id
+                      }
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-lg bg-white/50 text-gray-700 hover:bg-gray-200 transition disabled:opacity-50"
                     >
                       {downloadingId === file._id ? (
@@ -332,7 +351,9 @@ const UploadFiles = () => {
 
                     <button
                       onClick={() => handleDeleteFile(file)}
-                      disabled={deletingId === file._id || downloadingId === file._id}
+                      disabled={
+                        deletingId === file._id || downloadingId === file._id
+                      }
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-700 border border-red-200 rounded-lg bg-white/50 hover:bg-red-200 transition disabled:opacity-50"
                     >
                       {deletingId === file._id ? (
