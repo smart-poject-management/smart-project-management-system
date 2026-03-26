@@ -23,8 +23,8 @@ const StudentDashboard = () => {
   const project = dashboardStats?.project || {};
   const supervisorName = dashboardStats?.supervisorName || "N/A";
   const upcomingDeadlines = dashboardStats?.upcomingDeadlines || [];
-  const topNotifications = dashboardStats?.topNotifications || [];
-  const feedbackList = dashboardStats?.feedbackList?.slice(-2).reverse() || [];
+  const topNotifications = dashboardStats?.topNotification || [];
+  const feedbackList = dashboardStats?.feedbackNotification || [];
 
   const formatDate = dateStr => {
     return new Date(dateStr).toLocaleDateString("en-GB", {
@@ -186,15 +186,14 @@ const StudentDashboard = () => {
               <label htmlFor="text-sm font-medium text-slate-600">Status</label>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                 ${
-                   project?.status === "approved"
-                     ? "badge-approved"
-                     : project?.status === "pending"
-                       ? "badge-pending"
-                       : project?.status === "rejected"
-                         ? "badge-rejected"
-                         : "badge-pending"
-                 }`}
+                 ${project?.status === "approved"
+                    ? "badge-approved"
+                    : project?.status === "pending"
+                      ? "badge-pending"
+                      : project?.status === "rejected"
+                        ? "badge-rejected"
+                        : "badge-pending"
+                  }`}
               >
                 {project?.status || "Unknown"}
               </span>
