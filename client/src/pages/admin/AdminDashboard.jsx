@@ -17,8 +17,9 @@ import {
   getAllProjects,
   getDashboardStats,
 } from "../../store/slices/adminSlice";
-import { getNotifications } from "../../../../server/controllers/notificationController";
+import { getNotifications } from "../../store/slices/notificationSlice";
 import { downloadProjectFile } from "../../store/slices/projectSlice";
+// import { toggleStudentModal, toggleTeacherModal } from "../../store/slices/popupSlice";
 import {
   AlertCircle,
   AlertTriangle,
@@ -233,9 +234,155 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <>
-      <h1>Admin Dashboard</h1>
-    </>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-xl shadow-sm border border-blue-100 text-white">
+        <h1 className="text-3xl font-bold ">Admin Dashboard</h1>
+        <p className="text-blue-100">
+          Manage the entire project management system and oversee all
+          activities.
+        </p>
+      </div>
+
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        {dashboardStats.map((item, i) => (
+          <div
+            key={i}
+            className={`${item.bg} rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`${item.iconBg} p-3 rounded-xl shadow`}>
+                <item.Icon className={`h-6 w-6 ${item.iconColor}`} />
+              </div>
+              <div className="ml-3">
+                <p className={`text-xs font-medium text-slate-600`}>
+                  {item.title}
+                </p>
+                <p className={`text-lg font-bold text-slate-800`}>
+                  {item.value}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Vertical bar charts */}
+        <div className="lg:col-span-2 card">
+          <div className="card-header">
+            <h3 className="card-title">Project Distribution by Supervisor</h3>
+          </div>
+          <div className="p-4">
+            {supervisorsBucket.length === 0 ? (
+              <div className="h-64 flex items-center justify-center bg-slate-50 rounded text-sky-500">
+                No Data
+              </div>
+            ) : (
+              <div className="h-72 ">
+                <ResponsiveContainer width={"100%"} height={"100%"}>
+                  <BarChart
+                    data={supervisorsBucket}
+                    margin={{ top: 8, right: 8, bottom: 8, left: 8 }}
+                    barCategoryGap={"20%"}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <XAxis
+                      dataKey={"name"}
+                      tick={{ fontSize: 12, fill: "#334155" }}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                      tickLine={{ stroke: "#cbd5e1" }}
+                      interval={0}
+                      height={50}
+                      dy={10}
+                    />
+                    <YAxis
+                      allowDecimals={false}
+                      tick={{ fontSize: 12, fill: "#334155" }}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                      tickLine={{ stroke: "#cbd5e1" }}
+                    />
+
+                    <Tooltip
+                      cursor={{ fill: "rgba(99, 102, 241, 0.05)" }}
+                      contentStyle={{
+                        borderRadius: 8,
+                        borderColor: "#e2e8f0",
+                      }}
+                      formatter={(value, name) => [
+                        value,
+                        name === "count" ? "Projects Assigned" : name,
+                      ]}
+                      labelFormatter={label => `Supervisor: ${label}`}
+                    />
+
+                    <Bar dataKey="count" radius={[8, 8, 0, 0]} />
+                    {supervisorsBucket.map((entry, index) => {
+                      const colors = [
+                        "#3B82F6",
+                        "#10B981",
+                        "#F59E0B",
+                        "#EF4444",
+                        "#8B5CF6",
+                      ];
+                      return (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={colors[index % colors.length]}
+                        />
+                      );
+                    })}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Recent Activity</h3>
+          </div>
+
+          <div className="space-y-3">
+            {latestNotifications.map(notification => {
+              return (
+                <div
+                  key={notification._id}
+                  className="flex items-center text-sm"
+                >
+                  <div
+                    className={`mt-1 w-2 h-2 ${getBulletColor(notification.type, notification.priority)} rounded-full flex-shrink-0 mr-3`}
+                  />
+
+                  <div className="flex-1">
+                    <p className="text-slate-800 font-medium">
+                      {notification.message}
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded text-sm font-medium ${(getBadgeClasses("type"), String(notification.type))}`}
+                      >
+                        Type: {notification.type}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-sm font-medium ${(getBadgeClasses("priority"), String(notification.priority))}`}
+                      >
+                        Priority: {notification.priority}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
