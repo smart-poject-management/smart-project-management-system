@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProject, getFeedback } from "../../store/slices/studentSlice";
 import {
@@ -8,23 +8,24 @@ import {
   FileText,
   Info,
   CheckCircle,
-  MessageCircle,
+  MessageCircleOff,
 } from "lucide-react";
+
 const FeedbackPage = () => {
   const dispatch = useDispatch();
   const { project, feedback, loading, error } = useSelector(state => state.student);
-
+  const [activeFilter, setActiveFilter] = useState("all");
   useEffect(() => {
     dispatch(fetchProject());
   }, [dispatch]);
-
   useEffect(() => {
     if (project?._id) {
       dispatch(getFeedback(project._id));
     }
   }, [dispatch, project?._id]);
-
-
+  const handleFilterClick = (type) => {
+    setActiveFilter(prev => (prev === type && type !== "all" ? "all" : type));
+  };
   const getFeedbackIcon = (type) => {
     switch (type) {
       case "total":
@@ -66,14 +67,20 @@ const FeedbackPage = () => {
 
   const safeFeedback = Array.isArray(feedback) ? feedback : [];
 
+  const filteredFeedback =
+    activeFilter === "all"
+      ? safeFeedback
+      : safeFeedback.filter(f => f.type === activeFilter);
+
   const feedbackStats = [
     {
-      type: "total",
+      type: "all",
       title: "Total Feedback",
       bg: "bg-blue-50",
       iconBg: "bg-blue-100",
       textColor: "text-blue-700",
       valueColor: "text-blue-900",
+      activeBorder: "ring-2 ring-blue-400 ring-offset-1",
       getCount: () => safeFeedback.length,
     },
     {
@@ -83,6 +90,7 @@ const FeedbackPage = () => {
       iconBg: "bg-green-100",
       textColor: "text-green-700",
       valueColor: "text-green-900",
+      activeBorder: "ring-2 ring-green-400 ring-offset-1",
       getCount: () => safeFeedback.filter(f => f.type === "positive").length,
     },
     {
@@ -92,6 +100,7 @@ const FeedbackPage = () => {
       iconBg: "bg-red-100",
       textColor: "text-red-700",
       valueColor: "text-red-900",
+      activeBorder: "ring-2 ring-red-400 ring-offset-1",
       getCount: () => safeFeedback.filter(f => f.type === "general").length,
     },
     {
@@ -101,6 +110,7 @@ const FeedbackPage = () => {
       iconBg: "bg-purple-100",
       textColor: "text-purple-700",
       valueColor: "text-purple-900",
+      activeBorder: "ring-2 ring-purple-400 ring-offset-1",
       getCount: () => safeFeedback.filter(f => f.type === "file").length,
     },
   ];
@@ -128,7 +138,7 @@ const FeedbackPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-4 overflow-x-hidden">
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
 
         {/* Feedback Header */}
@@ -146,11 +156,16 @@ const FeedbackPage = () => {
           {feedbackStats.map((item, i) => (
             <div
               key={i}
-              className={`${item.bg} rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
+              onClick={() => handleFilterClick(item.type)}
+              className={`
+                ${item.bg} rounded-2xl p-4 shadow-md cursor-pointer select-none
+                transition-all duration-300 hover:shadow-lg hover:-translate-y-1
+                ${activeFilter === item.type ? `${item.activeBorder} scale-[1.03]` : ""}
+              `}
             >
               <div className="flex items-center space-x-3">
                 <div className={`${item.iconBg} p-3 rounded-xl shadow`}>
-                  {getFeedbackIcon(item.type)}
+                  {getFeedbackIcon(item.type === "all" ? "total" : item.type)}
                 </div>
                 <div>
                   <p className={`text-xs font-medium ${item.textColor}`}>
@@ -167,8 +182,8 @@ const FeedbackPage = () => {
 
         {/* Feedback List */}
         <div className="space-y-4">
-          {safeFeedback.length > 0 ? (
-            safeFeedback.map((item) => (
+          {filteredFeedback.length > 0 ? (
+            filteredFeedback.map((item) => (
               <div
                 key={item._id}
                 className={`bg-slate-50 border border-slate-200 border-l-4 ${getBorderStyle(item.type)} rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300`}
@@ -217,8 +232,20 @@ const FeedbackPage = () => {
             ))
           ) : (
             <div className="text-center py-12 text-slate-400">
-              <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">No feedback yet from your supervisor.</p>
+              <MessageCircleOff className="w-10 h-10 mx-auto mb-3 opacity-40" />
+              <p className="text-sm">
+                {activeFilter === "all"
+                  ? "No feedback yet from your supervisor."
+                  : `No ${activeFilter} feedback found.`}
+              </p>
+              {activeFilter !== "all" && (
+                <button
+                  onClick={() => setActiveFilter("all")}
+                  className="mt-2 text-xs text-blue-400 hover:text-blue-600 underline underline-offset-2"
+                >
+                  Show all feedback
+                </button>
+              )}
             </div>
           )}
         </div>
