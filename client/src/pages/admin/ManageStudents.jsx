@@ -39,14 +39,16 @@ const ManageStudents = () => {
     );
     return studentUsers.map(student => {
       const studentProject = (projects || []).find(
-        project => project.student === student._id
+        project =>
+          project.student === student._id ||
+          project.student?._id === student._id
       );
 
       return {
         ...student,
         projectTitle: studentProject?.title || null,
         supervisor: studentProject?.supervisor || null,
-        projectStatus: studentProject?.projectStatus || null,
+        projectStatus: studentProject?.status || null,
       };
     });
   }, [users, projects]);
@@ -177,10 +179,10 @@ const ManageStudents = () => {
 
               <div className="ml-4">
                 <p className="text-sm font-medium text-slate-500">
-                  Total Projects
+                  Completed Projects
                 </p>
                 <p className="text-2xl font-bold text-slate-800">
-                  {students.filter(s => s.status === "completed").length}
+                  {students.filter(s => s.projectStatus === "completed").length}
                 </p>
               </div>
             </div>
@@ -313,7 +315,7 @@ const ManageStudents = () => {
                       <td className="px-6 py-4">
                         {student.supervisor ? (
                           <span>
-                            {users?.find(user => user._id === student.supervisor)?.name || "-"}
+                            {student.supervisor?.name || "-"}
                           </span>
                         ) : (
                           <span className="text-yellow-600 text-xs">
@@ -425,7 +427,7 @@ const ManageStudents = () => {
                     <option value="Chemistry">Chemistry</option>
                   </select>
                 </div>
-                a{/* Buttons */}
+                {/* Buttons */}
                 <div className="flex justify-end gap-3 pt-3">
                   <button
                     type="button"
