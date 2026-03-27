@@ -4,18 +4,31 @@ import { toast } from "react-toastify";
 
 export const downloadProjectFile = createAsyncThunk(
   "downloadProjectFile",
-  async ({ projectId, fileId }, thunkAPI) => {
+  async ({ projectId, fileId, name }, thunkAPI) => {
     try {
       const res = await axiosInstance.get(
-        `/${projectId}/files/${fileId}/download`,
+        `/project/${projectId}/files/${fileId}/download`,
         {
           responseType: "blob",
         }
       );
-      return { blob: res.data, projectId, fileId };
+      const url = window.URL.createObjectURL(res.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", name || "file");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return { projectId, fileId };
+
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to download file");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const message =
+        error.response?.data?.message || "Failed to download file";
+
+      toast.error(message);
+      return thunkAPI.rejectWithValue(message);
     }
   }
 );

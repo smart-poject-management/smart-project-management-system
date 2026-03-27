@@ -68,19 +68,16 @@ const AdminDashboard = () => {
   }, [projects]);
 
   const files = useMemo(() => {
-    return (projects || [])
-      .flatMap(project => project.files || [])
-      .map((file, index) => {
-        const project = projects[index];
-        return {
-          projectId: project._id,
-          fileId: file._id,
-          originalName: file.originalName,
-          uploadedAt: file.uploadedAt,
-          projectTitle: project.title,
-          studentName: project.student?.name,
-        };
-      });
+    return (projects || []).flatMap(project =>
+      (project.files || []).map(file => ({
+        projectId: project._id,
+        fileId: file._id,
+        originalName: file.originalName,
+        uploadedAt: file.uploadedAt,
+        projectTitle: project.title,
+        studentName: project.student?.name,
+      }))
+    );
   }, [projects]);
 
   const filteredFiles = files.filter(
@@ -97,20 +94,8 @@ const AdminDashboard = () => {
   );
 
   const handleDownload = async (projectId, fileId, name) => {
-    const res = await dispatch(downloadProjectFile({ projectId, fileId })).then(
-      res => {
-        const { blob } = res.payload || {};
-        const url = window.URL.createObjectURL(new Blob([blob]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", name || "download");
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        toast.success(`"${name}" downloaded successfully.`);
-      }
-    );
+    await dispatch(downloadProjectFile({ projectId, fileId, name }));
+    toast.success(`"${name}" downloaded successfully.`);
   };
 
   const supervisorsBucket = useMemo(() => {
@@ -418,7 +403,7 @@ const AdminDashboard = () => {
 
       {/* isReportsModelOpen */}
       {isReportsModelOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-screen overflow-y-auto ">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-slate-900">

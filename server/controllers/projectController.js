@@ -31,7 +31,7 @@ export const downloadFile = asyncHandler(async (req, res, next) => {
     }
 
     try {
-        await fileServices.streamDownload(file.fileUrl, file.originalname, res);
+        await fileServices.streamDownload(file.fileUrl, file.originalName, res);
     } catch (error) {
         if (res.headersSent) return res.end();
         return next(error);
