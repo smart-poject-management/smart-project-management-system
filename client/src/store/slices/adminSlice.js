@@ -2,10 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
-/* =============================
-   STUDENT API CALLS
-============================= */
-
 export const createStudent = createAsyncThunk(
   "createStudent",
   async (data, thunkAPI) => {
@@ -124,6 +120,22 @@ export const getAllProjects = createAsyncThunk(
   }
 );
 
+export const getDashboardStats = createAsyncThunk(
+  "getDashboardStats",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/admin/fetch-dashboard-stats");
+      return res.data.data.stats;
+    } catch (error) {
+      const msg =
+        error.response?.data?.message ||
+        "Failed to fetch admin dashboard stats";
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 const adminSlice = createSlice({
   name: "admin",
 
@@ -189,6 +201,9 @@ const adminSlice = createSlice({
       })
       .addCase(deleteTeacher.fulfilled, (state, action) => {
         state.users = state.users.filter(user => user._id !== action.payload);
+      })
+      .addCase(getDashboardStats.fulfilled, (state, action) => {
+        state.stats = action.payload;
       });
   },
 });

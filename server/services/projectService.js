@@ -1,4 +1,9 @@
 import { Project } from "../models/project.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const getStudentProject = async (studentId) => {
   return await Project.findOne({ student: studentId }).sort({ createdAt: -1 });
@@ -27,7 +32,7 @@ export const addFilesToProject = async (projectId, files) => {
   }
   const filesMetaData = files.map((file) => ({
     fileType: file.mimetype,
-    fileUrl: file.path,
+    fileUrl: path.relative(path.join(__dirname, "../uploads"), file.path),
     originalName: file.originalname,
     uploadedAt: new Date(),
   }));
@@ -38,6 +43,9 @@ export const addFilesToProject = async (projectId, files) => {
 };
 
 export const getAllProjects = async () => {
-  const projects = await Project.find();
+  const projects = await Project.find()
+    .populate("student", "name email")
+    .populate("supervisor", "name email")
+    .sort({ createdAt: -1 });
   return projects;
 };

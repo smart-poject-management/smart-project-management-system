@@ -148,7 +148,7 @@ export const getAllProjects = asyncHandler(async (req, res) => {
   });
 });
 
-export const getDashboardStates = asyncHandler(async (req, res) => {
+export const getDashboardStats = asyncHandler(async (req, res) => {
   const [
     totalStudents,
     totalTeachers,
@@ -167,9 +167,9 @@ export const getDashboardStates = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Admin Dashboard states fetched",
+    message: "Admin Dashboard stats fetched",
     data: {
-      states: {
+      stats: {
         totalStudents,
         totalTeachers,
         totalProjects,

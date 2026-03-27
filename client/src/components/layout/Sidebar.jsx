@@ -320,7 +320,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  className={({ isActive }) => `
+                  // isActive is remove 
+                  className={({   }) => `  
                     flex items-center px-4 py-3 rounded-lg transition-all duration-200
                     ${isActive
                       ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
