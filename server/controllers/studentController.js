@@ -178,7 +178,7 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
     student: studentId,
     deadline: { $gte: now },
   })
-    .select("title description")
+    .select("title deadline")
     .sort({ createdAt: -1 })
     .limit(3)
     .lean();
