@@ -18,7 +18,7 @@ const deadlineSchema = new mongoose.Schema(
         required: [true, "created by is required"],
 
     },
-    Project:{
+    project:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project",
         default: null
