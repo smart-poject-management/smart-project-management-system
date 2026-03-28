@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  assignSupervisor,
   createStudent,
   createTeacher,
   deleteStudent,
@@ -76,6 +77,18 @@ router.get(
   getDashboardStats,
 );
 
-router.get("/users", isAuthenticated, isAuthorized("Admin"), getAllUsers);
+router.get(
+  "/users",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  getAllUsers
+);
+
+router.post(
+  "/assign-supervisor",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  assignSupervisor
+)
 
 export default router;

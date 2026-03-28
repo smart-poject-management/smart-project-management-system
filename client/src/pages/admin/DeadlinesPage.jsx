@@ -22,7 +22,7 @@ const DeadlinesPage = () => {
   const [viewProjects, setViewProjects] = useState(projects || []);
   useEffect(() => {
     setViewProjects(projects || []);
-  }, [projects]);
+  }, [projects]);a
 
   const projectRows = useMemo(() => {
     return (viewProjects || []).map(project => ({
