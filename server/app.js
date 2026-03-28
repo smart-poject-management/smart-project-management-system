@@ -21,14 +21,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// app.use(cors({
-//     origin: process.env.FRONTEND_URL,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     credentials: true,
-// }));
-app.options("*", cors({
-  origin: "https://smart-project-management-system-817.vercel.app",
-  credentials: true
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
 }));
 console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
 
