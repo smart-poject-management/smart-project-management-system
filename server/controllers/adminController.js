@@ -4,6 +4,8 @@ import * as projectServices from "../services/projectService.js";
 import { User } from "../models/user.js";
 import { Project } from "../models/project.js";
 import { SupervisorRequest } from "../models/supervisorRequest.js";
+import ErrorHandler from '../middlewares/error.js';
+import * as notificationService from "../services/notificationService.js";
 
 // student controllers
 export const createStudent = asyncHandler(async (req, res) => {
@@ -179,4 +181,54 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
       }
     }
   })
+});
+
+export const assignSupervisor = asyncHandler(async (req, res, next) => {
+    const { studentId, supervisorId } = req.body;
+
+    if (!studentId || !supervisorId) {
+        return next(new ErrorHandler("Student ID and Supervisor ID are required", 400));
+    }
+
+    const project = await Project.findOne({ student: studentId });
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+
+    if (project.supervisor !== null) {
+        return next(new ErrorHandler("Supervisor already assigned", 400));
+    }
+
+    if (project.status !== "approved") {
+        return next(new ErrorHandler("Project not approved yet", 400));
+    } else if (project.status === "pending" || project.status === "rejected") {
+        return next(new ErrorHandler("Project is in pending state or rejected", 400));
+    }
+
+    const { student, supervisor } = await userServices.assignSupervisorDirectly(studentId, supervisorId);
+
+    project.supervisor = supervisor;
+    await project.save();
+
+    await notificationService.notifyUser(
+        studentId,
+        `You have been assigned a supervisor ${supervisor.name}.`,
+        "approval",
+        "/students/status",
+        "low"
+    );
+
+    await notificationService.notifyUser(
+        supervisorId,
+        `The student ${student.name} has been officially assigned to you for FYP supervisor.`,
+        "general",
+        "/teacher/status",
+        "low"
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Supervisor assigned successfully",
+        data: { student, supervisor }
+    });
 });
