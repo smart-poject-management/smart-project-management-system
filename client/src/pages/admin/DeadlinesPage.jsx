@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createDeadline } from "../../store/slices/deadlineSlice";
+import { X } from "lucide-react";
 
 const DeadlinesPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -85,7 +86,198 @@ const DeadlinesPage = () => {
     }
   };
 
-  return <></>;
+  return (
+    <div className="space-y-6">
+      {/* Header Card*/}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="border-b border-slate-200 pb-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div>
+            <h1 className="text-lg font-semibold text-slate-800">
+              Manage Deadlines
+            </h1>
+            <p className="text-sm text-slate-600 mt-1">
+              Create and monitor project deadlines
+            </p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium mt-4 md:mt-0"
+          >
+            Create/Update Deadline
+          </button>
+        </div>
+      </div>
+
+      {/* Filters Card*/}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Search Deadlines
+            </label>
+            <input
+              type="text"
+              placeholder="Search by project or student..."
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Project Deadlines Card*/}
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="border-b border-slate-200 pb-4 mb-4">
+          <h2 className="text-lg font-semibold text-slate-800">
+            Project Deadlines
+          </h2>
+        </div>
+
+        {/* Project Deadlines Tables */}
+        <div className="overflow-y-auto">
+          <table className="w-full"></table>
+          <thead className="bg-slate-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Student
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Project Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Supervisor
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Deadline Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Updated
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-200">
+            {filteredProjects.map(row => {
+              return (
+                <tr key={row._id} className="hover:bg-slate-100">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">
+                        {row.studentName}
+                      </div>
+                      <div className="text-sm font-medium text-slate-500">
+                        {row.studentEmail}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">{row.title}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {row.supervisor !== "N/A" ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {row.supervisor}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        Not Assigned
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">{row.deadline}</td>
+                  <td className="px-6 py-4">{row.updatedAt}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </div>
+
+        {/* filters project */}
+        {filteredProjects.length === 0 && (
+          <div className="text-center py-8 text-slate-500">
+            No projects found matching your search criteria. Try adjusting your
+            search or check back later for new projects.
+          </div>
+        )}
+      </div>
+
+      {/* Create/Update Deadline Modal */}
+      {showModal && (
+        <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 max-h-screen overflow-y-auto">
+            {/* Headers */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Create or Update Deadline
+              </h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={hanedleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Project Title
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Start typing to search projects..."
+                  value={query}
+                  onChange={e => {
+                    setQuery(e.target.value);
+                    setSelectedProject(null);
+                    setFormData({ ...formData, projectTitle: e.target.value });
+                  }}
+                />
+                {query && !selectedProject && (
+                  <div className="mt-2 border border-slate-200 rounded-md max-h-56 overflow-y-auto">
+                    {(projects || [])
+                      .filter(p =>
+                        p.title.toLowerCase().includes(query.toLowerCase())
+                      )
+                      .slice(0, 8)
+                      .map(project => (
+                        <button
+                          type="button"
+                          key={project._id}
+                          className="w-full text-left px-8 py-2 hover:bg-slate-50"
+                          onClick={() => {
+                            setSelectedProject(project);
+                            setQuery(project.title);
+                            setFormData({
+                              ...formData,
+                              projectTitle: project.title,
+                              deadlineDate: project.deadline
+                                ? new Date(project.deadline)
+                                    .toISOString()
+                                    .slice(0, 10)
+                                : "",
+                            });
+                          }}
+                          title={project.title}
+                        >
+                          <div className="text-sm font-medium text-slate-800 truncate">
+                            {project.title}
+                          </div>
+                          <div className="text-xs text-slate-500 truncate">
+                            {project.student?.name || "No student assigned"}{" "}
+                            {project.supervisor?.name ||
+                              "No supervisor assigned"}
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DeadlinesPage;
