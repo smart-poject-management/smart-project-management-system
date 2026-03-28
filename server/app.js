@@ -9,6 +9,7 @@ import studentRoutes from './router/studentRoutes.js';
 import notificationRoutes from './router/notificationRoutes.js';
 import projectRoutes from './router/projectRoutes.js';
 import deadlineRoutes from './router/deadlineRoutes.js';
+import teacherRoutes from './router/teacherRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -46,6 +47,7 @@ app.use("/api/student", studentRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/project", projectRoutes);
 app.use("/api/deadline", deadlineRoutes);
+app.use("/api/teacher", teacherRoutes);
 
 app.use(errorMiddleware);
 

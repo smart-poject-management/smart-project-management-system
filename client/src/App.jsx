@@ -81,7 +81,7 @@ const App = () => {
   //     </div>
   //   );
   // }
-  // ya condition check kar ne ha 
+  // ya condition check kar ne ha
   if (isCheckingAuth) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -118,7 +118,6 @@ const App = () => {
         </Route>
 
         {/* Student Routes */}
-
         <Route
           path="/student"
           element={
@@ -133,6 +132,21 @@ const App = () => {
           <Route path="supervisor" element={<SupervisorPage />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+        </Route>
+
+        {/* Teachers Routes */}
+        <Route
+          path="/teacher"
+          element={
+            <ProtectedRoute allowedRoles={["Teacher"]}>
+              <DashboardLayout userRole={"Teacher"} />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<TeacherDashboard />} />
+          <Route path="pending-requests" element={<PendingRequests />} />
+          <Route path="assigned-students" element={<AssignedStudents />} />
+          <Route path="files" element={<TeacherFiles />} />
         </Route>
       </Routes>
       <ToastContainer theme="dark" />
