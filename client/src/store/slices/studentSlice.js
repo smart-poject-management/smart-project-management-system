@@ -147,16 +147,14 @@ export const downloadFile = createAsyncThunk(
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-
+      toast.success(`"${fileName}" downloaded successfully!`); // add the toast
       return { success: true, fileId };
-
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to download file");
       return thunkAPI.rejectWithValue(error.response?.data?.message);
     }
   }
 );
-
 export const deleteProjectFile = createAsyncThunk(
   "student/deleteProjectFile",
   async ({ projectId, fileId }, thunkAPI) => {
@@ -217,7 +215,7 @@ const studentSlice = createSlice({
           state.files = (state.files || []).filter((f) => f._id !== deletedId);
         }
 
-        
+
         const nextProject = action.payload?.project;
         if (nextProject) {
           state.project = nextProject;

@@ -2,6 +2,10 @@
 import fs from "fs";
 import path from "path";
 import ErrorHandler from "../middlewares/error.js";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Streams a file download to the client
@@ -11,13 +15,11 @@ import ErrorHandler from "../middlewares/error.js";
  */
 export const streamDownload = (fileUrl, originalName, res) => {
   return new Promise((resolve, reject) => {
+    const absolutePath = path.isAbsolute(fileUrl) ? fileUrl : path.join(__dirname, "../uploads", fileUrl);
 
-    if (!fs.existsSync(fileUrl)) {
+    if (!fs.existsSync(absolutePath)) {
       return reject(new ErrorHandler("File not found on server", 404));
     }
-
-    const absolutePath = path.resolve(fileUrl);
-
 
     res.setHeader("Content-Disposition", `attachment; filename="${originalName}"`);
     res.setHeader("Content-Type", "application/octet-stream");

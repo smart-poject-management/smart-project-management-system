@@ -9,6 +9,10 @@ import * as fileService from "../services/fileServices.js";
 import ErrorHandler from "../middlewares/error.js";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
@@ -174,12 +178,12 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
     student: studentId,
     deadline: { $gte: now },
   })
-    .select("title description")
+    .select("title deadline")
     .sort({ createdAt: -1 })
     .limit(3)
     .lean();
 
-  const topNotification = await Notification.findOne({ user: studentId })
+  const topNotification = await Notification.find({ user: studentId })
     .populate("user", "name")
     .sort({ createdAt: -1 })
     .limit(3)
@@ -192,7 +196,7 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
         .slice(0, 2)
       : [];
 
-  const supervisorName = project?.superviosr?.name || null;
+  const supervisorName = project?.supervisor?.name || null;
 
   res.status(200).json({
     success: true,
@@ -298,9 +302,8 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
   project.files = project.files.filter((f) => f._id.toString() !== fileId);
   await project.save();
 
-  
   if (filePath) {
-    const absolutePath = path.resolve(filePath);
+    const absolutePath = path.join(__dirname, "../uploads", filePath);
     try {
       if (fs.existsSync(absolutePath)) {
         await fs.promises.unlink(absolutePath);
