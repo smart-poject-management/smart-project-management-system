@@ -17,18 +17,18 @@ const notificationSchema = new mongoose.Schema(
       default: false,
     },
     link: {
-        type: String,
-        default: null
+      type: String,
+      default: null
     },
     type: {
-        type: String,
-        enum: ["general", "request", "approval", "rejection", "deadline","meeting","feedback"],
-        default: "general"
+      type: String,
+      enum: ["general", "request", "approval", "rejection", "deadline", "meeting", "feedback", "system"],
+      default: "general"
     },
     priority: {
-        type: String,
-        enum: ["high","medium","low"],
-        default: "low"
+      type: String,
+      enum: ["high", "medium", "low"],
+      default: "low"
     },
   },
   {
@@ -37,7 +37,7 @@ const notificationSchema = new mongoose.Schema(
 );
 
 //indexing for better query performance
-notificationSchema.index({ user: 1 , isRead: 1 });
+notificationSchema.index({ user: 1, isRead: 1 });
 
 export const Notification =
   mongoose.models.Notification || mongoose.model("Notification", notificationSchema);

@@ -130,12 +130,12 @@ export const rejectRequest = asyncHandler(async (req, res, next) => {
 
 export const getAssignedStudents = asyncHandler(async (req, res, next) => {
     const teacherId = req.user._id;
-    const students = (
-        await User.find({ supervisor: teacherId, role: "student" })
-            .populate("project")
-    ).sort({ createdAt: -1 });
+    const students = await User.find({
+        supervisor: teacherId,
+        role: "Student"
+    }).populate("project").sort({ createdAt: -1 });
 
-    const total = await User.countDocuments({ supervisor: teacherId, role: "student" });
+    const total = await User.countDocuments({ supervisor: teacherId, role: "Student" });
 
     res.status(200).json({
         success: true,
@@ -152,7 +152,7 @@ export const markComplete = asyncHandler(async (req, res, next) => {
     if (!project) {
         return next(new ErrorHandler("Project not found", 404));
     }
-    if (project.supervisor.toString() !== teacherId.toString()) {
+    if (project.supervisor._id.toString() !== teacherId.toString()) {
         return next(new ErrorHandler("Unauthorized to mark project as complete", 403));
     }
 
@@ -182,7 +182,7 @@ export const addFeedback = asyncHandler(async (req, res, next) => {
     if (!project) {
         return next(new ErrorHandler("Project not found", 404));
     }
-    if (project.supervisor.toString() !== teacherId.toString()) {
+    if (project.supervisor._id.toString() !== teacherId.toString()) {
         return next(new ErrorHandler("Unauthorized to add feedback to this project", 403));
     }
     if (!message || !title) {
@@ -206,6 +206,6 @@ export const addFeedback = asyncHandler(async (req, res, next) => {
     res.status(200).json({
         success: true,
         message: "Feedback added to project successfully.",
-        data: { project: updatedProject , feedback: latestFeedback }
+        data: { project: updatedProject, feedback: latestFeedback }
     });
 });
