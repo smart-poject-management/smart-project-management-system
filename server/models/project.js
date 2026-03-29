@@ -8,7 +8,7 @@ const feedbackSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ["general", "file", "positive"],
+    enum: ["general", "negative", "positive"],
     default: "general",
   },
   title: {

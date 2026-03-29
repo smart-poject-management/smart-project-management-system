@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuthenticated, isAuthorized } from "../middlewares/authMiddleware.js";
-import { acceptRequest, getRequests, getTeacherDashboardStats, rejectRequest } from "../controllers/teacherController.js";
+import { acceptRequest, addFeedback, getAssignedStudents, getRequests, getTeacherDashboardStats, markComplete, rejectRequest } from "../controllers/teacherController.js";
 
 const router = express.Router();
 
@@ -30,6 +30,27 @@ router.put(
     isAuthenticated,
     isAuthorized("Teacher"),
     rejectRequest
+);
+
+router.get(
+    "/assigned-students",
+    isAuthenticated,
+    isAuthorized("Teacher"),
+    getAssignedStudents
+);
+
+router.post(
+    "/feedback/:projectId",
+    isAuthenticated,
+    isAuthorized("Teacher"),
+    addFeedback
+);
+
+router.post(
+    "/mark-complete/:projectId",
+    isAuthenticated,
+    isAuthorized("Teacher"),
+    markComplete
 );
 
 export default router;

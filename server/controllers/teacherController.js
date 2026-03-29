@@ -5,6 +5,7 @@ import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
 import * as requestService from "../services/requestService.js";
 import * as notificationService from "../services/notificationService.js";
+import * as projectService from "../services/projectService.js";
 import { User } from "../models/user.js";
 import { sendEmail } from "../services/emailService.js";
 import { generateRequestAcceptedTemplate, generateRequestRejectedTemplate } from "../utils/emailTemplates.js";
@@ -124,5 +125,87 @@ export const rejectRequest = asyncHandler(async (req, res, next) => {
         success: true,
         message: "Request rejected successfully.",
         data: { request }
+    });
+});
+
+export const getAssignedStudents = asyncHandler(async (req, res, next) => {
+    const teacherId = req.user._id;
+    const students = (
+        await User.find({ supervisor: teacherId, role: "student" })
+            .populate("project")
+    ).sort({ createdAt: -1 });
+
+    const total = await User.countDocuments({ supervisor: teacherId, role: "student" });
+
+    res.status(200).json({
+        success: true,
+        message: "Assigned students fetched successfully.",
+        data: { students, total }
+    });
+});
+
+export const markComplete = asyncHandler(async (req, res, next) => {
+    const { projectId } = req.params;
+    const teacherId = req.user._id;
+
+    const project = await projectService.getProjectById(projectId);
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+    if (project.supervisor.toString() !== teacherId.toString()) {
+        return next(new ErrorHandler("Unauthorized to mark project as complete", 403));
+    }
+
+    const updatedProject = await projectService.markProjectComplete(projectId);
+
+    await notificationService.notifyUser(
+        project.student._id,
+        `Your project "${project.title}" has been marked as complete by ${req.user.name}.`,
+        "general",
+        "/student/status",
+        "low"
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Project marked as completed.",
+        data: { project: updatedProject }
+    });
+});
+
+export const addFeedback = asyncHandler(async (req, res, next) => {
+    const { projectId } = req.params;
+    const teacherId = req.user._id;
+    const { message, title, type } = req.body;
+
+    const project = await projectService.getProjectById(projectId);
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+    if (project.supervisor.toString() !== teacherId.toString()) {
+        return next(new ErrorHandler("Unauthorized to add feedback to this project", 403));
+    }
+    if (!message || !title) {
+        return next(new ErrorHandler("Feedback title and message are required", 400));
+    }
+    const { updatedProject, latestFeedback } = await projectService.addFeedback(projectId, {
+        supervisorId: teacherId,
+        message,
+        title,
+        type: type || "general"
+    });
+
+    await notificationService.notifyUser(
+        project.student._id,
+        `Your project "${project.title}" has received new feedback from ${req.user.name}.`,
+        "feedback",
+        '/student/feedback',
+        type === "positive" ? "low" : type === "negative" ? "high" : "low"
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Feedback added to project successfully.",
+        data: { project: updatedProject , feedback: latestFeedback }
     });
 });

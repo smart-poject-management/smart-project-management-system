@@ -49,3 +49,34 @@ export const getAllProjects = async () => {
     .sort({ createdAt: -1 });
   return projects;
 };
+
+export const markProjectComplete = async (projectId) => {
+  const project = await Project.findByIdAndUpdate(
+    projectId,
+    { status: "completed" },
+    { new: true, runValidators: true }
+  ).populate("student", "name email")
+    .populate("supervisor", "name email");
+
+  if (!project) {
+    return new Error("Project not found", 404);
+  }
+
+  return project;
+};
+
+export const addFeedback = async (projectId, feedbackData) => {
+  const project = await Project.findById(projectId);
+  if (!project) {
+    return new Error("Project not found", 404);
+  }
+  project.feedback.push({
+    supervisorId: feedbackData.supervisorId,
+    message: feedbackData.message,
+    title: feedbackData.title,
+    type: feedbackData.type || "general",
+  });
+  await project.save();
+  const latestFeedback = project.feedback[project.feedback.length - 1];
+  return { project, latestFeedback };
+};
