@@ -4,8 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../../store/slices/authSlice";
 import { Loader } from "lucide-react";
 import {
-  FaLock,
-  FaArrowLeft,
   FaEye,
   FaEyeSlash,
   FaUserGraduate,
@@ -163,7 +161,7 @@ const LoginPage = () => {
           {/* Password */}
           <div className="mb-6 relative">
             <input
-              type={showPassword ? "text" : "password"} // ✅ now works
+              type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
               onChange={handleChange}
@@ -174,10 +172,10 @@ const LoginPage = () => {
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)} // ✅ now works
+              onClick={() => setShowPassword(!showPassword)}
               className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600 transition"
             >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
+              {!showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
             {errors.password && (
               <p className="text-xs text-red-500 mt-2 pl-2">
