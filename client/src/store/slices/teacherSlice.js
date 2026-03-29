@@ -85,16 +85,14 @@ const teacherSlice = createSlice({
     });
     builder.addCase(acceptRequest.fulfilled, (state, action) => {
       const updatedRequest = action.payload;
-      state.pendingRequests = state.pendingRequests.map(r =>
+      state.list = state.list.map(r =>
         r._id === updatedRequest._id ? updatedRequest : r
       );
     });
 
     builder.addCase(rejectRequest.fulfilled, (state, action) => {
       const rejectedRequest = action.payload;
-      state.pendingRequests = state.pendingRequests.filter(
-        r => r._id !== rejectedRequest._id
-      );
+      state.list = state.list.filter(r => r._id !== rejectedRequest._id);
     });
   },
 });
