@@ -30,6 +30,7 @@ const SupervisorPage = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
   const [selectedSupervisor, setSelectedSupervisor] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllSupervisor());
@@ -67,24 +68,34 @@ const SupervisorPage = () => {
     const year = date.getFullYear();
     return `${day}${suffix} ${month} ${year}`;
   };
-  const submitRequest = () => {
+
+  const handleOpenRequest = (sup) => {
+    setSelectedSupervisor(sup);
+    setRequestMessage("");
+    setShowRequestModal(true);
+  };
+
+  const submitRequest = async () => {
     if (!selectedSupervisor) return;
     const message =
       requestMessage?.trim() ||
-      `${authUser.name || "Student"} has requested ${selectedSupervisor.name
-      } to be their supervisor.`;
+      `${authUser.name || "Student"} has requested ${selectedSupervisor.name} to be their supervisor.`;
 
-    dispatch(
+    setLoading(true);
+    await dispatch(
       requestSupervisor({
         teacherId: selectedSupervisor._id,
         message,
       })
     );
+    setLoading(false);
+    setShowRequestModal(false);
+    setRequestMessage("");
+    setSelectedSupervisor(null);
   };
 
   return (
     <div className="space-y-6 p-4">
-
       <div className="bg-white/70 border border-slate-200 rounded-2xl shadow-xl">
 
         {/* Supervisor Section */}
@@ -106,7 +117,6 @@ const SupervisorPage = () => {
                 Stay updated with your project progress and deadlines
               </p>
             </div>
-
           </div>
 
           {hasSupervisor ? (
@@ -150,7 +160,6 @@ const SupervisorPage = () => {
                         <p className="text-xs font-semibold text-slate-500 uppercase mb-2">
                           Expertise
                         </p>
-
                         <div className="flex flex-wrap gap-2">
                           {Array.isArray(supervisor?.expertise) ? (
                             supervisor.expertise.map((item, index) => (
@@ -176,9 +185,7 @@ const SupervisorPage = () => {
             </div>
           ) : (
             <div className="p-6 text-center">
-              <p className="text-slate-600">
-                Supervisor not assigned yet.
-              </p>
+              <p className="text-slate-600">Supervisor not assigned yet.</p>
             </div>
           )}
         </div>
@@ -187,10 +194,10 @@ const SupervisorPage = () => {
         {hasProject && (
           <div className="p-6">
             <div className="mb-6 border-b pb-4">
-              <h2 className=" text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                 Project Details
               </h2>
-              <p className="text-sm text-slate-500 mt-1 ">
+              <p className="text-sm text-slate-500 mt-1">
                 Track your project information and timeline
               </p>
             </div>
@@ -211,8 +218,9 @@ const SupervisorPage = () => {
                       </p>
                     </div>
                   </div>
-                  {/* project status */}
-                  <div className="flex gap-3 ">
+
+                  {/* Project Status */}
+                  <div className="flex gap-3">
                     {project?.status === "approved" && (
                       <CheckCircle className="w-5 h-5 text-green-500 mt-1" />
                     )}
@@ -222,20 +230,18 @@ const SupervisorPage = () => {
                     {project?.status === "rejected" && (
                       <XCircle className="w-5 h-5 text-red-500 mt-1" />
                     )}
-
                     <div>
-                      <p className="text-xs text-slate-400 uppercase">
-                        Status
-                      </p>
+                      <p className="text-xs text-slate-400 uppercase">Status</p>
                       <span
-                        className={`text-sm font-medium capitalize ${project?.status === "approved"
-                          ? "text-green-500"
-                          : project?.status === "pending"
-                            ? "text-yellow-500"
-                            : project?.status === "rejected"
-                              ? "text-red-500"
-                              : "text-gray-400"
-                          }`}
+                        className={`text-sm font-medium capitalize ${
+                          project?.status === "approved"
+                            ? "text-green-500"
+                            : project?.status === "pending"
+                              ? "text-yellow-500"
+                              : project?.status === "rejected"
+                                ? "text-red-500"
+                                : "text-gray-400"
+                        }`}
                       >
                         {project?.status || "invalid"}
                       </span>
@@ -293,9 +299,8 @@ const SupervisorPage = () => {
           </div>
         )}
 
-        {/* Available supervisors */}
+        {/* Available Supervisors */}
         {hasProject && !hasSupervisor && (
-
           <div className="p-6">
 
             {/* Header */}
@@ -321,7 +326,6 @@ const SupervisorPage = () => {
                       <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-lg">
                         {sup.name?.charAt(0) || "A"}
                       </div>
-
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800">
                           {sup.name || "Anonymous"}
@@ -340,7 +344,6 @@ const SupervisorPage = () => {
                           {sup.email || "-"}
                         </p>
                       </div>
-
                       <div>
                         <p className="text-gray-400">Expertise</p>
                         <p className="text-gray-700">
@@ -362,40 +365,106 @@ const SupervisorPage = () => {
                 ))}
             </div>
           </div>
-
         )}
 
         {/* Modal */}
         {showRequestModal && selectedSupervisor && (
-          
-          <div className="modal-overlay">
-            <div className="modal-content p-6">
-              <div className="flex justify-between mb-4">
-                <h3 className="font-semibold">Request Supervision</h3>
-                <button onClick={() => setShowRequestModal(false)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+
+              {/* Modal Header */}
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-slate-800">
+                  Request Supervision
+                </h3>
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  disabled={loading}
+                  className="text-slate-400 hover:text-slate-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
+              {/* Supervisor Info */}
+              <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 rounded-xl">
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold">
+                  {selectedSupervisor.name?.charAt(0) || "A"}
+                </div>
+                <div>
+                  <p className="font-medium text-slate-800">
+                    {selectedSupervisor.name}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {selectedSupervisor.department || "No Department"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Message Input */}
+              <label className="block text-sm font-medium text-slate-600 mb-1">
+                Message (optional)
+              </label>
               <textarea
-                className="input w-full"
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+                rows={4}
+                placeholder={`${authUser?.name || "Student"} has requested ${selectedSupervisor.name} to be their supervisor.`}
                 value={requestMessage}
                 onChange={(e) => setRequestMessage(e.target.value)}
+                disabled={loading}
               />
 
-              <button
-                onClick={submitRequest}
-                className="btn-primary mt-4"
-              >
-                Send Request
-              </button>
+              {/* Actions */}
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => setShowRequestModal(false)}
+                  disabled={loading}
+                  className="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitRequest}
+                  disabled={loading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <svg
+                        className="animate-spin h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8z"
+                        />
+                      </svg>
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Request"
+                  )}
+                </button>
+              </div>
+
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
 };
 
 export default SupervisorPage;
-
