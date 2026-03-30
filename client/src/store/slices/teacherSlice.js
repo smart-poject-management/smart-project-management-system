@@ -116,26 +116,35 @@ export const getAssignedStudents = createAsyncThunk(
 );
 
 export const downloadTeacherFile = createAsyncThunk(
-  "downloadTeacherFile",
+  "teacher/downloadFile",
   async ({ projectId, fileId, fileName }, thunkAPI) => {
     try {
       const res = await axiosInstance.get(
         `/teacher/download/${projectId}/${fileId}`,
-        { responseType: "blob" }
+        {
+          responseType: "blob",
+        }
       );
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
+
       link.href = url;
-      link.setAttribute("download", fileName || "download");
+      link.download = fileName || "download";
+
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+
+      link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success(`"${fileName}" downloaded successfully!`); // add the toast
+
+      toast.success(`${fileName} downloaded successfully`);
+
       return { success: true, fileId };
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to download file");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Download failed"
+      );
     }
   }
 );

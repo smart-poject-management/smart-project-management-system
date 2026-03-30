@@ -12,6 +12,7 @@ import {
   downloadTeacherFile,
   getTeacherFiles,
 } from "../../store/slices/teacherSlice";
+import { toast } from "react-toastify";
 
 const TeacherFiles = () => {
   const [viewMode, setViewMode] = useState("grid");
@@ -99,9 +100,18 @@ const TeacherFiles = () => {
     return matchesSearch && matchesType;
   });
 
-  const handleDownloadFile = async (projectId, fileId, fileName) => {
-    await dispatch(downloadTeacherFile({ projectId, fileId, fileName }));
-    toast.success(`"${fileName}" downloaded successfully.`);
+  const handleDownloadFile = async file => {
+    if (!file?.fileId || !file?.projectId) {
+      toast.error("Invalid file or project");
+      return;
+    }
+    await dispatch(
+      downloadTeacherFile({
+        projectId: file.projectId,
+        fileId: file.fileId,
+        fileName: file.name,
+      })
+    );
   };
 
   const fileStats = [
@@ -151,7 +161,161 @@ const TeacherFiles = () => {
   ];
 
   return (
-    <></>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-lg font-semibold text-slate-800">
+              Student Files
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Manage files shared with and received from students
+            </p>
+          </div>
+        </div>
+
+        {/* Controllers */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <select
+              className="w-56 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={filterType}
+              onChange={e => setFilterType(e.target.value)}
+            >
+              <option value="all">All Files</option>
+              <option value="report">Reports</option>
+              <option value="presentation">Presentation</option>
+              <option value="code">Code</option>
+              <option value="image">Images</option>
+            </select>
+
+            <input
+              type="text"
+              className="w-96 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Search files..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              className={`p-2 rounded-lg ${viewMode === "grid" ? "bg-blue-100 text-blue-600" : "hover:bg-slate-100 text-slate-600"}`}
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="w-5 h-5" />
+            </button>
+
+            <button
+              className={`p-2 rounded-lg ${viewMode === "list" ? "bg-blue-100 text-blue-600" : "hover:bg-slate-100 text-slate-600"}`}
+              onClick={() => setViewMode("list")}
+            >
+              <List className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Files stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
+          {fileStats.map((item, index) => {
+            return (
+              <div key={index} className={`${item.bg} p-4 rounded-lg`}>
+                <p className={`text-sm ${item.text}`}>{item.label}</p>
+                <p className={`text-2xl font-bold ${item.value}`}>
+                  {item.count}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Files Display */}
+      {viewMode === "grid" ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredFiles.map(file => (
+            <div
+              key={file.id}
+              className="bg-white rounded-lg shadow-sm border border-slate-200 p-6"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="mb-3">{getFileIcon(file.type)}</div>
+                <h3
+                  className="font-medium text-slate-800 mb-1 truncate w-full"
+                  title={file.name}
+                >
+                  {file.name}
+                </h3>
+                <p className="text-sm text-slate-600 mb-1">{file.student}</p>
+                <p className="text-xs text-slate-500 mb-1">{file.size}</p>
+                <p className="text-xs text-slate-600 mb-4">
+                  {new Date(file.uploadDate).toLocaleDateString()}
+                </p>
+
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={() => handleDownloadFile(file)}
+                    className="w-full rounded-lg text-white bg-blue-500 text-lg font-medium flex items-center justify-center py-2 gap-3 hover:bg-blue-700 duration-300 transition-all"
+                  >
+                    <ArrowDownToLine size={20} />
+                    Download
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 overflow-x-auto">
+          <table className="min-w-full border border-slate-200 font-semibold">
+            <thead className="bg-slate-50 text-slate-700">
+              <tr>
+                {tableHeadData.map(table => {
+                  return (
+                    <th
+                      key={table}
+                      className="py-3 px-4 text-left font-semibold"
+                    >
+                      {table}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredFiles.map(file => {
+                return (
+                  <tr
+                    key={file.id}
+                    className="border-t hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="py-3 px-4 items-center gap-3">
+                      {getFileIcon(file.type)}{" "}
+                      <span className="font-medium">{file.name}</span>
+                    </td>
+                    <td className="py-3 px-4">{file.student}</td>
+                    <td className="py-3 px-4">{file.type}</td>
+                    <td className="py-3 px-4">
+                      {new Date(file.uploadDate).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-4">
+                      <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium text-sm"
+                        onClick={() => handleDownloadFile(file)}
+                      >
+                        Download
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 };
 
