@@ -6,6 +6,7 @@ import { Notification } from "../models/notifications.js";
 import * as requestService from "../services/requestService.js";
 import * as notificationService from "../services/notificationService.js";
 import * as projectService from "../services/projectService.js";
+import * as fileServices from "../services/fileServices.js";
 import { User } from "../models/user.js";
 import { sendEmail } from "../services/emailService.js";
 import { generateRequestAcceptedTemplate, generateRequestRejectedTemplate } from "../utils/emailTemplates.js";
@@ -208,4 +209,52 @@ export const addFeedback = asyncHandler(async (req, res, next) => {
         message: "Feedback added to project successfully.",
         data: { project: updatedProject, feedback: latestFeedback }
     });
+});
+
+export const getFiles = asyncHandler(async (req, res, next) => {
+    const teacherId = req.user._id;
+    const projects = await projectService.getProjectsBySupervisor(teacherId);
+    const allFiles = projects.flatMap(project => project.files.map(file => ({
+        ...file.toObject(),
+        projectId: project._id,
+        projectTitle: project.title,
+        studentName: project.student.name,
+        studentEmail: project.student.email
+    })));
+
+    res.status(200).json({
+        success: true,
+        message: "Files fetched successfully.",
+        data: { files: allFiles }
+    });
+});
+
+export const downloadFile = asyncHandler(async (req, res, next) => {
+    const { projectId, fileId } = req.params;
+    const supervisorId = req.user._id;
+
+    const project = await projectService.getProjectById(projectId);
+    if (!project) {
+        return next(new ErrorHandler("Project not found", 404));
+    }
+
+    const projectSupervisorId = project.supervisor?._id
+        ? project.supervisor._id.toString()
+        : project.supervisor.toString();
+
+    if (projectSupervisorId !== supervisorId.toString()) {
+        return next(new ErrorHandler("Not authorized to download files for this project", 403));
+    }
+
+    const file = project.files.id(fileId);
+    if (!file) {
+        return next(new ErrorHandler("File not found", 404));
+    }
+
+    try {
+        await fileServices.streamDownload(file.fileUrl, file.originalName, res);
+    } catch (error) {
+        if (res.headersSent) return res.end();
+        return next(error);
+    }
 });

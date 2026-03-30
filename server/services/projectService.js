@@ -80,3 +80,11 @@ export const addFeedback = async (projectId, feedbackData) => {
   const latestFeedback = project.feedback[project.feedback.length - 1];
   return { project, latestFeedback };
 };
+
+export const getProjectsBySupervisor = async (supervisorId) => {
+  const projects = await Project.find({ supervisor: supervisorId })
+    .populate("student", "name email")
+    .populate("supervisor", "name email")
+    .sort({ createdAt: -1 });
+  return projects;
+};
