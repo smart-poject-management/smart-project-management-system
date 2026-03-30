@@ -35,7 +35,7 @@ const UploadFiles = () => {
     if (!project) {
       dispatch(fetchProject());
     }
-  }, [dispatch]);
+  }, [dispatch , project]);
 
   const handleFilePick = e => {
     const list = Array.from(e.target.files || []);
@@ -43,14 +43,21 @@ const UploadFiles = () => {
     e.target.value = "";
   };
 
-  const handleUpload = () => {
-    if (selectedFiles.length === 0) {
-      toast.warn("Select the file.");
-      return;
-    }
-    dispatch(uploadFiles({ projectId: project?._id, files: selectedFiles }));
-    setSelectedFiles([]);
-  };
+ const handleUpload = () => {
+  if (!project?._id) {
+    toast.error("Project not loaded yet");
+    return;
+  }
+
+  if (selectedFiles.length === 0) {
+    toast.warn("Select the file.");
+    return;
+  }
+
+  dispatch(uploadFiles({ projectId: project._id, files: selectedFiles }));
+  setSelectedFiles([]);
+};
+
 
   const removeSelected = name => {
     setSelectedFiles(prev => prev.filter(f => f.name !== name));
@@ -273,8 +280,9 @@ const UploadFiles = () => {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleUpload(file)}
-                      disabled={loading}
+                      onClick={handleUpload}
+                      disabled={loading || !project?._id}
+
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-700 border border-blue-200 rounded-lg bg-white/50 hover:bg-blue-200 transition disabled:opacity-50"
                     >
                       {loading ? (
