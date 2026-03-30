@@ -30,7 +30,8 @@ const type = [
   { key: "request", label: "Request" },
   { key: "deadline", label: "Deadline" },
   { key: "meeting", label: "Meeting" },
-
+  { key: "feedback", label: "Feedback" },
+  { key: "system", label: "System" },
 ];
 
 const typeColorMap = {
@@ -41,6 +42,8 @@ const typeColorMap = {
   request: { base: "bg-orange-100 text-orange-800 border-orange-300", active: "bg-orange-700 text-white border-orange-700" },
   deadline: { base: "bg-rose-100 text-rose-800 border-rose-300", active: "bg-rose-700 text-white border-rose-700" },
   meeting: { base: "bg-purple-100 text-purple-800 border-purple-300", active: "bg-purple-700 text-white border-purple-700" },
+  feedback: { base: "bg-green-100 text-green-800 border-green-300", active: "bg-green-700 text-white border-green-700" },
+  system: { base: "bg-gray-100 text-gray-800 border-gray-300", active: "bg-gray-700 text-white border-gray-700" },
 
 };
 
@@ -78,6 +81,7 @@ const NotificationsPage = () => {
       case "general": return <Info className="w-6 h-6 text-blue-400" />;
       case "rejection": return <XCircle className="w-6 h-6 text-red-500" />;
       case "request": return <Send className="w-6 h-6 text-orange-500" />;
+      case "feedback": return <MessageSquare className="w-6 h-6 text-green-500" />;
       default:
         return (
           <div className="relative w-6 h-6 text-slate-500 flex items-center justify-center">
