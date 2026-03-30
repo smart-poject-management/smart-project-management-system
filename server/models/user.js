@@ -51,8 +51,8 @@ const userSchema = new mongoose.Schema(
     },
     maxStudents: {
       type: Number,
-      default: 1,
-      min: [1, "Max students must be at least 1"],
+      default: 10,
+      min: [1, "min students must be at least 1"],
     },
     assignedStudents: [
       {
@@ -103,5 +103,10 @@ userSchema.methods.getResetPasswordToken = function () {
 
   return resetToken;
 };
+
+userSchema.methods.hasCapacity = function () {
+  if(this.role !== "Teacher") return false;
+  return this.assignedStudents.length < this.maxStudents;
+}
 
 export const User = mongoose.model("User", userSchema);

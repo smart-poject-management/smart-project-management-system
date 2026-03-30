@@ -9,6 +9,7 @@ import studentRoutes from './router/studentRoutes.js';
 import notificationRoutes from './router/notificationRoutes.js';
 import projectRoutes from './router/projectRoutes.js';
 import deadlineRoutes from './router/deadlineRoutes.js';
+import teacherRoutes from './router/teacherRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -26,8 +27,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
-console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-
 
 const uploadsDir = path.join(__dirname, "uploads");
 const tempDir = path.join(__dirname, "temp");
@@ -48,6 +47,7 @@ app.use("/api/student", studentRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/project", projectRoutes);
 app.use("/api/deadline", deadlineRoutes);
+app.use("/api/teacher", teacherRoutes);
 
 app.use(errorMiddleware);
 

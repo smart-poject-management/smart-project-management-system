@@ -4,8 +4,8 @@ import { fetchProject, getFeedback } from "../../store/slices/studentSlice";
 import {
   AlertTriangle, Loader2, MessageSquare,
   ThumbsUp,
+  ThumbsDown,
   AlertCircle,
-  FileText,
   Info,
   CheckCircle,
   MessageCircleOff,
@@ -27,17 +27,18 @@ const FeedbackPage = () => {
     setActiveFilter(prev => (prev === type && type !== "all" ? "all" : type));
   };
   const getFeedbackIcon = (type) => {
-    switch (type) {
+    const t = type?.toLowerCase();
+    switch (t) {
       case "total":
         return <MessageSquare className="w-6 h-6 text-blue-500" />;
       case "positive":
         return <ThumbsUp className="w-6 h-6 text-green-500" />;
       case "revision":
         return <AlertCircle className="w-6 h-6 text-red-500" />;
-      case "file":
-        return <FileText className="w-6 h-6 text-purple-500" />;
+      case "negative":
+        return <ThumbsDown className="w-6 h-6 text-red-800" />;
       case "general":
-        return <Info className="w-6 h-6 text-red-500" />;
+        return <Info className="w-6 h-6 text-purple-500" />;
       case "completed":
         return <CheckCircle className="w-6 h-6 text-emerald-500" />;
       default:
@@ -46,21 +47,23 @@ const FeedbackPage = () => {
   };
 
   const getBadgeStyle = (type) => {
-    switch (type) {
+    const t = type?.toLowerCase();
+    switch (t) {
       case "positive": return "bg-green-100 text-green-700";
       case "revision": return "bg-red-100 text-red-700";
-      case "file": return "bg-purple-100 text-purple-700";
-      case "general": return "bg-red-100 text-red-700";
+      case "negative": return "bg-red-100 text-red-800";
+      case "general": return "bg-purple-100 text-purple-700";
       default: return "bg-blue-100 text-blue-700";
     }
   };
 
   const getBorderStyle = (type) => {
-    switch (type) {
+    const t = type?.toLowerCase();
+    switch (t) {
       case "positive": return "border-l-green-400";
       case "revision": return "border-l-red-400";
-      case "file": return "border-l-purple-400";
-      case "general": return "border-l-red-400";
+      case "negative": return "border-l-red-800";
+      case "general": return "border-l-purple-400";
       default: return "border-l-blue-400";
     }
   };
@@ -70,7 +73,9 @@ const FeedbackPage = () => {
   const filteredFeedback =
     activeFilter === "all"
       ? safeFeedback
-      : safeFeedback.filter(f => f.type === activeFilter);
+      : safeFeedback.filter(
+          f => f.type?.toLowerCase() === activeFilter.toLowerCase()
+        );
 
   const feedbackStats = [
     {
@@ -91,27 +96,27 @@ const FeedbackPage = () => {
       textColor: "text-green-700",
       valueColor: "text-green-900",
       activeBorder: "ring-2 ring-green-400 ring-offset-1",
-      getCount: () => safeFeedback.filter(f => f.type === "positive").length,
+      getCount: () => safeFeedback.filter(f => f.type?.toLowerCase() === "positive").length,
     },
     {
       type: "general",
       title: "General",
-      bg: "bg-red-50",
-      iconBg: "bg-red-100",
-      textColor: "text-red-700",
-      valueColor: "text-red-900",
-      activeBorder: "ring-2 ring-red-400 ring-offset-1",
-      getCount: () => safeFeedback.filter(f => f.type === "general").length,
-    },
-    {
-      type: "file",
-      title: "File Reviews",
       bg: "bg-purple-50",
       iconBg: "bg-purple-100",
       textColor: "text-purple-700",
       valueColor: "text-purple-900",
       activeBorder: "ring-2 ring-purple-400 ring-offset-1",
-      getCount: () => safeFeedback.filter(f => f.type === "file").length,
+      getCount: () => safeFeedback.filter(f => f.type?.toLowerCase() === "general").length,
+    },
+    {
+      type: "Negative",
+      title: "Negative",
+      bg: "bg-red-50",
+      iconBg: "bg-red-100",
+      textColor: "text-red-800",
+      valueColor: "text-red-900",
+      activeBorder: "ring-2 ring-red-800 ring-offset-1",
+      getCount: () => safeFeedback.filter(f => f.type?.toLowerCase() === "negative").length,
     },
   ];
 
@@ -197,7 +202,7 @@ const FeedbackPage = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getBadgeStyle(item.type)}`}>
                           {item.type
-                            ? item.type.charAt(0).toUpperCase() + item.type.slice(1)
+                            ? item.type.charAt(0).toUpperCase() + item.type.slice(1).toLowerCase()
                             : "General"}
                         </span>
                         {item.title && (

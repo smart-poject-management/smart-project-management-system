@@ -1,3 +1,4 @@
+// forgot password email template
 export function generateForgotPasswordEmailTemplate(resetPasswordUrl) {
     return `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;  border: 1px solid #e5e7eb; border-radius: 8px; background-color: #ffffff; color: #1f2937;">
@@ -37,3 +38,28 @@ export function generateForgotPasswordEmailTemplate(resetPasswordUrl) {
             </footer>
         </div>`
 }
+
+//  Request Accepted Email
+
+export function generateRequestAcceptedTemplate(supervisorName) {
+    return `
+    <div style="font-family: Arial; padding:20px; background:#fff; border:1px solid #ddd; border-radius:8px;">
+      <h2 style="color:#10b981;">✅ Supervisor Request Accepted</h2>
+      <p>Your supervisor request has been accepted by <strong>${supervisorName}</strong>.</p>
+      <p>You can now start working on your project and upload files.</p>
+    </div>
+  `;
+}
+
+// Request Rejected Email
+
+export function generateRequestRejectedTemplate(supervisorName) {
+    return `
+    <div style="font-family: Arial; padding:20px; background:#fff; border:1px solid #ddd; border-radius:8px;">
+      <h2 style="color:#ef4444;">❌ Supervisor Request Rejected</h2>
+      <p>Your supervisor request has been rejected by <strong>${supervisorName}</strong>.</p>
+      <p>You can try requesting another supervisor.</p>
+    </div>
+  `;
+}
+

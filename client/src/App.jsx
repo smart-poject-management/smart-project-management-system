@@ -4,6 +4,7 @@ import { useEffect } from "react";
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 // Dashboard Layouts
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -29,16 +30,42 @@ import ManageTeachers from "./pages/admin/ManageTeachers";
 import AssignSupervisor from "./pages/admin/AssignSupervisor";
 import DeadlinesPage from "./pages/admin/DeadlinesPage";
 import ProjectsPage from "./pages/admin/ProjectsPage";
+import NotFound from "./pages/NotFound";
+
 import { useDispatch, useSelector } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import { Loader } from "lucide-react";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import { getUser } from "./store/slices/authSlice";
 import { getAllProjects, getAllUsers } from "./store/slices/adminSlice";
-import NotFound from "./pages/NotFound";
+import { fetchDashboardStats } from "./store/slices/studentSlice";
+import Unauthorized from "./pages/Unauthorized";
+
+
+const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
+  if (!authUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (
+    allowedRoles?.length &&
+    authUser?.role &&
+    !allowedRoles.includes(authUser.role)
+  ) {
+    const redirectPath =
+      authUser.role === "Admin"
+        ? "/admin"
+        : authUser.role === "Teacher"
+          ? "/teacher"
+          : "/student";
+
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  return children;
+};
 
 const App = () => {
-  const { authUser, isCheckingAuth } = useSelector(state => state.auth);
+  const { authUser, isCheckingAuth } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -50,38 +77,11 @@ const App = () => {
       dispatch(getAllUsers());
       dispatch(getAllProjects());
     }
-  }, [authUser]);
-  const ProtectedRoute = ({ children, allowedRoles }) => {
-    if (!authUser) {
-      return <Navigate to={"/"} replace />;
+    if (authUser?.role === "Student") {
+      dispatch(fetchDashboardStats());
     }
+  }, [authUser, dispatch]);
 
-    if (
-      allowedRoles?.length &&
-      authUser?.role &&
-      !allowedRoles.includes(authUser.role) // fixing the bug iscloudes thaaa ya per
-    ) {
-      const redirectPath =
-        authUser.role === "Admin"
-          ? "/admin"
-          : authUser.role === "Teacher"
-            ? "/teacher"
-            : "/student";
-
-      return <Navigate to={redirectPath} replace />;
-    }
-
-    return children;
-  };
-
-  // if (isCheckingAuth && !authUser) {
-  //   return (
-  //     <div className="flex justify-center items-center h-screen">
-  //       <Loader className="size-10 animate-spin" />
-  //     </div>
-  //   );
-  // }
-  // ya condition check kar ne ha 
   if (isCheckingAuth) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -89,23 +89,21 @@ const App = () => {
       </div>
     );
   }
+
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth Routes */}
-        {/* 404 - Catch All */}
-        {/* <Route path="*" element={<NotFound />} /> */}
         <Route path="/" element={<LoginPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
 
         {/* Admin Routes */}
-
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["Admin"]}>
-              <DashboardLayout userRole={"Admin"} />
+            <ProtectedRoute allowedRoles={["Admin"]} authUser={authUser}>
+              <DashboardLayout userRole="Admin" />
             </ProtectedRoute>
           }
         >
@@ -113,17 +111,16 @@ const App = () => {
           <Route path="students" element={<ManageStudents />} />
           <Route path="teachers" element={<ManageTeachers />} />
           <Route path="assign-supervisor" element={<AssignSupervisor />} />
-          <Route path="deadline" element={<DeadlinesPage />} />
+          <Route path="deadlines" element={<DeadlinesPage />} />
           <Route path="projects" element={<ProjectsPage />} />
         </Route>
 
         {/* Student Routes */}
-
         <Route
           path="/student"
           element={
-            <ProtectedRoute allowedRoles={["Student"]}>
-              <DashboardLayout userRole={"Student"} />
+            <ProtectedRoute allowedRoles={["Student"]} authUser={authUser}>
+              <DashboardLayout userRole="Student" />
             </ProtectedRoute>
           }
         >
@@ -134,7 +131,49 @@ const App = () => {
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
+
+        {/* Teacher Routes */}
+        <Route
+          path="/teacher"
+          element={
+            <ProtectedRoute allowedRoles={["Teacher"]} authUser={authUser}>
+              <DashboardLayout userRole="Teacher" />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<TeacherDashboard />} />
+          <Route path="pending-requests" element={<PendingRequests />} />
+          <Route path="assigned-students" element={<AssignedStudents />} />
+          <Route path="files" element={<TeacherFiles />} />
+        </Route>
+
+        <Route
+          path="unauthorized"
+          element={
+
+            // <div className="min-h-screen flex items-center justify-center bg-slate-50">
+            //   <div className="bg-white p-8 rounded-xl shadow-sm">
+            //     <h1 className="text-2xl font-semibold text-slate-800">
+            //       Unauthorized
+            //     </h1>
+            //     <p className="text-sm text-slate-500 mt-2">
+            //       You do not have permission to access this page
+            //     </p>
+            //     <button
+            //       onClick={() => window.history.back()}
+            //       className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            //     >
+            //       Go Back
+            //     </button>
+            //   </div>
+            // </div>
+           <Unauthorized/>
+          }
+        />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
+
       <ToastContainer theme="dark" />
     </BrowserRouter>
   );

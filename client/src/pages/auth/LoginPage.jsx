@@ -4,14 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../../store/slices/authSlice";
 import { Loader } from "lucide-react";
 import {
-  FaLock,
-  FaArrowLeft,
   FaEye,
   FaEyeSlash,
   FaUserGraduate,
   FaChalkboardTeacher,
   FaUserShield,
   FaQuoteLeft,
+  FaQuoteRight,
 } from "react-icons/fa";
 
 const LoginPage = () => {
@@ -21,7 +20,7 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "",
+    role: "Student",
   });
 
   const [errors, setErrors] = useState({});
@@ -114,123 +113,148 @@ const LoginPage = () => {
             </div>
           )}
 
-          {/* Role Selection */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-4 sm:gap-6 text-sm">
-              {[
-                { value: "Student", icon: <FaUserGraduate /> },
-                { value: "Teacher", icon: <FaChalkboardTeacher /> },
-                { value: "Admin", icon: <FaUserShield /> },
-              ].map(role => (
-                <label
-                  key={role.value}
-                  className="flex items-center gap-2 cursor-pointer group"
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    value={role.value}
-                    checked={formData.role === role.value}
-                    onChange={handleChange}
-                    className="accent-indigo-600"
-                  />
-                  <span className="text-indigo-600 group-hover:scale-110 transition">
-                    {role.icon}
-                  </span>
-                  <span className="text-gray-700">{role.value}</span>
-                </label>
-              ))}
-            </div>
-          </div>
 
-          {/* Email */}
-          <div className="mb-5">
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter email"
-              className={`w-full bg-white border rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-                errors.email ? "border-red-400" : "border-gray-300"
-              }`}
-            />
-            {errors.email && (
-              <p className="text-xs text-red-500 mt-2 pl-2">{errors.email}</p>
-            )}
-          </div>
+          <form onSubmit={handleSubmit} noValidate>
 
-          {/* Password */}
-          <div className="mb-6 relative">
-            <input
-              type={showPassword ? "text" : "password"} // ✅ now works
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter password"
-              className={`w-full bg-white border rounded-full px-5 py-3 pr-12 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-                errors.password ? "border-red-400" : "border-gray-300"
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)} // ✅ now works
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600 transition"
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </button>
-            {errors.password && (
-              <p className="text-xs text-red-500 mt-2 pl-2">
-                {errors.password}
-              </p>
-            )}
-          </div>
-
-          {/* Forgot Password */}
-          <div className="text-right mb-8">
-            <Link
-              to="/password/forgot"
-              className="text-sm text-indigo-600 hover:underline"
-            >
-              Forgot your password?
-            </Link>
-          </div>
-
-          {/* Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={isLoggingIn}
-            className="w-full bg-indigo-700 text-white py-3 rounded-full hover:bg-indigo-800 transition-all duration-300 text-sm font-medium disabled:opacity-50"
-          >
-            {isLoggingIn ? (
-              <div className="flex justify-center items-center gap-2">
-                <Loader className="animate-spin h-4 w-4 text-white" />
-                Login...
+            {/* Role Selection */}
+            <div className="mb-8">
+              <div className="flex flex-wrap gap-3 sm:gap-4 text-sm">
+                {[
+                  { value: "Student", icon: <FaUserGraduate /> },
+                  { value: "Teacher", icon: <FaChalkboardTeacher /> },
+                  { value: "Admin", icon: <FaUserShield /> },
+                ].map(role => (
+                  <label
+                    key={role.value}
+                    className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border-2 transition-all duration-200 ${formData.role === role.value
+                        ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
+                        : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/50"
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={role.value}
+                      checked={formData.role === role.value}
+                      onChange={handleChange}
+                      className="hidden"
+                    />
+                    <span
+                      className={`transition ${formData.role === role.value
+                          ? "text-indigo-600"
+                          : "text-gray-400"
+                        }`}
+                    >
+                      {role.icon}
+                    </span>
+                    <span className="font-medium">{role.value}</span>
+                  </label>
+                ))}
               </div>
-            ) : (
-              "Login"
-            )}
-          </button>
+            </div>
 
-     
+            {/* Email */}
+            <div className="mb-5">
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter email"
+                className={`w-full bg-white border rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.email ? "border-red-400" : "border-gray-300"
+                  }`}
+              />
+              {errors.email && (
+                <p className="text-xs text-red-500 mt-2 pl-2">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="mb-6 relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter password"
+                className={`w-full bg-white border rounded-full px-5 py-3 pr-12 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition ${errors.password ? "border-red-400" : "border-gray-300"
+                  }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600 transition"
+              >
+                {!showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+              {errors.password && (
+                <p className="text-xs text-red-500 mt-2 pl-2">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* Forgot Password */}
+            <div className="text-right mb-8">
+              <Link
+                to="/password/forgot"
+                className="text-sm text-indigo-600 hover:underline"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full bg-indigo-700 text-white py-3 rounded-full hover:bg-indigo-800 transition-all duration-300 text-sm font-medium disabled:opacity-50"
+            >
+              {isLoggingIn ? (
+                <div className="flex justify-center items-center gap-2">
+                  <Loader className="animate-spin h-4 w-4 text-white" />
+                  Login...
+                </div>
+              ) : (
+                "Login"
+              )}
+            </button>
+
+          </form>
         </div>
 
-        {/* RIGHT SIDE - Quote */}
-        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-600 to-purple-700 text-white relative px-12 py-16 flex-col justify-center">
-          <div className="max-w-md">
-            <div className="flex gap-4 items-start">
-              <FaQuoteLeft className="text-3xl opacity-80 mt-1" />{" "}
-            
-              <p className="text-lg leading-relaxed">
-                This educational project management system makes tracking
-                assignments and collaborating with teachers incredibly easy.
-              </p>
+        {/* RIGHT SIDE - Enhanced Quote */}
+        <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-[#1e293b] via-indigo-700 to-purple-800 text-white px-14 py-16 flex-col justify-between">
+
+          {/* TOP CONTENT */}
+          <div className="z-10 max-w-lg">
+
+            {/* Quote Icon */}
+            <div className="text-indigo-300 text-xl mb-4 text-right flex  justify-start">
+              <FaQuoteLeft />
             </div>
+
+            {/* Quote Text */}
+            <p className="text-xl leading-relaxed font-light tracking-wide text-white">
+              This educational project management system makes tracking assignments
+              and collaborating with teachers incredibly easy.
+            </p>
+
+            {/* Bottom Quote Icon */}
+            <div className="text-indigo-300 text-xl mt-4 text-right flex justify-end">
+              <FaQuoteRight />
+            </div>
+
           </div>
 
-          <div className="absolute bottom-0 right-6 opacity-10 text-[150px] font-bold select-none">
+          {/* GLASS CARD DECORATION */}
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-white/10 backdrop-blur-xl rounded-2xl rotate-12 border border-white/20"></div>
+
+          {/* BACKGROUND TEXT */}
+          <div className="absolute bottom-0 right-6 opacity-[0.06] text-[180px] font-extrabold tracking-widest select-none">
             EDU
           </div>
+
+          {/* GRADIENT OVERLAY (depth effect) */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
       </div>
     </div>

@@ -21,7 +21,7 @@ const supervisorRequestSchema = new mongoose.Schema(
     status: {
       type: String,
       required: [true, "Status is required"],
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "accepted", "rejected"],
       default: "pending"
     },
   },
