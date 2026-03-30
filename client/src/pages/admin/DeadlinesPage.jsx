@@ -22,7 +22,7 @@ const DeadlinesPage = () => {
   const [viewProjects, setViewProjects] = useState(projects || []);
   useEffect(() => {
     setViewProjects(projects || []);
-  }, [projects]);a
+  }, [projects]);
 
   const projectRows = useMemo(() => {
     return (viewProjects || []).map(project => ({
@@ -138,58 +138,59 @@ const DeadlinesPage = () => {
 
         {/* Project Deadlines Tables */}
         <div className="overflow-y-auto">
-          <table className="w-full"></table>
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Student
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Project Title
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Supervisor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Deadline Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                Updated
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-slate-200">
-            {filteredProjects.map(row => {
-              return (
-                <tr key={row._id} className="hover:bg-slate-100">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-slate-900">
-                        {row.studentName}
+          <table className="w-full">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Student
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Project Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Supervisor
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Deadline Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Updated
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-slate-200">
+              {filteredProjects.map(row => {
+                return (
+                  <tr key={row._id} className="hover:bg-slate-100">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-slate-900">
+                          {row.studentName}
+                        </div>
+                        <div className="text-sm font-medium text-slate-500">
+                          {row.studentEmail}
+                        </div>
                       </div>
-                      <div className="text-sm font-medium text-slate-500">
-                        {row.studentEmail}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{row.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {row.supervisor !== "N/A" ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        {row.supervisor}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        Not Assigned
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">{row.deadline}</td>
-                  <td className="px-6 py-4">{row.updatedAt}</td>
-                </tr>
-              );
-            })}
-          </tbody>
+                    </td>
+                    <td className="px-6 py-4">{row.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {row.supervisor !== "N/A" ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {row.supervisor}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Not Assigned
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">{row.deadline}</td>
+                    <td className="px-6 py-4">{row.updatedAt}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* filters project */}
@@ -254,8 +255,8 @@ const DeadlinesPage = () => {
                               projectTitle: project.title,
                               deadlineDate: project.deadline
                                 ? new Date(project.deadline)
-                                    .toISOString()
-                                    .slice(0, 10)
+                                  .toISOString()
+                                  .slice(0, 10)
                                 : "",
                             });
                           }}

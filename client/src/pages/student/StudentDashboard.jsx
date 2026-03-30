@@ -131,7 +131,7 @@ const StudentDashboard = () => {
 
           <div className="flex justify-between pt-3 border-t">
             <span
-              className={`px-3 py-1 text-xs rounded-full font-medium ${project?.status === "approved"
+              className={`px-3 py-1 text-xs rounded-full font-medium capitalize ${project?.status === "approved"
                   ? "bg-green-100 text-green-600"
                   : project?.status === "pending"
                     ? "bg-yellow-100 text-yellow-600"
@@ -215,7 +215,7 @@ const StudentDashboard = () => {
                   </p>
                 </div>
 
-                <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded">
+                <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded capitalize font-bold">
                   upcoming
                 </span>
               </div>

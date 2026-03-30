@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   );
 
   const { stats, projects } = useSelector(state => state.admin);
-  const { notifications } = useSelector(state => state.notification.list);
+  const notifications = useSelector(state => state.notification.list);
 
   const dispatch = useDispatch();
 
@@ -355,14 +355,14 @@ const AdminDashboard = () => {
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <span
-                        className={`px-2 py-0.5 rounded text-sm font-medium ${(getBadgeClasses("type"), String(notification.type))}`}
+                        className={`px-2 py-0.5 rounded text-sm font-medium capitalize ${(getBadgeClasses("type", notification.type))}`}
                       >
-                        Type: {notification.type}
+                        {notification.type}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded text-sm font-medium ${(getBadgeClasses("priority"), String(notification.priority))}`}
+                        className={`px-2 py-0.5 rounded text-sm font-medium capitalize ${getBulletColor(notification.type, notification.priority)}`}
                       >
-                        Priority: {notification.priority}
+                        {notification.priority}
                       </span>
                     </div>
                   </div>

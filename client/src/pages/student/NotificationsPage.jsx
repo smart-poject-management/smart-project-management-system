@@ -16,6 +16,7 @@ import {
   Clock,
   Clock5,
   Info,
+  MessageSquare,
   Send,
   Settings,
   User,
