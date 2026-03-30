@@ -55,6 +55,9 @@ export const logout = asyncHandler(async (req, res) => {
     .cookie("token", null, {
       expires: new Date(Date.now()),
       httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
     })
     .json({ success: true, message: "User logged out successfully" });
 });
