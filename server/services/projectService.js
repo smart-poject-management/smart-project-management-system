@@ -88,3 +88,16 @@ export const getProjectsBySupervisor = async (supervisorId) => {
     .sort({ createdAt: -1 });
   return projects;
 };
+
+export const updateProjectStatus = async (projectId, status) => {
+  const project = await Project.findByIdAndUpdate(
+    projectId,
+    { status },
+    { new: true, runValidators: true }
+  ).populate("student", "name email")
+    .populate("supervisor", "name email");
+  if (!project) {
+    return new Error("Project not found", 404);
+  }
+  return project;
+};

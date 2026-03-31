@@ -184,51 +184,105 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
 });
 
 export const assignSupervisor = asyncHandler(async (req, res, next) => {
-    const { studentId, supervisorId } = req.body;
+  const { studentId, supervisorId } = req.body;
 
-    if (!studentId || !supervisorId) {
-        return next(new ErrorHandler("Student ID and Supervisor ID are required", 400));
-    }
+  if (!studentId || !supervisorId) {
+    return next(new ErrorHandler("Student ID and Supervisor ID are required", 400));
+  }
 
-    const project = await Project.findOne({ student: studentId });
-    if (!project) {
-        return next(new ErrorHandler("Project not found", 404));
-    }
+  const project = await Project.findOne({ student: studentId });
+  if (!project) {
+    return next(new ErrorHandler("Project not found", 404));
+  }
 
-    if (project.supervisor !== null) {
-        return next(new ErrorHandler("Supervisor already assigned", 400));
-    }
+  if (project.supervisor !== null) {
+    return next(new ErrorHandler("Supervisor already assigned", 400));
+  }
 
-    if (project.status !== "approved") {
-        return next(new ErrorHandler("Project not approved yet", 400));
-    } else if (project.status === "pending" || project.status === "rejected") {
-        return next(new ErrorHandler("Project is in pending state or rejected", 400));
-    }
+  if (project.status !== "approved") {
+    return next(new ErrorHandler("Project not approved yet", 400));
+  } else if (project.status === "pending" || project.status === "rejected") {
+    return next(new ErrorHandler("Project is in pending state or rejected", 400));
+  }
 
-    const { student, supervisor } = await userServices.assignSupervisorDirectly(studentId, supervisorId);
+  const { student, supervisor } = await userServices.assignSupervisorDirectly(studentId, supervisorId);
 
-    project.supervisor = supervisor;
-    await project.save();
+  project.supervisor = supervisor;
+  await project.save();
 
-    await notificationService.notifyUser(
-        studentId,
-        `You have been assigned a supervisor ${supervisor.name}.`,
-        "approval",
-        "/students/status",
-        "low"
-    );
+  await notificationService.notifyUser(
+    studentId,
+    `You have been assigned a supervisor ${supervisor.name}.`,
+    "approval",
+    "/students/status",
+    "low"
+  );
 
-    await notificationService.notifyUser(
-        supervisorId,
-        `The student ${student.name} has been officially assigned to you for FYP supervisor.`,
-        "general",
-        "/teacher/status",
-        "low"
-    );
+  await notificationService.notifyUser(
+    supervisorId,
+    `The student ${student.name} has been officially assigned to you for FYP supervisor.`,
+    "general",
+    "/teacher/status",
+    "low"
+  );
 
-    res.status(200).json({
-        success: true,
-        message: "Supervisor assigned successfully",
-        data: { student, supervisor }
-    });
+  res.status(200).json({
+    success: true,
+    message: "Supervisor assigned successfully",
+    data: { student, supervisor }
+  });
+});
+
+export const getProject = asyncHandler(async (req, res, next) => {
+  const { projectId } = req.params;
+  const project = await projectServices.getProjectById(projectId);
+  if (!project) {
+    return next(new ErrorHandler("Project not found", 404));
+  }
+
+  const user = req.user;
+  const userRole = (user.role || "").toLowerCase();
+  const userId = user._id.toString() || user.id;
+  const hasAccess =
+    userRole === "admin" ||
+    (userRole === "teacher" && project.supervisor && project.supervisor._id.toString() === userId) ||
+    (userRole === "student" && project.student && project.student._id.toString() === userId);
+
+  if (!hasAccess) {
+    return next(new ErrorHandler("Unauthorized access to project details", 403));
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Project details fetched successfully",
+    data: { project },
+  });
+});
+
+export const updateProjectStatus = asyncHandler(async (req, res, next) => {
+  const { projectId } = req.params;
+  const updatedData = req.body;
+  const user = req.user;
+
+  const project = await projectServices.getProjectById(projectId);
+  if (!project) {
+    return next(new ErrorHandler("Project not found", 404));
+  }
+
+  const hasAccess =
+    user.role === "Admin" ||
+    (user.role === "Teacher" && project.supervisor && project.supervisor._id.toString() === user._id);
+  if (!hasAccess) {
+    return next(new ErrorHandler("Unauthorized access to update project status", 403));
+  }
+
+  const updatedProject = await projectServices.updateProjectStatus(projectId, updatedData);
+  if (!updatedProject) {
+    return next(new ErrorHandler("Failed to update project status", 500));
+  }
+  res.status(200).json({
+    success: true,
+    message: "Project status updated successfully",
+    data: { project: updatedProject },
+  });
 });

@@ -8,6 +8,8 @@ import {
   getAllProjects,
   getAllUsers,
   getDashboardStats,
+  getProject,
+  updateProjectStatus,
   updateStudent,
   updateTeacher,
 } from "../controllers/adminController.js";
@@ -89,6 +91,20 @@ router.post(
   isAuthenticated,
   isAuthorized("Admin"),
   assignSupervisor
-)
+);
+
+router.get(
+  "/project/:projectId", 
+  isAuthenticated,
+  isAuthorized("Admin"),
+  getProject
+);
+
+router.put( 
+  "/project/:projectId",
+  isAuthenticated,
+  isAuthorized("Admin"),  
+  updateProjectStatus
+);
 
 export default router;
