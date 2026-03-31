@@ -234,8 +234,8 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
 });
 
 export const getProject = asyncHandler(async (req, res, next) => {
-  const { projectId } = req.params;
-  const project = await projectServices.getProjectById(projectId);
+  const { id } = req.params;
+  const project = await projectServices.getProjectById(id);
   if (!project) {
     return next(new ErrorHandler("Project not found", 404));
   }
@@ -260,11 +260,11 @@ export const getProject = asyncHandler(async (req, res, next) => {
 });
 
 export const updateProjectStatus = asyncHandler(async (req, res, next) => {
-  const { projectId } = req.params;
+  const { id } = req.params;
   const updatedData = req.body;
   const user = req.user;
 
-  const project = await projectServices.getProjectById(projectId);
+  const project = await projectServices.getProjectById(id);
   if (!project) {
     return next(new ErrorHandler("Project not found", 404));
   }
@@ -276,7 +276,7 @@ export const updateProjectStatus = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Unauthorized access to update project status", 403));
   }
 
-  const updatedProject = await projectServices.updateProjectStatus(projectId, updatedData);
+  const updatedProject = await projectServices.updateProjectStatus(id, updatedData);
   if (!updatedProject) {
     return next(new ErrorHandler("Failed to update project status", 500));
   }

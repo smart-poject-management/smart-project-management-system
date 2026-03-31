@@ -92,7 +92,7 @@ export const getProjectsBySupervisor = async (supervisorId) => {
 export const updateProjectStatus = async (projectId, status) => {
   const project = await Project.findByIdAndUpdate(
     projectId,
-    { status },
+    { status: status.status },
     { new: true, runValidators: true }
   ).populate("student", "name email")
     .populate("supervisor", "name email");

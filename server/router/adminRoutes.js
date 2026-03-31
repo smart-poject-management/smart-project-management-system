@@ -94,14 +94,14 @@ router.post(
 );
 
 router.get(
-  "/project/:projectId", 
+  "/project/:id", 
   isAuthenticated,
   isAuthorized("Admin"),
   getProject
 );
 
 router.put( 
-  "/project/:projectId",
+  "/project/:id",
   isAuthenticated,
   isAuthorized("Admin"),  
   updateProjectStatus

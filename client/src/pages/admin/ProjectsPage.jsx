@@ -97,7 +97,7 @@ const ProjectsPage = () => {
 
   const handleStatusChange = async (projectId, newStatus) => {
     if (newStatus === "approved") {
-      const res = dispatch(approveProject(projectId));
+      dispatch(approveProject(projectId));
     } else if (newStatus === "rejected") {
       dispatch(rejectProject(projectId));
     }
@@ -356,7 +356,6 @@ const ProjectsPage = () => {
                               }
                               className="text-green-600 hover:text-green-800">
                               Approve
-
                             </button>
                             <button
                               onClick={() =>
@@ -364,7 +363,6 @@ const ProjectsPage = () => {
                               }
                               className="text-red-600 hover:text-red-800">
                               Reject
-
                             </button>
 
                           </>
@@ -392,8 +390,8 @@ const ProjectsPage = () => {
 
       {/* View Project Modal */}
       {showViewModal && currentProjects && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+        <div className="fixed inset-0 -top-10 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-slate-800">
                 Project Details
@@ -404,7 +402,7 @@ const ProjectsPage = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div>
                 <label className="text-sm font-medium text-slate-500">
                   Title
@@ -459,23 +457,23 @@ const ProjectsPage = () => {
                 <label className="text-sm font-medium text-slate-500">
                   File
                 </label>
-                <p className="text-sm text-slate-900">
+                <div className="text-sm text-slate-900">
                   {
-                    (currentProjects?.file || []).length === 0 ? (
+                    (currentProjects?.files || []).length === 0 ? (
                       <div className="text-sm text-slate-500">
-                        <p>No files uploaded</p>
+                        No files uploaded
                       </div>
                     ) : (
                       <ul className="list-disc list-inside text-sm text-slate-700">
-                        {currentProjects.file.map((file) => (
+                        {currentProjects.files.map((file) => (
                           <li key={file._id || file.url}>
-                            {file._id || file.url}
+                            {file.originalName}
                           </li>
                         ))}
                       </ul>
                     )
                   }
-                </p>
+                </div>
               </div>
             </div>
           </div>
