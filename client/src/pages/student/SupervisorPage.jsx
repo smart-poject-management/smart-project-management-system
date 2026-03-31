@@ -369,7 +369,7 @@ const SupervisorPage = () => {
 
         {/* Modal */}
         {showRequestModal && selectedSupervisor && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 -top-10 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
 
               {/* Modal Header */}

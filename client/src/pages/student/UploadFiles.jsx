@@ -110,7 +110,7 @@ const UploadFiles = () => {
       {/* delete file confirmation */}
       {confirmFile && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 -top-10 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           onClick={() => setConfirmFile(null)}
         >
           <div

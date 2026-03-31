@@ -481,7 +481,7 @@ const ProjectsPage = () => {
       )}
       {/* report modal */}
       {isReportsOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 -top-10 bg-black bg-opacity-50 flex items-center justify-center z-50">
 
           <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl p-5">
 

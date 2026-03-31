@@ -363,7 +363,7 @@ const ManageStudents = () => {
 
         {/* EDIT STUDENT MODAL */}
         {showModel && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white w-full max-w-md rounded-xl shadow-lg border">
               {/* Header */}
               <div className="flex justify-between items-center px-6 py-4 border-b">
@@ -450,7 +450,7 @@ const ManageStudents = () => {
         )}
 
         {showDeleteModel && studentToDelete && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white w-full max-w-md rounded-lg p-6 mx-4 shadow-xl">
               <div className="flex items-center mb-4">
                 <div className="flex-shrink-0 w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-red-100">
