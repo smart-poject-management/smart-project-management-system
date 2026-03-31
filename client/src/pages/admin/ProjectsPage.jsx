@@ -76,7 +76,6 @@ const ProjectsPage = () => {
 
   const handleDownload = async (projectId, fileId, name) => {
     await dispatch(downloadProjectFile({ projectId, fileId, name }));
-    toast.success(`"${name}" downloaded successfully.`);
   };
 
   const getStatusColor = status => {

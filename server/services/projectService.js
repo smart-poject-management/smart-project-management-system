@@ -30,12 +30,22 @@ export const addFilesToProject = async (projectId, files) => {
   if (!project) {
     return new Error("Project not found", 404);
   }
-  const filesMetaData = files.map((file) => ({
-    fileType: file.mimetype,
-    fileUrl: path.relative(path.join(__dirname, "../uploads"), file.path),
-    originalName: file.originalname,
-    uploadedAt: new Date(),
-  }));
+  const filesMetaData = files.map((file) => {
+    let relativePath;
+    if (file.path) {
+      const uploadsDir = path.join(__dirname, "../uploads");
+      relativePath = path.relative(uploadsDir, file.path);
+      relativePath = relativePath.split(path.sep).join('/');
+    } else {
+      relativePath = file.filename;
+    }
+    return {
+      fileType: file.mimetype,
+      fileUrl: relativePath,
+      originalName: file.originalname,
+      uploadedAt: new Date(),
+    };
+  });
 
   project.files.push(...filesMetaData);
   await project.save();

@@ -12,16 +12,16 @@ export const downloadProjectFile = createAsyncThunk(
           responseType: "blob",
         }
       );
-      const url = window.URL.createObjectURL(res.data);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", name || "file");
+      link.setAttribute("download", name || "download");
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-
-      return { projectId, fileId };
+      toast.success(`"${name}" downloaded successfully!`);
+      return { success: true, fileId, projectId };
 
     } catch (error) {
       const message =
@@ -40,7 +40,7 @@ const projectSlice = createSlice({
     selected: null,
   },
   reducers: {},
-  extraReducers: builder => {},
+  extraReducers: builder => { },
 });
 
 export default projectSlice.reducer;

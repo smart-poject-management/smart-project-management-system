@@ -34,6 +34,8 @@ const tempDir = path.join(__dirname, "temp");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
+app.use('/uploads', express.static(uploadsDir));
+
 app.use(cookieParser());
 
 

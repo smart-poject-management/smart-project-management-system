@@ -147,7 +147,7 @@ export const downloadFile = createAsyncThunk(
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-      toast.success(`"${fileName}" downloaded successfully!`); // add the toast
+      toast.success(`"${fileName}" downloaded successfully!`);
       return { success: true, fileId };
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to download file");

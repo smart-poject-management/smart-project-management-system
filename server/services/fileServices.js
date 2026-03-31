@@ -1,4 +1,3 @@
-
 import fs from "fs";
 import path from "path";
 import ErrorHandler from "../middlewares/error.js";
@@ -15,7 +14,20 @@ const __dirname = path.dirname(__filename);
  */
 export const streamDownload = (fileUrl, originalName, res) => {
   return new Promise((resolve, reject) => {
-    const absolutePath = path.isAbsolute(fileUrl) ? fileUrl : path.join(__dirname, "../uploads", fileUrl);
+    let absolutePath;
+    
+    if (path.isAbsolute(fileUrl)) {
+      absolutePath = fileUrl;
+    } else {
+      absolutePath = path.join(__dirname, "../uploads", fileUrl);
+    }
+
+    absolutePath = path.normalize(absolutePath);
+    const uploadsDir = path.normalize(path.join(__dirname, "../uploads"));
+    
+    if (!absolutePath.startsWith(uploadsDir)) {
+      return reject(new ErrorHandler("Invalid file path", 400));
+    }
 
     if (!fs.existsSync(absolutePath)) {
       return reject(new ErrorHandler("File not found on server", 404));
