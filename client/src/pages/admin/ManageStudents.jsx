@@ -116,7 +116,7 @@ const ManageStudents = () => {
   };
   return (
     <>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
           <div>

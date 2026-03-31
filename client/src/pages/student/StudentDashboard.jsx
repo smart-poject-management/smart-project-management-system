@@ -56,7 +56,7 @@ const StudentDashboard = () => {
   );
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
 
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-2xl text-white shadow">

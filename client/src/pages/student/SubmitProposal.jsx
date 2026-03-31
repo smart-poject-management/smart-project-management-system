@@ -30,7 +30,7 @@ const SubmitProposal = () => {
 
   return (
     <>
-      <div className="space-y-6 p-4">
+      <div className="space-y-6">
         <div className="bg-white/70 border border-slate-200 rounded-2xl shadow-xl">
           <div className="p-6">
 

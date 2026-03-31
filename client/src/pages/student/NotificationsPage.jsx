@@ -185,7 +185,7 @@ const NotificationsPage = () => {
 
   return (
 
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
 
         {/* HEADER */}

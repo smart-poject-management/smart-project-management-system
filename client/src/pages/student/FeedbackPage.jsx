@@ -143,7 +143,7 @@ const FeedbackPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 overflow-x-hidden">
+    <div className="space-y-6 overflow-x-hidden">
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
 
         {/* Feedback Header */}
