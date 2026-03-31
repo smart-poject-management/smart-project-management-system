@@ -2,6 +2,8 @@ import { AlertTriangle, CheckCircle2, FileDown, Folder, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { approveProject, getProject, rejectProject } from "../../store/slices/adminSlice";
+import { downloadProjectFile } from "../../store/slices/projectSlice";
 
 const ProjectsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,9 +97,9 @@ const ProjectsPage = () => {
 
   const handleStatusChange = async (projectId, newStatus) => {
     if (newStatus === "approved") {
-      const res = await dispatch(approveProject(projectId));
+      const res = dispatch(approveProject(projectId));
     } else if (newStatus === "rejected") {
-      await dispatch(rejectProject(projectId));
+      dispatch(rejectProject(projectId));
     }
   };
 
@@ -298,12 +300,258 @@ const ProjectsPage = () => {
                         : "N/A"}
                     </div>
                   </td>
+
+                  {/* Supervisor */}
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-slate-900">
+                      {project.supervisor?.name ? (
+                        project.supervisor?.name
+                      ) : (
+                        "Unassigned"
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {project.supervisor?.email}
+                    </div>
+                  </td>
+
+                  {/* deadline */}
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-slate-900">
+                      {project.deadline ? new Date(project.deadline).toLocaleDateString()
+                        : "N/A"}
+                    </div>
+
+                  </td>
+
+                  {/* project status */}
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                      {project.status}
+                    </span>
+                  </td>
+
+                  {/* action  btn */}
+                  <td className="px-6 py-3 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button onClick={async () => {
+
+                        const res = await dispatch(getProject(project._id))
+                        if (!getProject.fulfilled.match(res)) return
+                        const detail = res.payload?.project || res.payload
+                        setCurrentProjects(detail)
+                        setShowViewModal(true)
+                      }}
+
+                        className="text-blue-600 hover:text-blue-800"> View
+
+                      </button>
+                      {
+                        project.status === "pending" && (
+                          <>
+
+                            <button
+                              onClick={() =>
+                                handleStatusChange(project._id, "approved")
+                              }
+                              className="text-green-600 hover:text-green-800">
+                              Approve
+
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleStatusChange(project._id, "rejected")
+                              }
+                              className="text-red-600 hover:text-red-800">
+                              Reject
+
+                            </button>
+
+                          </>
+                        )
+
+                      }
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+
+        {
+          filteredProjects.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-slate-500">No projects found matching your criteria</p>
+            </div>
+          )
+
+        }
       </div>
+
+      {/* View Project Modal */}
+      {showViewModal && currentProjects && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Project Details
+              </h2>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-slate-500 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  Title
+                </label>
+                <p className="text-sm text-slate-900">
+                  {currentProjects?.title || "N/A"}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  Description
+                </label>
+                <p className="text-sm text-slate-900">
+                  {currentProjects?.description || "N/A"}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  Student
+                </label>
+                <p className="text-sm text-slate-900">
+                  {currentProjects?.student?.name || "N/A"}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  Supervisor
+                </label>
+                <p className="text-sm text-slate-900">
+                  {currentProjects?.supervisor?.name || "N/A"}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  Deadline
+                </label>
+                <p className="text-sm text-slate-900">
+                  {currentProjects?.deadline &&
+                    currentProjects?.deadline.split("T")[0]}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  Status
+                </label>
+                <p className="text-sm text-slate-900">
+                  {currentProjects.status}
+                </p>
+              </div>
+              {/* file */}
+              <div>
+                <label className="text-sm font-medium text-slate-500">
+                  File
+                </label>
+                <p className="text-sm text-slate-900">
+                  {
+                    (currentProjects?.file || []).length === 0 ? (
+                      <div className="text-sm text-slate-500">
+                        <p>No files uploaded</p>
+                      </div>
+                    ) : (
+                      <ul className="list-disc list-inside text-sm text-slate-700">
+                        {currentProjects.file.map((file) => (
+                          <li key={file._id || file.url}>
+                            {file._id || file.url}
+                          </li>
+                        ))}
+                      </ul>
+                    )
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* report modal */}
+      {isReportsOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+
+          <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl p-5">
+
+            {/* HEADER */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-base font-semibold text-slate-800">
+                All Files
+              </h2>
+
+              <button
+                onClick={() => setIsReportsOpen(false)}
+                className="text-slate-400 hover:text-slate-600 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* SEARCH */}
+            <div className="mb-4">
+              <input
+                type="text"
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-slate-400"
+                placeholder="Search..."
+                value={reportSearch}
+                onChange={(e) => setReportSearch(e.target.value)}
+              />
+            </div>
+
+            {filteredFiles.length === 0 ? (
+              <div className="text-center py-6 text-sm text-slate-500">
+                No files found
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-200">
+                {filteredFiles.map((file) => (
+                  <div
+                    key={`${file.projectId}-${file.fileId}`}
+                    className="flex items-center justify-between py-3"
+                  >
+
+                    {/* INFO */}
+                    <div className="text-sm">
+                      <p className="text-slate-800 font-medium">
+                        {file.originalName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {file.projectTitle} • {file.studentName}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        handleDownload(
+                          file.projectId,
+                          file.fileId,
+                          file.originalName
+                        )
+                      }
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Download
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
