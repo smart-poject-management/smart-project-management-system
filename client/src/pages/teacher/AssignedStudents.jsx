@@ -150,8 +150,8 @@ const AssignedStudents = () => {
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-lg font-semibold text-slate-800">Assigned Students</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Manage your assigned students and their projects</p>
+            <h1 className="page-header">Assigned Students</h1>
+            <p className="text-gray-500 mt-1">Manage your assigned students and their projects</p>
           </div>
           {/* Sort control */}
           <select

@@ -226,8 +226,8 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-xl shadow-sm border border-blue-100 text-white">
-        <h1 className="text-3xl font-bold ">Admin Dashboard</h1>
-        <p className="text-blue-100">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-sm opacity-90">
           Manage the entire project management system and oversee all
           activities.
         </p>
@@ -270,7 +270,7 @@ const AdminDashboard = () => {
                 No Data
               </div>
             ) : (
-              <div className="h-72 ">
+              <div className="h-72">
                 <ResponsiveContainer width={"100%"} height={"100%"}>
                   <BarChart
                     data={supervisorsBucket}

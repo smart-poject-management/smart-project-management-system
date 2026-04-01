@@ -91,13 +91,13 @@ const DeadlinesPage = () => {
   return (
     <div className="space-y-6">
       {/* Header Card*/}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <div className="border-b border-slate-200 pb-4 mb-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="text-lg font-semibold text-slate-800">
+            <h1 className="page-header">
               Manage Deadlines
             </h1>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-gray-500 mt-1">
               Create and monitor project deadlines
             </p>
           </div>

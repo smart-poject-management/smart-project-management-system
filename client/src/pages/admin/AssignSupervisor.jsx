@@ -170,8 +170,8 @@ const AssignSupervisor = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-md p-6">
-        <h1 className="text-2xl font-bold text-gray-800">Assign Supervisor</h1>
+      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md p-6">
+        <h1 className="page-header">Assign Supervisor</h1>
         <p className="text-gray-500 mt-1">
           Manage supervisor assignments for students and projects
         </p>

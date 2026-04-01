@@ -130,6 +130,11 @@
   .card-subtitle {
     @apply text-sm text-slate-600 mt-1;
   }
+
+  /* Page Headers */
+  .page-header {
+    @apply text-2xl font-bold text-slate-800;
+  }
   
   /* Input Components */
   .input {
@@ -211,5 +216,11 @@
   
   .slide-in {
     @apply animate-in slide-in-from-right duration-300;
+  }
+
+  /* Remove focus outline from interactive elements */
+  svg:focus,
+  [role="img"]:focus {
+    @apply outline-none;
   }
 }

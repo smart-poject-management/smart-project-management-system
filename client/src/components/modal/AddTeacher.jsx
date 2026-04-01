@@ -35,7 +35,7 @@ const AddTeacher = () => {
         <div className="bg-white w-full max-w-md rounded-xl shadow-lg border">
           {/* Header */}
           <div className="flex justify-between items-center px-6 py-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-800">Add Teacher</h3>
+            <h3 className="text-lg font-semibold text-slate-800">Add Teacher</h3>
 
             <button
               onClick={() => dispatch(toggleTeacherModel())}

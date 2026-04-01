@@ -69,12 +69,12 @@ const PendingRequests = () => {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="border-b border-slate-200 pb-4 mb-4">
-            <h1 className="text-lg font-semibold text-slate-800">
+            <h1 className="page-header">
               Pending Supervision Requests
             </h1>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-gray-500 mt-1">
               Review and respond to student supervision requests
             </p>
           </div>

@@ -59,8 +59,8 @@ const StudentDashboard = () => {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-2xl text-white shadow">
-        <h1 className="text-2xl font-bold">
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-xl text-white shadow">
+        <h1 className="text-3xl font-bold">
           Welcome, {authUser?.name || "Student"} 👋
         </h1>
         <p className="text-sm opacity-90">

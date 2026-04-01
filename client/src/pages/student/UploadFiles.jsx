@@ -158,13 +158,13 @@ const UploadFiles = () => {
       )}
 
       {/*  Upload Section  */}
-      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
+      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl p-6">
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">
+            <h2 className="page-header">
               Upload Project Files
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-gray-500 mt-1">
               Upload your project documents including reports, presentations,
               and code files.
             </p>

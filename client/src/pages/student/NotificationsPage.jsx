@@ -186,13 +186,13 @@ const NotificationsPage = () => {
   return (
 
     <div className="space-y-6">
-      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
+      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl p-6">
 
         {/* HEADER */}
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Notifications</h2>
-            <p className="text-sm text-slate-500">
+            <h2 className="page-header">Notifications</h2>
+            <p className="text-gray-500 mt-1">
               Stay updated with your project progress and deadlines
             </p>
           </div>

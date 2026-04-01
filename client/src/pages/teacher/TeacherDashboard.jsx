@@ -44,7 +44,7 @@ const TeacherDashboard = () => {
     <div className="space-y-6">
       {/* Headers */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-2xl text-white shadow">
-        <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
+        <h1 className="text-3xl font-bold">Teacher Dashboard</h1>
         <p className="text-sm opacity-90">
           Manage your students and provide guidance on their projects.
         </p>

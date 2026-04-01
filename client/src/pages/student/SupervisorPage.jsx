@@ -96,13 +96,13 @@ const SupervisorPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white/70 border border-slate-200 rounded-2xl shadow-xl">
+      <div className="bg-white/70 border border-slate-200 rounded-xl shadow-xl">
 
         {/* Supervisor Section */}
         <div className="p-6">
           <div className="flex items-center justify-between border-b pb-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <h2 className="page-header flex items-center gap-2">
                 Current Supervisor
               </h2>
 
@@ -113,7 +113,7 @@ const SupervisorPage = () => {
                 </span>
               )}
 
-              <p className="text-sm text-slate-500">
+              <p className="text-gray-500 mt-1">
                 Stay updated with your project progress and deadlines
               </p>
             </div>

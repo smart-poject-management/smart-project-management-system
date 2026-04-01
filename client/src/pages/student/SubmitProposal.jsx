@@ -31,17 +31,17 @@ const SubmitProposal = () => {
   return (
     <>
       <div className="space-y-6">
-        <div className="bg-white/70 border border-slate-200 rounded-2xl shadow-xl">
+        <div className="bg-white/70 border border-slate-200 rounded-xl shadow-xl">
           <div className="p-6">
 
             {/* Header */}
             <div className="flex items-center justify-between border-b pb-4 mb-6">
               <div className="flex items-center gap-3">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-800">
+                  <h2 className="page-header">
                     Submit Proposal
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-gray-500 mt-1">
                     Stay updated with your project progress and deadlines
                   </p>
                 </div>

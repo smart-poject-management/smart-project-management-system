@@ -144,13 +144,13 @@ const FeedbackPage = () => {
 
   return (
     <div className="space-y-6 overflow-x-hidden">
-      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl p-6">
+      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl p-6">
 
         {/* Feedback Header */}
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Supervisor Feedback</h2>
-            <p className="text-sm text-slate-500">
+            <h2 className="page-header">Supervisor Feedback</h2>
+            <p className="text-gray-500 mt-1">
               View feedback and comments from your supervisor
             </p>
           </div>

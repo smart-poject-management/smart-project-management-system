@@ -1,7 +1,6 @@
 import { AlertTriangle, CheckCircle2, FileDown, Folder, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import { approveProject, getProject, rejectProject } from "../../store/slices/adminSlice";
 import { downloadProjectFile } from "../../store/slices/projectSlice";
 
@@ -136,10 +135,10 @@ const ProjectsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
+      <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">All Projects</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="page-header">All Projects</h1>
+          <p className="text-gray-500 mt-1">
             View and manage all student projects, their statuses, and associated
             files.
           </p>

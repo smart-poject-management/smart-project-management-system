@@ -118,12 +118,12 @@ const ManageStudents = () => {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
+        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="page-header">
               Manage Students
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-gray-500 mt-1">
               Add, edit, and manage student accounts
             </p>
           </div>
