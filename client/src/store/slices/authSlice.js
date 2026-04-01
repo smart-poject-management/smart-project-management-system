@@ -2,27 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
-export const registerUser = createAsyncThunk(
-  "register",
-  async ({ name, email, password, role }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.post("/register", {
-        name,
-        email,
-        password,
-        role,
-      });
-      toast.success(res.data.message);
-      return res.data.user;
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Registration failed");
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Registration failed"
-      );
-    }
-  }
-);
-
 export const login = createAsyncThunk("login", async (data, thunkAPI) => {
   try {
     const res = await axiosInstance.post("/login", data, {
@@ -111,17 +90,6 @@ const authSlice = createSlice({
   },
   extraReducers: builder => {
     builder
-
-      .addCase(registerUser.pending, state => {
-        state.isSigningUp = true;
-      })
-      .addCase(registerUser.fulfilled, (state, action) => {
-        state.isSigningUp = false;
-        state.authUser = action.payload;
-      })
-      .addCase(registerUser.rejected, state => {
-        state.isSigningUp = false;
-      })
 
       .addCase(login.pending, state => {
         state.isLoggingIn = true;

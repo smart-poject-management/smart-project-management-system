@@ -3,25 +3,8 @@ import { User } from "../models/user.js";
 import { sendEmail } from "../services/emailService.js";
 import { generateForgotPasswordEmailTemplate } from "../utils/emailTemplates.js";
 import { generateToken } from "../utils/generateToken.js";
+import { seedAdmin } from "../utils/seedAdmin.js";
 import crypto from "crypto";
-
-//register user
-
-export const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
-  if (!name || !email || !password || !role) {
-    return res
-      .status(400)
-      .json({ error: "Please provide name, email, password and role" });
-  }
-  let user = await User.findOne({ email });
-  if (user) {
-    return res.status(400).json({ error: "User already exists" });
-  }
-  user = new User({ name, email, password, role });
-  await user.save();
-  generateToken(user, 201, "User registered successfully", res);
-});
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password, role } = req.body;
@@ -30,6 +13,11 @@ export const login = asyncHandler(async (req, res) => {
       .status(400)
       .json({ error: "Please provide email, password and role" });
   }
+
+  if (role === "Admin") {
+    await seedAdmin();
+  }
+
   const user = await User.findOne({ email, role }).select("+password");
   if (!user) {
     return res.status(400).json({ error: "Invalid credentials" });

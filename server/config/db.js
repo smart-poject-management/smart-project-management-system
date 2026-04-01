@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
-import { config } from 'dotenv';        
+import { seedAdmin } from '../utils/seedAdmin.js';
 
-export const connectDb = async () => {  
-    mongoose.connect(process.env.MONGODB_URL)
-    .then(() => {
+export const connectDb = async () => {
+    try {
+        await mongoose.connect(process.env.MONGODB_URL);
         console.log('Connected to MongoDB');
-    })
-    .catch((error) => {
+
+        await seedAdmin();
+    } catch (error) {
         console.error('Error connecting to MongoDB:', error);
-    }); 
+    }
 }
