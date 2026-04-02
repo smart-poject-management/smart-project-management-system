@@ -1,4 +1,8 @@
 import { User } from "../models/user.js"
+import { Project } from "../models/project.js"
+import { SupervisorRequest } from "../models/supervisorRequest.js"
+import { Notification } from "../models/notifications.js"
+import { Deadline } from "../models/deadline.js"
 
 export const createUser = async (userData) => {
     try {
@@ -31,6 +35,54 @@ export const deleteUser = async (id) => {
     if (!user) {
         throw new Error("User not found");
     }
+
+    if (user.role === "Student") {
+        const studentProject = await Project.findOne({ student: id });
+
+        await Project.deleteOne({ student: id });
+
+        await Deadline.deleteMany({ project: studentProject?._id });
+
+        await SupervisorRequest.deleteMany({ student: id });
+
+        if (user.supervisor) {
+            await User.findByIdAndUpdate(
+                user.supervisor,
+                { $pull: { assignedStudents: id } },
+                { new: true }
+            );
+        }
+    }
+
+    if (user.role === "Teacher") {
+        await Deadline.deleteMany({ createdBy: id });
+
+        await SupervisorRequest.deleteMany({ supervisor: id });
+
+        await Project.updateMany(
+            { supervisor: id },
+            { supervisor: null }
+        );
+
+        await User.updateMany(
+            { supervisor: id, role: "Student" },
+            { supervisor: null }
+        );
+
+        if (user.assignedStudents && user.assignedStudents.length > 0) {
+            await User.updateMany(
+                { _id: { $in: user.assignedStudents } },
+                { supervisor: null }
+            );
+        }
+    }
+
+    await Notification.deleteMany({ user: id });
+
+    await User.updateMany(
+        { assignedStudents: id },
+        { $pull: { assignedStudents: id } }
+    );
     return await user.deleteOne();
 };
 

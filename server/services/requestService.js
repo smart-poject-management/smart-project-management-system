@@ -1,4 +1,6 @@
 import { SupervisorRequest } from '../models/supervisorRequest.js';
+import { User } from '../models/user.js';
+import { Project } from '../models/project.js';
 
 export const createRequest = async (requestData) => {
     const existingRequest = await SupervisorRequest.findOne({
@@ -37,8 +39,29 @@ export const acceptRequest = async (requestId, supervisorId) => {
     if (request.status !== "pending") {
         throw new Error("This request has already been processed");
     }
+    
     request.status = "accepted";
     await request.save();
+
+    const student = await User.findById(request.student._id);
+    if (student) {
+        student.supervisor = supervisorId;
+        await student.save();
+    }
+
+    if (student.project) {
+        await Project.findByIdAndUpdate(
+            student.project,
+            { supervisor: supervisorId },
+            { new: true }
+        );
+    }
+
+    await User.findByIdAndUpdate(
+        supervisorId,
+        { $addToSet: { assignedStudents: request.student._id } },
+        { new: true }
+    );
 
     return request;
 };
