@@ -39,15 +39,30 @@ export const acceptRequest = async (requestId, supervisorId) => {
     if (request.status !== "pending") {
         throw new Error("This request has already been processed");
     }
-    
+
+    const student = await User.findById(request.student._id);
+    if (!student) {
+        throw new Error("Student not found");
+    }
+
+    if (student.supervisor) {
+        throw new Error("Student already has a supervisor assigned");
+    }
+
     request.status = "accepted";
     await request.save();
 
-    const student = await User.findById(request.student._id);
-    if (student) {
-        student.supervisor = supervisorId;
-        await student.save();
-    }
+    await SupervisorRequest.updateMany(
+        {
+            student: request.student._id,
+            _id: { $ne: request._id },
+            status: "pending"
+        },
+        { status: "rejected" }
+    );
+
+    student.supervisor = supervisorId;
+    await student.save();
 
     if (student.project) {
         await Project.findByIdAndUpdate(
