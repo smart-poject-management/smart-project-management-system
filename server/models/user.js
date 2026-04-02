@@ -31,19 +31,10 @@ const userSchema = new mongoose.Schema(
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-
     department: {
       type: String,
       trim: true,
       default: null,
-      // enum: [
-      //   "Computer Science",
-      //   "Mathematics",
-      //   "Physics",
-      //   "Chemistry",
-      //   "Biology",
-      //   "Engineering",
-      // ],
     },
     expertise: {
       type: [String],
@@ -81,6 +72,28 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, 10);
 });
 
+userSchema.pre("validate", function () {
+
+  if (this.role === "Student") {
+    this.expertise = undefined;
+    this.assignedStudents = undefined;
+    this.maxStudents = undefined;
+  }
+
+  if (this.role === "Teacher") {
+    this.supervisor = undefined;
+    this.project = undefined;
+  }
+
+  if (this.role === "Admin") {
+    this.expertise = undefined;
+    this.assignedStudents = undefined;
+    this.supervisor = undefined;
+    this.project = undefined;
+    this.maxStudents = undefined;
+  }
+});
+
 userSchema.methods.generateToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
@@ -105,7 +118,7 @@ userSchema.methods.getResetPasswordToken = function () {
 };
 
 userSchema.methods.hasCapacity = function () {
-  if(this.role !== "Teacher") return false;
+  if (this.role !== "Teacher") return false;
   return this.assignedStudents.length < this.maxStudents;
 }
 

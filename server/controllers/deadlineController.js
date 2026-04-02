@@ -16,6 +16,19 @@ export const createDeadline = asyncHandler(async (req, res, next) => {
         return next(new ErrorHandler("Project not found.", 404));
     }
 
+    if (project.status === "completed") {
+        return next(new ErrorHandler("Cannot create deadlines for completed projects.", 400));
+    }
+
+    if (project.deadline) {
+        const newDueDate = new Date(dueDate);
+        const existingDeadline = new Date(project.deadline);
+
+        if (newDueDate <= existingDeadline) {
+            return next(new ErrorHandler(`New deadline must be later than the existing deadline (${existingDeadline.toISOString()}).`, 400));
+        }
+    }
+
     const deadlineData = {
         name,
         dueDate: new Date(dueDate),
