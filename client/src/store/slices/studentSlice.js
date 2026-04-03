@@ -53,7 +53,11 @@ export const fetchAllSupervisor = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/student/fetch-supervisors");
-      return res.data.data?.supervisors || [];
+      const data = res.data.data || {};
+      return {
+        supervisors: data.supervisors || [],
+        pendingSupervisorRequestIds: data.pendingSupervisorRequestIds || [],
+      };
     } catch (error) {
       toast.error(
         error?.response?.data?.message || "Failed to fetch available supervisors"
@@ -73,6 +77,7 @@ export const requestSupervisor = createAsyncThunk(
       });
       toast.success("Supervisor request sent successfully");
       thunkAPI.dispatch(getSupervisor());
+      thunkAPI.dispatch(fetchAllSupervisor());
       return res.data.data?.supervisor || null;
     } catch (error) {
       toast.error(
@@ -176,6 +181,7 @@ const studentSlice = createSlice({
     project: null,
     files: [],
     supervisors: [],
+    pendingSupervisorRequestIds: [],
     dashboardStats: [],
     supervisor: null,
     deadlines: [],
@@ -196,7 +202,13 @@ const studentSlice = createSlice({
         state.supervisor = action.payload || null;
       })
       .addCase(fetchAllSupervisor.fulfilled, (state, action) => {
-        state.supervisors = Array.isArray(action.payload) ? action.payload : [];
+        const p = action.payload;
+        if (p && typeof p === "object" && Array.isArray(p.supervisors)) {
+          state.supervisors = p.supervisors;
+          state.pendingSupervisorRequestIds = p.pendingSupervisorRequestIds || [];
+        } else {
+          state.supervisors = Array.isArray(p) ? p : [];
+        }
       })
       .addCase(uploadFiles.fulfilled, (state, action) => {
         const newFiles =

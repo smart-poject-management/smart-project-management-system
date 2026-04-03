@@ -17,6 +17,16 @@ export const createRequest = async (requestData) => {
     return await request.save();
 };
 
+export const getPendingSupervisorIdsForStudent = async (studentId) => {
+    const rows = await SupervisorRequest.find({
+        student: studentId,
+        status: "pending",
+    })
+        .select("supervisor")
+        .lean();
+    return rows.map((r) => r.supervisor.toString());
+};
+
 export const getAllRequests = async (filters) => {
     const requests = await SupervisorRequest.find(filters)
         .populate("student", "name email")

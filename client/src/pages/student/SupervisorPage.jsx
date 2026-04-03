@@ -20,12 +20,13 @@ import {
   requestSupervisor,
 } from "../../store/slices/studentSlice";
 
+const MAX_MESSAGE_LENGTH = 250;
+
 const SupervisorPage = () => {
   const dispatch = useDispatch();
   const { authUser } = useSelector((state) => state.auth);
-  const { project, supervisor, supervisors } = useSelector(
-    (state) => state.student
-  );
+  const { project, supervisor, supervisors, pendingSupervisorRequestIds } =
+    useSelector((state) => state.student);
 
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
@@ -44,6 +45,18 @@ const SupervisorPage = () => {
   );
 
   const hasProject = useMemo(() => !!(project && project._id), [project]);
+  const isProjectPending = useMemo(
+    () => project?.status === "pending",
+    [project?.status]
+  );
+
+  const pendingSupervisorIdSet = useMemo(() => {
+    const ids = pendingSupervisorRequestIds || [];
+    return new Set(ids.map((id) => String(id)));
+  }, [pendingSupervisorRequestIds]);
+
+  const hasPendingRequestTo = (supervisorId) =>
+    pendingSupervisorIdSet.has(String(supervisorId));
 
   const formatDeadline = (dateStr) => {
     if (!dateStr) return "-";
@@ -70,28 +83,37 @@ const SupervisorPage = () => {
   };
 
   const handleOpenRequest = (sup) => {
+    if (isProjectPending) return;
     setSelectedSupervisor(sup);
     setRequestMessage("");
     setShowRequestModal(true);
   };
 
+  const buildDefaultMessage = (sup) =>
+    `${authUser?.name || "Student"} has requested ${sup.name} to be their supervisor.`;
+
   const submitRequest = async () => {
     if (!selectedSupervisor) return;
-    const message =
-      requestMessage?.trim() ||
-      `${authUser.name || "Student"} has requested ${selectedSupervisor.name} to be their supervisor.`;
+    const raw = requestMessage?.trim();
+    const message = raw
+      ? raw.slice(0, MAX_MESSAGE_LENGTH)
+      : buildDefaultMessage(selectedSupervisor).slice(0, MAX_MESSAGE_LENGTH);
 
     setLoading(true);
-    await dispatch(
-      requestSupervisor({
-        teacherId: selectedSupervisor._id,
-        message,
-      })
-    );
-    setLoading(false);
-    setShowRequestModal(false);
-    setRequestMessage("");
-    setSelectedSupervisor(null);
+    try {
+      await dispatch(
+        requestSupervisor({
+          teacherId: selectedSupervisor._id,
+          message,
+        })
+      ).unwrap();
+      setShowRequestModal(false);
+      setRequestMessage("");
+      setSelectedSupervisor(null);
+    } catch {
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -356,10 +378,16 @@ const SupervisorPage = () => {
 
                     {/* Button */}
                     <button
+                      type="button"
                       onClick={() => handleOpenRequest(sup)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-medium transition duration-200"
+                      disabled={isProjectPending || hasPendingRequestTo(sup._id)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:hover:bg-slate-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-medium transition duration-200"
                     >
-                      Request Supervisor
+                      {isProjectPending
+                        ? "Project pending approval"
+                        : hasPendingRequestTo(sup._id)
+                          ? "Request pending"
+                          : "Request Supervisor"}
                     </button>
                   </div>
                 ))}
@@ -403,16 +431,23 @@ const SupervisorPage = () => {
 
               {/* Message Input */}
               <label className="block text-sm font-medium text-slate-600 mb-1">
-                Message (optional)
+                Message (optional, max {MAX_MESSAGE_LENGTH} characters)
               </label>
               <textarea
                 className="w-full border border-slate-200 rounded-xl p-3 text-sm text-slate-700 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
                 rows={4}
-                placeholder={`${authUser?.name || "Student"} has requested ${selectedSupervisor.name} to be their supervisor.`}
+                maxLength={MAX_MESSAGE_LENGTH}
+                placeholder={buildDefaultMessage(selectedSupervisor).slice(
+                  0,
+                  MAX_MESSAGE_LENGTH
+                )}
                 value={requestMessage}
                 onChange={(e) => setRequestMessage(e.target.value)}
                 disabled={loading}
               />
+              <p className="text-xs text-slate-500 mt-1 text-right">
+                {requestMessage.length}/{MAX_MESSAGE_LENGTH}
+              </p>
 
               {/* Actions */}
               <div className="flex gap-3 mt-4">

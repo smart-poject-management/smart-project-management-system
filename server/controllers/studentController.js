@@ -90,12 +90,15 @@ export const uploadFiles = asyncHandler(async (req, res) => {
 });
 
 export const getAvailableSupervisors = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
   const supervisors = await User.find({ role: "Teacher" })
     .select("name email department expertise")
     .lean();
+  const pendingSupervisorRequestIds =
+    await requestService.getPendingSupervisorIdsForStudent(studentId);
   res.status(200).json({
     success: true,
-    data: { supervisors },
+    data: { supervisors, pendingSupervisorRequestIds },
     message: "Available supervisors fetched successfully",
   });
 });
@@ -124,6 +127,19 @@ export const getSupervisor = asyncHandler(async (req, res) => {
 export const requestSupervisor = asyncHandler(async (req, res) => {
   const { teacherId, message } = req.body;
   const studentId = req.user._id;
+
+  if (typeof message !== "string") {
+    return res.status(400).json({ message: "Message is required." });
+  }
+  const trimmedMessage = message.trim();
+  if (!trimmedMessage) {
+    return res.status(400).json({ message: "Message cannot be empty." });
+  }
+  if (trimmedMessage.length > 250) {
+    return res
+      .status(400)
+      .json({ message: "Message must be at most 250 characters." });
+  }
 
   const student = await User.findById(studentId);
   if (student.supervisor) {

@@ -95,15 +95,12 @@ const AssignSupervisor = () => {
     );
     setPendingFor(null);
     if (assignSupervisorThunk.fulfilled.match(res)) {
-      toast.success("Supervisor assigned successfully");
       setSelectedSupervisor((prev) => {
         const newState = { ...prev };
         delete newState[projectId];
         return newState;
       });
       dispatch(getAllUsers());
-    } else {
-      toast.error("Failed to assign supervisor");
     }
   };
 
