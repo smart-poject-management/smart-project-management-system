@@ -5,6 +5,7 @@ import * as requestService from "../services/requestService.js";
 import * as notificationService from "../services/notificationService.js";
 import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
+import { Deadline } from "../models/deadline.js";
 import * as fileService from "../services/fileServices.js";
 import ErrorHandler from "../middlewares/error.js";
 import fs from "fs";
@@ -189,12 +190,10 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
     .sort({ createdAt: -1 })
     .lean();
 
-  const now = new Date();
-  const upcomingDeadlines = await Project.find({
-    student: studentId,
-    deadline: { $gte: now },
+  const upcomingDeadlines = await Deadline.find({
+    project: project?._id
   })
-    .select("title deadline")
+    .select("name dueDate")
     .sort({ createdAt: -1 })
     .limit(3)
     .lean();

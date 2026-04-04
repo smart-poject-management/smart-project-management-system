@@ -32,7 +32,7 @@ const deadlineSchema = new mongoose.Schema(
 //indexing for better query performance
 deadlineSchema.index({ dueDate: 1   });
 deadlineSchema.index({ createdBy: 1 });
-deadlineSchema.index({ Project: 1 });
+deadlineSchema.index({ project: 1 });
 
 export const Deadline =
   mongoose.models.Deadline || mongoose.model("Deadline", deadlineSchema);
