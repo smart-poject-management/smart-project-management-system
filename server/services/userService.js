@@ -16,7 +16,7 @@ export const createUser = async (userData) => {
 export const updateUser = async (id, updateData) => {
     try {
         return await User.findByIdAndUpdate(id, updateData, {
-            new: true,
+            returnDocument: "after",
             runValidators: true
         }).select("-password");
     } catch (error) {
@@ -49,7 +49,7 @@ export const deleteUser = async (id) => {
             await User.findByIdAndUpdate(
                 user.supervisor,
                 { $pull: { assignedStudents: id } },
-                { new: true }
+                { returnDocument: "after" }
             );
         }
     }

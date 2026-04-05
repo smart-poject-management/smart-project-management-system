@@ -46,7 +46,7 @@ export const createDeadline = asyncHandler(async (req, res, next) => {
         await Project.findByIdAndUpdate(
             project._id,
             { deadline: dueDate },
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         );
     }
 

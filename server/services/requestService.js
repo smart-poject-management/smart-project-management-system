@@ -78,14 +78,14 @@ export const acceptRequest = async (requestId, supervisorId) => {
         await Project.findByIdAndUpdate(
             student.project,
             { supervisor: supervisorId },
-            { new: true }
+            { returnDocument: "after" }
         );
     }
 
     await User.findByIdAndUpdate(
         supervisorId,
         { $addToSet: { assignedStudents: request.student._id } },
-        { new: true }
+        { returnDocument: "after" }
     );
 
     return request;

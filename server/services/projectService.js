@@ -64,7 +64,7 @@ export const markProjectComplete = async (projectId) => {
   const project = await Project.findByIdAndUpdate(
     projectId,
     { status: "completed" },
-    { new: true, runValidators: true }
+    { returnDocument: "after", runValidators: true }
   ).populate("student", "name email")
     .populate("supervisor", "name email");
 
@@ -103,7 +103,7 @@ export const updateProjectStatus = async (projectId, status) => {
   const project = await Project.findByIdAndUpdate(
     projectId,
     { status: status.status },
-    { new: true, runValidators: true }
+    { returnDocument: "after", runValidators: true }
   ).populate("student", "name email")
     .populate("supervisor", "name email");
   if (!project) {
