@@ -40,7 +40,6 @@ import { getAllProjects, getAllUsers } from "./store/slices/adminSlice";
 import { fetchDashboardStats } from "./store/slices/studentSlice";
 import Unauthorized from "./pages/Unauthorized";
 
-
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
     return <Navigate to="/" replace />;
@@ -65,7 +64,7 @@ const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
 };
 
 const App = () => {
-  const { authUser, isCheckingAuth } = useSelector((state) => state.auth);
+  const { authUser, isCheckingAuth } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -150,7 +149,6 @@ const App = () => {
         <Route
           path="unauthorized"
           element={
-
             // <div className="min-h-screen flex items-center justify-center bg-slate-50">
             //   <div className="bg-white p-8 rounded-xl shadow-sm">
             //     <h1 className="text-2xl font-semibold text-slate-800">
@@ -167,14 +165,14 @@ const App = () => {
             //     </button>
             //   </div>
             // </div>
-           <Unauthorized/>
+            <Unauthorized />
           }
         />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <ToastContainer theme="dark" />
+      <ToastContainer theme="dark" autoClose={3000} />
     </BrowserRouter>
   );
 };
