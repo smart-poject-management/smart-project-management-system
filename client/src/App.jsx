@@ -30,6 +30,7 @@ import ManageTeachers from "./pages/admin/ManageTeachers";
 import AssignSupervisor from "./pages/admin/AssignSupervisor";
 import DeadlinesPage from "./pages/admin/DeadlinesPage";
 import ProjectsPage from "./pages/admin/ProjectsPage";
+import AdminNotificationsPage from "./pages/admin/AdminNotificationsPage";
 import NotFound from "./pages/NotFound";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -113,6 +114,7 @@ const App = () => {
           <Route path="assign-supervisor" element={<AssignSupervisor />} />
           <Route path="deadlines" element={<DeadlinesPage />} />
           <Route path="projects" element={<ProjectsPage />} />
+          <Route path="notifications" element={<AdminNotificationsPage />} />
         </Route>
 
         {/* Student Routes */}

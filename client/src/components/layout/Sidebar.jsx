@@ -45,6 +45,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
       case "Admin":
         return [
           { name: "Home", path: "/admin", icon: "home" },
+          {
+            name: "Notifications",
+            path: "/admin/notifications",
+            icon: "bell",
+          },
           { name: "Manage Students", path: "/admin/students", icon: "users" },
           {
             name: "Manage Teachers",
