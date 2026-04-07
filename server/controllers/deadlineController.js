@@ -3,7 +3,6 @@ import ErrorHandler from "../middlewares/error.js";
 import { Deadline } from "../models/deadline.js";
 import { Project } from "../models/project.js";
 import { getProjectById } from "../services/projectService.js";
-import * as notificationService from "../services/notificationService.js";
 
 export const createDeadline = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -48,16 +47,6 @@ export const createDeadline = asyncHandler(async (req, res, next) => {
             project._id,
             { deadline: dueDate },
             { returnDocument: "after", runValidators: true }
-        );
-    }
-
-    if (req.user.role === "Teacher") {
-        const studentName = project.student?.name || "A student";
-        await notificationService.notifyAllAdmins(
-            `${req.user.name} added a deadline "${name}" for ${studentName}'s project "${project.title}".`,
-            "request",
-            "/admin/deadlines",
-            "medium",
         );
     }
 

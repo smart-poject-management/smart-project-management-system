@@ -90,15 +90,6 @@ export const uploadFiles = asyncHandler(async (req, res) => {
     req.files,
   );
 
-  const studentName = project.student?.name || "A student";
-  const projectTitle = project.title || "their project";
-  await notificationService.notifyAllAdmins(
-    `${studentName} uploaded ${req.files.length} file(s) for project "${projectTitle}".`,
-    "request",
-    "/admin/projects",
-    "low",
-  );
-
   res.status(200).json({
     success: true,
     message: "Files uploaded successfully",
@@ -188,13 +179,6 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
     `${student.name} has request ${supervisor.name} to be their supervisor.`,
     "request",
     "/teacher/pending-requests",
-    "medium",
-  );
-
-  await notificationService.notifyAllAdmins(
-    `${student.name} requested ${supervisor.name} as their supervisor.`,
-    "request",
-    "/admin/assign-supervisor",
     "medium",
   );
 

@@ -13,11 +13,27 @@ const SubmitProposal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const project = useSelector((state) => state.student.project);
-  const hasProject = Boolean(project);
+  const canSubmitProposal = !project || project?.status === "rejected";
+  const isRejected = project?.status === "rejected";
 
   useEffect(() => {
     dispatch(fetchProject());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!isRejected) return;
+
+    setFormData((prev) => {
+      const prevTitle = (prev.title || "").trim();
+      const prevDescription = (prev.description || "").trim();
+      if (prevTitle || prevDescription) return prev;
+
+      return {
+        title: project?.title || "",
+        description: project?.description || "",
+      };
+    });
+  }, [isRejected, project?.title, project?.description]);
 
   const handleChange = (e) => {
     setFormData({
@@ -27,7 +43,7 @@ const SubmitProposal = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (hasProject) return;
+    if (!canSubmitProposal) return;
     setIsLoading(true);
     try {
       await dispatch(submitProjectProposal(formData)).unwrap();
@@ -60,6 +76,12 @@ const SubmitProposal = () => {
               </div>
             </div>
 
+            {isRejected && (
+              <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                Your previous proposal was rejected. You can update it and submit again.
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -76,7 +98,7 @@ const SubmitProposal = () => {
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
-                    disabled={hasProject}
+                    disabled={!canSubmitProposal}
                     className="w-full border border-gray-300 rounded-md pl-10 pr-3 h-11 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Enter your project title"
                   />
@@ -97,7 +119,7 @@ const SubmitProposal = () => {
                     value={formData.description}
                     onChange={handleChange}
                     rows="6"
-                    disabled={hasProject}
+                    disabled={!canSubmitProposal}
                     className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="Provide a detailed description of your project..."
                   ></textarea>
@@ -109,14 +131,20 @@ const SubmitProposal = () => {
               <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
                   type="submit"
-                  disabled={isLoading || hasProject}
-                  className={`flex items-center gap-2 px-6 py-2 rounded-md text-white transition ${isLoading || hasProject
+                  disabled={isLoading || !canSubmitProposal}
+                  className={`flex items-center gap-2 px-6 py-2 rounded-md text-white transition ${isLoading || !canSubmitProposal
                     ? "bg-blue-400 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-700"
                     }`}
                 >
                   <Send className="w-4 h-4" />
-                  {isLoading ? "Submitting..." : hasProject ? "Proposal already submitted" : "Submit Proposal"}
+                  {isLoading
+                    ? "Submitting..."
+                    : !canSubmitProposal
+                      ? "Proposal already submitted"
+                      : isRejected
+                        ? "Resubmit Proposal"
+                        : "Submit Proposal"}
                 </button>
               </div>
 
