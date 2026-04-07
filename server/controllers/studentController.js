@@ -200,9 +200,9 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
   const upcomingDeadlines = await Deadline.find({
     project: project?._id
   })
-    .select("name dueDate")
+    .select("name dueDate status")
     .sort({ createdAt: -1 })
-    .limit(3)
+    .limit(2)
     .lean();
 
   const topNotification = await Notification.find({ user: studentId })
