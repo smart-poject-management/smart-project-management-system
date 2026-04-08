@@ -51,7 +51,6 @@ const UploadFiles = () => {
     setSelectedFiles(prev => prev.filter(f => f._id !== item._id));
   };
 
-
   const removeSelected = (id) => {
     setSelectedFiles(prev => prev.filter(f => f._id !== id));
   };
@@ -72,7 +71,7 @@ const UploadFiles = () => {
   const handleDownloadFile = async file => {
     if (downloadingId) return;
     setDownloadingId(file._id);
-    await dispatch(
+    dispatch(
       downloadFile({
         projectId: project._id,
         fileId: file._id,
@@ -91,9 +90,7 @@ const UploadFiles = () => {
     setConfirmFile(null);
     if (!project?._id || !file?._id) return;
     setDeletingId(file._id);
-    await dispatch(
-      deleteProjectFile({ projectId: project._id, fileId: file._id })
-    );
+    dispatch(deleteProjectFile({ projectId: project._id, fileId: file._id }));
     setDeletingId(null);
   };
 
@@ -153,9 +150,7 @@ const UploadFiles = () => {
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl p-6">
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
-            <h2 className="page-header">
-              Upload Project Files
-            </h2>
+            <h2 className="page-header">Upload Project Files</h2>
             <p className="text-gray-500 mt-1">
               Upload your project documents including reports, presentations,
               and code files.
@@ -274,7 +269,6 @@ const UploadFiles = () => {
                     <button
                       onClick={() => handleUpload(item)}
                       disabled={loading || !project?._id}
-
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-700 border border-blue-200 rounded-lg bg-white/50 hover:bg-blue-200 transition disabled:opacity-50"
                     >
                       {loading ? (

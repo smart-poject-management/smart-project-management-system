@@ -41,7 +41,6 @@ import { getAllProjects, getAllUsers } from "./store/slices/adminSlice";
 import { fetchDashboardStats } from "./store/slices/studentSlice";
 import Unauthorized from "./pages/Unauthorized";
 
-
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
     return <Navigate to="/" replace />;
@@ -66,7 +65,7 @@ const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
 };
 
 const App = () => {
-  const { authUser, isCheckingAuth } = useSelector((state) => state.auth);
+  const { authUser, isCheckingAuth } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -159,7 +158,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <ToastContainer theme="dark" />
+      <ToastContainer theme="dark" autoClose={3000} />
     </BrowserRouter>
   );
 };
