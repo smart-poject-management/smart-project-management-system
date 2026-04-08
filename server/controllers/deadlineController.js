@@ -5,16 +5,16 @@ import { Project } from "../models/project.js";
 import { getProjectById } from "../services/projectService.js";
 
 export const createDeadline = asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const { name, dueDate } = req.body;
-  if (!name || !dueDate) {
-    return next(new ErrorHandler("Name and due date are required.", 400));
-  }
+    const { id } = req.params;
+    const { dueDate } = req.body;
+    if (!dueDate) {
+        return next(new ErrorHandler("Due date is required.", 400));
+    }
 
-  const project = await getProjectById(id);
-  if (!project) {
-    return next(new ErrorHandler("Project not found.", 404));
-  }
+    const project = await getProjectById(id);
+    if (!project) {
+        return next(new ErrorHandler("Project not found.", 404));
+    }
 
   if (project.status === "completed") {
     return next(
@@ -22,19 +22,25 @@ export const createDeadline = asyncHandler(async (req, res, next) => {
     );
   }
 
-  if (project.deadline) {
-    const newDueDate = new Date(dueDate);
-    const existingDeadline = new Date(project.deadline);
-
-    if (newDueDate <= existingDeadline) {
-      return next(
-        new ErrorHandler(
-          `New deadline must be later than the existing deadline (${existingDeadline.toISOString()}).`,
-          400,
-        ),
-      );
+    const exitstingDeadline = await Deadline.find({ project: project._id }).sort({ createdAt: 1 });
+    if (exitstingDeadline.length >= 2) {
+        return next(new ErrorHandler("Cannot create more than 2 deadlines for a project.", 400));
     }
-  }
+
+    let name = "Submission Deadline";
+    if (exitstingDeadline.length === 1) {
+        const oldDeadline = exitstingDeadline[0];
+
+        if (new Date(dueDate) <= oldDeadline.dueDate) {
+            return next(new ErrorHandler("New deadline must be later than the existing deadline.", 400));
+        }
+
+        await Deadline.findByIdAndUpdate(oldDeadline._id,
+            { status: "missed" }
+        );
+
+        name = "Last Submission Deadline";
+    }
 
   const deadlineData = {
     name,

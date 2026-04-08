@@ -58,6 +58,13 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   const project = await projectService.createProject(projectData);
   await User.findByIdAndUpdate(studentId, { project: project._id });
 
+  await notificationService.notifyAllAdmins(
+    `${req.user.name} submitted a project proposal "${title}" for your review.`,
+    "request",
+    "/admin/projects",
+    "medium",
+  );
+
   res.status(201).json({
     success: true,
     data: { project },
@@ -171,7 +178,7 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
     teacherId,
     `${student.name} has request ${supervisor.name} to be their supervisor.`,
     "request",
-    "/teacher/requests",
+    "/teacher/pending-requests",
     "medium",
   );
 
@@ -193,9 +200,9 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
   const upcomingDeadlines = await Deadline.find({
     project: project?._id
   })
-    .select("name dueDate")
+    .select("name dueDate status")
     .sort({ createdAt: -1 })
-    .limit(3)
+    .limit(2)
     .lean();
 
   const topNotification = await Notification.find({ user: studentId })

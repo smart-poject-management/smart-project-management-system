@@ -1,4 +1,5 @@
 import { Notification } from '../models/notifications.js';
+import { User } from '../models/user.js';
 
 export const createNotification = async (notificationData) => {
     const notication = new Notification(notificationData);
@@ -19,6 +20,27 @@ export const notifyUser = async (
         link,
         priority
     });
+};
+
+export const notifyAllAdmins = async (
+    message,
+    type = "request",
+    link = null,
+    priority = "medium"
+) => {
+    const admins = await User.find({ role: "Admin" }).select("_id").lean();
+    if (!admins.length) return [];
+    return Promise.all(
+        admins.map((a) =>
+            createNotification({
+                user: a._id,
+                message,
+                type,
+                link,
+                priority,
+            })
+        )
+    );
 };
 
 export const markAsRead = async (notificationId, userId) => {

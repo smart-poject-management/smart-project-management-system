@@ -85,7 +85,7 @@ const StudentDashboard = () => {
         <StatCard
           icon={CalendarDays}
           title="Next Deadline"
-          value={formatDate(upcomingDeadlines[0]?.deadline) || "N/A"}
+          value={formatDate(upcomingDeadlines[0]?.dueDate) || "N/A"}
           color="bg-orange-500"
         />
         <StatCard
@@ -209,14 +209,19 @@ const StudentDashboard = () => {
                 className="flex justify-between items-center p-3 bg-slate-50 rounded-lg mb-2"
               >
                 <div>
-                  <p className="font-medium text-slate-800">{d.title}</p>
+                  <p className="font-medium text-slate-800">{d.name}</p>
                   <p className="text-xs text-slate-500">
-                    {formatDate(d.deadline)}
+                    {formatDate(d.dueDate)}
                   </p>
                 </div>
 
-                <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded capitalize font-bold">
-                  upcoming
+                <span
+                  className={`text-xs px-2 py-1 rounded capitalize font-bold ${d.status === "ongoing"
+                    ? "bg-green-100 text-green-600"
+                    : "bg-red-100 text-red-600"
+                    }`}
+                >
+                  {d.status === "ongoing" ? "upcoming" : "missed"}
                 </span>
               </div>
             ))

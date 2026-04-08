@@ -7,11 +7,9 @@ export const getNotifications = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     const role = req.user.role;
 
-    let query = {};
-    if (role === 'Admin') {
+    const query = { user: userId };
+    if (role === "Admin") {
         query.type = { $in: ["request"] };
-    } else {
-        query.user = userId;
     }
 
     const notifications = await Notification.find(query).sort({ createdAt: -1 });
