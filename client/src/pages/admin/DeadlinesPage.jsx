@@ -73,7 +73,7 @@ const DeadlinesPage = () => {
         )
       );
     } catch (err) {
-      console.error("Failed to create deadline", err);
+      console.error(err);
     } finally {
       setShowModal(false);
       setFormData({
@@ -94,9 +94,7 @@ const DeadlinesPage = () => {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h1 className="page-header">
-              Manage Deadlines
-            </h1>
+            <h1 className="page-header">Manage Deadlines</h1>
             <p className="text-gray-500 mt-1">
               Create and monitor project deadlines
             </p>
@@ -255,8 +253,8 @@ const DeadlinesPage = () => {
                               projectTitle: project.title,
                               deadlineDate: project.deadline
                                 ? new Date(project.deadline)
-                                  .toISOString()
-                                  .slice(0, 10)
+                                    .toISOString()
+                                    .slice(0, 10)
                                 : "",
                             });
                           }}
@@ -299,11 +297,14 @@ const DeadlinesPage = () => {
                     <div
                       className="text-sm text-slate-700"
                       title={
-                        selectedProject.description || "No description available"
+                        selectedProject.description ||
+                        "No description available"
                       }
                     >
-                      {(selectedProject.description || "No description available")
-                        .length > 160
+                      {(
+                        selectedProject.description ||
+                        "No description available"
+                      ).length > 160
                         ? `${selectedProject.description.slice(0, 160)}...`
                         : selectedProject.description}
                     </div>

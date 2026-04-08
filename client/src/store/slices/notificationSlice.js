@@ -45,7 +45,7 @@ export const deleteNotification = createAsyncThunk(
   "deleteNotification",
   async (id, thunkAPI) => {
     try {
-      await axiosInstance.delete(`/notification/${id}/delete`); 
+      await axiosInstance.delete(`/notification/${id}/delete`);
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data.message);
@@ -66,15 +66,15 @@ const notificationSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(getNotifications.pending, (state) => {
+    builder.addCase(getNotifications.pending, state => {
       state.loading = true;
       state.error = null;
     });
     builder.addCase(getNotifications.fulfilled, (state, action) => {
       state.loading = false;
       state.list = action.payload?.notifications || [];
-      state.unreadCount = action.payload?.unreadOnly ?? 0;           
-      state.readCount = action.payload?.readOnly ?? 0;               
+      state.unreadCount = action.payload?.unreadOnly ?? 0;
+      state.readCount = action.payload?.readOnly ?? 0;
       state.highPriorityMessages = action.payload?.highPriorityMessages ?? 0;
       state.thisWeekNotifications = action.payload?.thisWeekNotifications ?? 0;
     });
@@ -90,7 +90,7 @@ const notificationSlice = createSlice({
         state.readCount = state.readCount + 1;
       }
     });
-    builder.addCase(markAllAsRead.fulfilled, (state) => {
+    builder.addCase(markAllAsRead.fulfilled, state => {
       const unreadCount = state.list.filter(n => !n.isRead).length;
       state.list = state.list.map(notification => ({
         ...notification,
@@ -105,13 +105,16 @@ const notificationSlice = createSlice({
 
       if (removed) {
         if (!removed.isRead) {
-          state.unreadCount = Math.max(0, state.unreadCount - 1); 
+          state.unreadCount = Math.max(0, state.unreadCount - 1);
         }
         if (removed.isRead) {
-          state.readCount = Math.max(0, state.readCount - 1);     
+          state.readCount = Math.max(0, state.readCount - 1);
         }
         if (removed.priority === "high") {
-          state.highPriorityMessages = Math.max(0, state.highPriorityMessages - 1);
+          state.highPriorityMessages = Math.max(
+            0,
+            state.highPriorityMessages - 1
+          );
         }
       }
     });

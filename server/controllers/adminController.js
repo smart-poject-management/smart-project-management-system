@@ -4,7 +4,7 @@ import * as projectServices from "../services/projectService.js";
 import { User } from "../models/user.js";
 import { Project } from "../models/project.js";
 import { SupervisorRequest } from "../models/supervisorRequest.js";
-import ErrorHandler from '../middlewares/error.js';
+import ErrorHandler from "../middlewares/error.js";
 import * as notificationService from "../services/notificationService.js";
 
 // student controllers
@@ -24,7 +24,7 @@ export const createStudent = asyncHandler(async (req, res) => {
   });
   res.status(201).json({
     success: true,
-    message: "Student created successfully",
+    message: "Student Created Successfully",
     data: { user },
   });
 });
@@ -40,7 +40,7 @@ export const updateStudent = asyncHandler(async (req, res) => {
   }
   res.status(200).json({
     success: true,
-    message: "Student updated successfully",
+    message: "Student Updated Successfully",
     data: { user },
   });
 });
@@ -58,7 +58,7 @@ export const deleteStudent = asyncHandler(async (req, res) => {
   await userServices.deleteUser(id);
   res.status(200).json({
     success: true,
-    message: "Student deleted successfully",
+    message: "Student Deleted Successfully",
   });
 });
 
@@ -93,7 +93,7 @@ export const createTeacher = asyncHandler(async (req, res) => {
   });
   res.status(201).json({
     success: true,
-    message: "Teacher created successfully",
+    message: "Teacher Created Successfully",
     data: { user },
   });
 });
@@ -109,7 +109,7 @@ export const updateTeacher = asyncHandler(async (req, res) => {
   }
   res.status(200).json({
     success: true,
-    message: "Teacher updated successfully",
+    message: "Teacher Updated Successfully",
     data: { user },
   });
 });
@@ -127,7 +127,7 @@ export const deleteTeacher = asyncHandler(async (req, res) => {
   await userServices.deleteUser(id);
   res.status(200).json({
     success: true,
-    message: "Teacher deleted successfully",
+    message: "Teacher Deleted Successfully",
   });
 });
 
@@ -157,14 +157,14 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     totalProjects,
     pendingRequests,
     completedProjects,
-    pendingProjects
+    pendingProjects,
   ] = await Promise.all([
     User.countDocuments({ role: "Student" }),
     User.countDocuments({ role: "Teacher" }),
     Project.countDocuments(),
     SupervisorRequest.countDocuments({ status: "pending" }),
     Project.countDocuments({ status: "completed" }),
-    Project.countDocuments({ status: "pending" })
+    Project.countDocuments({ status: "pending" }),
   ]);
 
   res.status(200).json({
@@ -177,17 +177,19 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         totalProjects,
         pendingRequests,
         completedProjects,
-        pendingProjects
-      }
-    }
-  })
+        pendingProjects,
+      },
+    },
+  });
 });
 
 export const assignSupervisor = asyncHandler(async (req, res, next) => {
   const { studentId, supervisorId } = req.body;
 
   if (!studentId || !supervisorId) {
-    return next(new ErrorHandler("Student ID and Supervisor ID are required", 400));
+    return next(
+      new ErrorHandler("Student ID and Supervisor ID are required", 400),
+    );
   }
 
   const project = await Project.findOne({ student: studentId });
@@ -202,10 +204,15 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
   if (project.status !== "approved") {
     return next(new ErrorHandler("Project not approved yet", 400));
   } else if (project.status === "pending" || project.status === "rejected") {
-    return next(new ErrorHandler("Project is in pending state or rejected", 400));
+    return next(
+      new ErrorHandler("Project is in pending state or rejected", 400),
+    );
   }
 
-  const { student, supervisor } = await userServices.assignSupervisorDirectly(studentId, supervisorId);
+  const { student, supervisor } = await userServices.assignSupervisorDirectly(
+    studentId,
+    supervisorId,
+  );
 
   project.supervisor = supervisor;
   await project.save();
@@ -215,7 +222,7 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
     `You have been assigned a supervisor ${supervisor.name}.`,
     "approval",
     "/students/status",
-    "low"
+    "low",
   );
 
   await notificationService.notifyUser(
@@ -223,13 +230,13 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
     `The student ${student.name} has been officially assigned to you for FYP supervisor.`,
     "general",
     "/teacher/status",
-    "low"
+    "low",
   );
 
   res.status(200).json({
     success: true,
-    message: "Supervisor assigned successfully",
-    data: { student, supervisor }
+    message: "Supervisor Assigned Successfully",
+    data: { student, supervisor },
   });
 });
 
@@ -245,11 +252,17 @@ export const getProject = asyncHandler(async (req, res, next) => {
   const userId = user._id.toString() || user.id;
   const hasAccess =
     userRole === "admin" ||
-    (userRole === "teacher" && project.supervisor && project.supervisor._id.toString() === userId) ||
-    (userRole === "student" && project.student && project.student._id.toString() === userId);
+    (userRole === "teacher" &&
+      project.supervisor &&
+      project.supervisor._id.toString() === userId) ||
+    (userRole === "student" &&
+      project.student &&
+      project.student._id.toString() === userId);
 
   if (!hasAccess) {
-    return next(new ErrorHandler("Unauthorized access to project details", 403));
+    return next(
+      new ErrorHandler("Unauthorized access to project details", 403),
+    );
   }
 
   res.status(200).json({
@@ -271,12 +284,19 @@ export const updateProjectStatus = asyncHandler(async (req, res, next) => {
 
   const hasAccess =
     user.role === "Admin" ||
-    (user.role === "Teacher" && project.supervisor && project.supervisor._id.toString() === user._id);
+    (user.role === "Teacher" &&
+      project.supervisor &&
+      project.supervisor._id.toString() === user._id);
   if (!hasAccess) {
-    return next(new ErrorHandler("Unauthorized access to update project status", 403));
+    return next(
+      new ErrorHandler("Unauthorized access to update project status", 403),
+    );
   }
 
-  const updatedProject = await projectServices.updateProjectStatus(id, updatedData);
+  const updatedProject = await projectServices.updateProjectStatus(
+    id,
+    updatedData,
+  );
   if (!updatedProject) {
     return next(new ErrorHandler("Failed to update project status", 500));
   }

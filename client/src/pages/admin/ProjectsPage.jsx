@@ -1,7 +1,11 @@
 import { AlertTriangle, CheckCircle2, FileDown, Folder, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { approveProject, getProject, rejectProject } from "../../store/slices/adminSlice";
+import {
+  approveProject,
+  getProject,
+  rejectProject,
+} from "../../store/slices/adminSlice";
 import { downloadProjectFile } from "../../store/slices/projectSlice";
 
 const ProjectsPage = () => {
@@ -302,11 +306,9 @@ const ProjectsPage = () => {
                   {/* Supervisor */}
                   <td className="px-6 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-slate-900">
-                      {project.supervisor?.name ? (
-                        project.supervisor?.name
-                      ) : (
-                        "Unassigned"
-                      )}
+                      {project.supervisor?.name
+                        ? project.supervisor?.name
+                        : "Unassigned"}
                     </div>
                     <div className="text-xs text-slate-500">
                       {project.supervisor?.email}
@@ -316,15 +318,17 @@ const ProjectsPage = () => {
                   {/* deadline */}
                   <td className="px-6 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-slate-900">
-                      {project.deadline ? new Date(project.deadline).toLocaleDateString()
+                      {project.deadline
+                        ? new Date(project.deadline).toLocaleDateString()
                         : "N/A"}
                     </div>
-
                   </td>
 
                   {/* project status */}
                   <td className="px-6 py-3 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}
+                    >
                       {project.status}
                     </span>
                   </td>
@@ -332,41 +336,39 @@ const ProjectsPage = () => {
                   {/* action  btn */}
                   <td className="px-6 py-3 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button onClick={async () => {
-
-                        const res = await dispatch(getProject(project._id))
-                        if (!getProject.fulfilled.match(res)) return
-                        const detail = res.payload?.project || res.payload
-                        setCurrentProjects(detail)
-                        setShowViewModal(true)
-                      }}
-
-                        className="text-blue-600 hover:text-blue-800"> View
-
+                      <button
+                        onClick={async () => {
+                          const res = await dispatch(getProject(project._id));
+                          if (!getProject.fulfilled.match(res)) return;
+                          const detail = res.payload?.project || res.payload;
+                          setCurrentProjects(detail);
+                          setShowViewModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        {" "}
+                        View
                       </button>
-                      {
-                        project.status === "pending" && (
-                          <>
-
-                            <button
-                              onClick={() =>
-                                handleStatusChange(project._id, "approved")
-                              }
-                              className="text-green-600 hover:text-green-800">
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(project._id, "rejected")
-                              }
-                              className="text-red-600 hover:text-red-800">
-                              Reject
-                            </button>
-
-                          </>
-                        )
-
-                      }
+                      {project.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(project._id, "approved")
+                            }
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(project._id, "rejected")
+                            }
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -375,15 +377,13 @@ const ProjectsPage = () => {
           </table>
         </div>
 
-
-        {
-          filteredProjects.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-slate-500">No projects found matching your criteria</p>
-            </div>
-          )
-
-        }
+        {filteredProjects.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-slate-500">
+              No projects found matching your criteria
+            </p>
+          </div>
+        )}
       </div>
 
       {/* View Project Modal */}
@@ -396,7 +396,8 @@ const ProjectsPage = () => {
               </h2>
               <button
                 onClick={() => setShowViewModal(false)}
-                className="text-slate-500 hover:text-slate-700">
+                className="text-slate-500 hover:text-slate-700"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -456,21 +457,17 @@ const ProjectsPage = () => {
                   File
                 </label>
                 <div className="text-sm text-slate-900">
-                  {
-                    (currentProjects?.files || []).length === 0 ? (
-                      <div className="text-sm text-slate-500">
-                        No files uploaded
-                      </div>
-                    ) : (
-                      <ul className="list-disc list-inside text-sm text-slate-700">
-                        {currentProjects.files.map((file) => (
-                          <li key={file._id || file.url}>
-                            {file.originalName}
-                          </li>
-                        ))}
-                      </ul>
-                    )
-                  }
+                  {(currentProjects?.files || []).length === 0 ? (
+                    <div className="text-sm text-slate-500">
+                      No files uploaded
+                    </div>
+                  ) : (
+                    <ul className="list-disc list-inside text-sm text-slate-700">
+                      {currentProjects.files.map(file => (
+                        <li key={file._id || file.url}>{file.originalName}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
@@ -480,9 +477,7 @@ const ProjectsPage = () => {
       {/* report modal */}
       {isReportsOpen && (
         <div className="fixed inset-0 -top-10 bg-black bg-opacity-50 flex items-center justify-center z-50">
-
           <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl p-5">
-
             {/* HEADER */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-base font-semibold text-slate-800">
@@ -504,7 +499,7 @@ const ProjectsPage = () => {
                 className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:border-slate-400"
                 placeholder="Search..."
                 value={reportSearch}
-                onChange={(e) => setReportSearch(e.target.value)}
+                onChange={e => setReportSearch(e.target.value)}
               />
             </div>
 
@@ -514,12 +509,11 @@ const ProjectsPage = () => {
               </div>
             ) : (
               <div className="divide-y divide-slate-200">
-                {filteredFiles.map((file) => (
+                {filteredFiles.map(file => (
                   <div
                     key={`${file.projectId}-${file.fileId}`}
                     className="flex items-center justify-between py-3"
                   >
-
                     {/* INFO */}
                     <div className="text-sm">
                       <p className="text-slate-800 font-medium">

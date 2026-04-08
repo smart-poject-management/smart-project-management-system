@@ -10,9 +10,12 @@ export const submitProjectProposal = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/student/project-proposal", data);
+      toast.success(res.data?.message);
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -24,7 +27,9 @@ export const fetchProject = createAsyncThunk(
       const res = await axiosInstance.get("/student/project");
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -36,7 +41,9 @@ export const getSupervisor = createAsyncThunk(
       const res = await axiosInstance.get("/student/supervisor");
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -48,7 +55,9 @@ export const fetchAllSupervisor = createAsyncThunk(
       const res = await axiosInstance.get("/student/fetch-supervisors");
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -61,12 +70,17 @@ export const requestSupervisor = createAsyncThunk(
         teacherId: data.teacherId,
         message: data.message,
       });
+
+      toast.success(res.data?.message);
+
       thunkAPI.dispatch(getSupervisor());
       thunkAPI.dispatch(fetchAllSupervisor());
 
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -84,9 +98,13 @@ export const uploadFiles = createAsyncThunk(
         { headers: { "Content-Type": "multipart/form-data" } }
       );
 
+      toast.success(res.data?.message);
+
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -98,7 +116,9 @@ export const fetchDashboardStats = createAsyncThunk(
       const res = await axiosInstance.get("/student/fetch-dashboard-stats");
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -110,7 +130,9 @@ export const getFeedback = createAsyncThunk(
       const res = await axiosInstance.get(`/student/feedback/${projectId}`);
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -134,9 +156,13 @@ export const downloadFile = createAsyncThunk(
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      return { message: `"${fileName}" downloaded successfully!` };
+      toast.success(`Downloaded Successfully`);
+
+      return { success: true };
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -148,9 +174,14 @@ export const deleteProjectFile = createAsyncThunk(
       const res = await axiosInstance.delete(
         `/student/file/${projectId}/${fileId}`
       );
+
+      toast.success(res.data?.message);
+
       return { ...res.data, fileId };
     } catch (error) {
-      return thunkAPI.rejectWithValue(getErrorMessage(error));
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -171,9 +202,9 @@ const studentSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
+
       .addCase(submitProjectProposal.fulfilled, (state, action) => {
         state.project = action.payload?.data?.project || null;
-        toast.success(action.payload?.message);
       })
 
       .addCase(fetchProject.fulfilled, (state, action) => {
@@ -193,17 +224,12 @@ const studentSlice = createSlice({
           data.pendingSupervisorRequestIds || [];
       })
 
-      .addCase(requestSupervisor.fulfilled, (state, action) => {
-        toast.success(action.payload?.message);
-      })
-
       .addCase(uploadFiles.fulfilled, (state, action) => {
         const files =
           action.payload?.data?.project?.files ||
           action.payload?.data?.files ||
           [];
         state.files = files;
-        toast.success(action.payload?.message);
       })
 
       .addCase(fetchDashboardStats.fulfilled, (state, action) => {
@@ -212,10 +238,6 @@ const studentSlice = createSlice({
 
       .addCase(getFeedback.fulfilled, (state, action) => {
         state.feedback = action.payload?.data?.feedback || [];
-      })
-
-      .addCase(downloadFile.fulfilled, (state, action) => {
-        toast.success(action.payload?.message);
       })
 
       .addCase(deleteProjectFile.fulfilled, (state, action) => {
@@ -229,17 +251,7 @@ const studentSlice = createSlice({
           state.project = action.payload.data.project;
           state.files = action.payload.data.project.files || [];
         }
-
-        toast.success(action.payload?.message);
-      })
-      .addMatcher(
-        action => action.type.endsWith("/rejected"),
-        (state, action) => {
-          if (action.payload) {
-            toast.error(action.payload);
-          }
-        }
-      );
+      });
   },
 });
 
