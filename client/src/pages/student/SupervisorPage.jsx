@@ -424,7 +424,7 @@ const SupervisorPage = () => {
                     {selectedSupervisor.name}
                   </p>
                   <p className="text-sm text-slate-500">
-                    {selectedSupervisor.department || "No Department"}
+                    {selectedSupervisor.department.department || "No Department"}
                   </p>
                 </div>
               </div>

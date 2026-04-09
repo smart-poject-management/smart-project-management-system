@@ -127,8 +127,8 @@ const LoginPage = () => {
                   <label
                     key={role.value}
                     className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full border-2 transition-all duration-200 ${formData.role === role.value
-                        ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/50"
+                      ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:bg-indigo-50/50"
                       }`}
                   >
                     <input
@@ -141,8 +141,8 @@ const LoginPage = () => {
                     />
                     <span
                       className={`transition ${formData.role === role.value
-                          ? "text-indigo-600"
-                          : "text-gray-400"
+                        ? "text-indigo-600"
+                        : "text-gray-400"
                         }`}
                     >
                       {role.icon}
@@ -185,7 +185,7 @@ const LoginPage = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600 transition"
               >
-                {!showPassword ? <FaEyeSlash /> : <FaEye />}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
               {errors.password && (
                 <p className="text-xs text-red-500 mt-2 pl-2">

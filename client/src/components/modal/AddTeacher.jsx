@@ -4,6 +4,7 @@ import { createTeacher } from "../../store/slices/adminSlice";
 import { toggleTeacherModel } from "../../store/slices/popupSlice";
 import { fetchDepartments, fetchExpertiseByDepartment, clearExpertise } from "../../store/slices/departmentSlice";
 import { X } from "lucide-react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const AddTeacher = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,7 @@ const AddTeacher = () => {
   const departments = useSelector(state => state.department.departments);
   const expertise = useSelector(state => state.department.expertise);
   const loading = useSelector(state => state.department.loadingDepartments);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     dispatch(fetchDepartments());
@@ -102,10 +104,10 @@ const AddTeacher = () => {
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col relative">
               <label className="text-sm text-gray-600 mb-1">Password</label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={teacherData.password}
                 onChange={e =>
@@ -113,6 +115,13 @@ const AddTeacher = () => {
                 }
                 className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-500 hover:text-indigo-600 transition absolute right-3 top-9"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
 
             {/* Department */}
