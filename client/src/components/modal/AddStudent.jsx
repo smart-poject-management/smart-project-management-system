@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { createStudent } from "../../store/slices/adminSlice";
 import { toggleStudentModel } from "../../store/slices/popupSlice";
+import { fetchDepartments } from "../../store/slices/departmentSlice";
 import { X } from "lucide-react";
 
 const AddStudent = () => {
@@ -12,6 +13,13 @@ const AddStudent = () => {
     department: "",
     password: "",
   });
+
+  const departments = useSelector(state => state.department.departments);
+  const loading = useSelector(state => state.department.loadingDepartments);
+
+  useEffect(() => {
+    dispatch(fetchDepartments());
+  }, [dispatch]);
 
   const handleCreateStudent = e => {
     e.preventDefault();
@@ -79,7 +87,6 @@ const AddStudent = () => {
             {/* Department */}
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Department</label>
-
               <select
                 required
                 value={studentData.department}
@@ -89,18 +96,17 @@ const AddStudent = () => {
                     department: e.target.value,
                   })
                 }
-                className="border rounded-md px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
+                disabled={loading}
+                className="border rounded-md px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer disabled:opacity-50"
               >
-                {/* explain this one Department  Select  all  */}
-
-                <option value="" disabled>
-                  Select Department
+                <option value="">
+                  {loading ? "Loading departments..." : "Select Department"}
                 </option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="Data Science">Data Science</option>
-                <option value="Physics">Physics</option>
-                <option value="Chemistry">Chemistry</option>
+                {departments.map(dept => (
+                  <option key={dept._id} value={dept._id}>
+                    {dept.department}
+                  </option>
+                ))}
               </select>
             </div>
 

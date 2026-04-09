@@ -34,7 +34,7 @@ export const getStudentProject = asyncHandler(async (req, res) => {
 });
 
 export const submitProposal = asyncHandler(async (req, res, next) => {
-  const { title, description } = req.body;
+  const { title, description, requiredExpertise } = req.body;
   const studentId = req.user._id;
 
   const existingUser = await projectService.getStudentProject(studentId);
@@ -54,6 +54,7 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
     student: studentId,
     title,
     description,
+    ...(requiredExpertise && { requiredExpertise }),
   };
   const project = await projectService.createProject(projectData);
   await User.findByIdAndUpdate(studentId, { project: project._id });
