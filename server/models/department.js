@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const departmentSchema = new mongoose.Schema({
-    name: {
+    department: {
         type: String,
         required: true,
         unique: true,
@@ -27,3 +27,5 @@ const expertiseSchema = new mongoose.Schema({
 
 const Department = mongoose.model('Department', departmentSchema);
 const Expertise = mongoose.model('Expertise', expertiseSchema);
+
+export { Department, Expertise };
