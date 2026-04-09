@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
-  const project = await projectService.getStudentProject(studentId);
+  const project = await Project.findOne({ student: studentId }).sort({ createdAt: -1 }).populate("requiredExpertise", "name");
 
   if (!project) {
     return res.status(200).json({
@@ -100,9 +100,28 @@ export const uploadFiles = asyncHandler(async (req, res) => {
 
 export const getAvailableSupervisors = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
-  const supervisors = await User.find({ role: "Teacher" })
+
+  const [student, project] = await Promise.all([
+    User.findById(studentId).select("department"),
+    projectService.getStudentProject(studentId),
+  ]);
+
+  let supervisorsQuery = { role: "Teacher" };
+
+  if (student?.department) {
+    supervisorsQuery.department = student.department;
+  }
+
+  if (project && project.requiredExpertise) {
+    supervisorsQuery.expertise = project.requiredExpertise;
+  }
+
+  const supervisors = await User.find(supervisorsQuery)
     .select("name email department expertise")
+    .populate("department", "department")
+    .populate("expertise", "name")
     .lean();
+
   const pendingSupervisorRequestIds =
     await requestService.getPendingSupervisorIdsForStudent(studentId);
   res.status(200).json({
