@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 
 export const getStudentProject = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
-  const project = await Project.findOne({ student: studentId }).sort({ createdAt: -1 }).populate("requiredExpertise", "name");
+  const project = await projectService.getStudentProject(studentId);
 
   if (!project) {
     return res.status(200).json({
