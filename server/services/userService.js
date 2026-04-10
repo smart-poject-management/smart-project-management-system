@@ -88,7 +88,11 @@ export const deleteUser = async (id) => {
 
 export const getAllUsers = async () => {
     const query = { role: { $ne: "Admin" } };
-    const users = await User.find(query).select("-password -resetPasswordToken -resetPasswordExpire").sort({ createdAt: -1 });
+    const users = await User.find(query)
+        .select("-password -resetPasswordToken -resetPasswordExpire")
+        .populate("department", "department")
+        .populate("expertise", "name")
+        .sort({ createdAt: -1 });
 
     return users;
 };
