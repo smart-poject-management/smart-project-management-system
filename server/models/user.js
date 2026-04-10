@@ -32,13 +32,12 @@ const userSchema = new mongoose.Schema(
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     department: {
-      type: String,
-      trim: true,
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
     },
     expertise: {
-      type: [String],
-      default: [],
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Expertise"
     },
     maxStudents: {
       type: Number,

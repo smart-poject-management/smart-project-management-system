@@ -36,7 +36,22 @@ const ManageTeachers = () => {
   });
   const dispatch = useDispatch();
   const teachers = useMemo(() => {
-    return (users || []).filter(user => user.role?.toLowerCase() === "teacher");
+    return (users || [])
+      .filter(user => user.role?.toLowerCase() === "teacher")
+      .map(user => ({
+        ...user,
+        department:
+          typeof user.department === "object"
+            ? user.department?.department || ""
+            : user.department || "",
+        expertise: Array.isArray(user.expertise)
+          ? user.expertise
+              .map(item => (typeof item === "object" ? item?.name || "" : item))
+              .filter(Boolean)
+          : typeof user.expertise === "string"
+          ? [user.expertise]
+          : [],
+      }));
   }, [users]);
 
   const departments = useMemo(() => {
@@ -82,10 +97,15 @@ const ManageTeachers = () => {
     setTeacherData({
       name: teacher.name,
       email: teacher.email,
-      department: teacher.department,
+      department:
+        typeof teacher.department === "object"
+          ? teacher.department?.department || ""
+          : teacher.department || "",
       expertise: Array.isArray(teacher.expertise)
-        ? teacher.expertise[0]
-        : teacher.expertise,
+        ? teacher.expertise[0] || ""
+        : typeof teacher.expertise === "string"
+        ? teacher.expertise
+        : "",
       maxStudents:
         typeof teacher.maxStudents === "number" ? teacher.maxStudents : 1,
     });
@@ -307,8 +327,8 @@ const ManageTeachers = () => {
                       {/* Expertise */}
                       <td className="px-6 py-4">
                         {Array.isArray(teacher.expertise)
-                          ? teacher.expertise.join(", ")
-                          : teacher.expertise}
+                          ? teacher.expertise.join(", ") || "-"
+                          : teacher.expertise || "-"}
                       </td>
 
                       {/* Teachers join date */}

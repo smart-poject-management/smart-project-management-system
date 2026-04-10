@@ -2,8 +2,11 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
+const getErrorMessage = error =>
+  error?.response?.data?.message || "Failed to create deadline";
+
 export const createDeadline = createAsyncThunk(
-  "createDeadline",
+  "deadline/createDeadline",
   async ({ id, data }, thunkAPI) => {
     try {
       const res = await axiosInstance.post(
@@ -11,13 +14,12 @@ export const createDeadline = createAsyncThunk(
         data
       );
 
-      toast.success(res.data.message || "Deadline created successfully");
-      return res.data?.data?.deadline || res.data?.data || null;
+      toast.success(res.data?.message);
+
+      return res.data?.data?.deadline || null;
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create deadline");
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Failed to create deadline"
-      );
+      const msg = getErrorMessage(error);
+      toast.error(msg);
     }
   }
 );
@@ -33,10 +35,20 @@ const deadlineSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(createDeadline.fulfilled, (state, action) => {
-      const item = action.payload;
-      if (item) state.deadlines.push(item);
-    });
+    builder
+      .addCase(createDeadline.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createDeadline.fulfilled, (state, action) => {
+        state.loading = false;
+        const item = action.payload;
+        if (item) state.deadlines.push(item);
+      })
+      .addCase(createDeadline.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 

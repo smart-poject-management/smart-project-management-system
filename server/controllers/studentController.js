@@ -34,7 +34,7 @@ export const getStudentProject = asyncHandler(async (req, res) => {
 });
 
 export const submitProposal = asyncHandler(async (req, res, next) => {
-  const { title, description } = req.body;
+  const { title, description, requiredExpertise } = req.body;
   const studentId = req.user._id;
 
   const existingUser = await projectService.getStudentProject(studentId);
@@ -54,9 +54,17 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
     student: studentId,
     title,
     description,
+    ...(requiredExpertise && { requiredExpertise }),
   };
   const project = await projectService.createProject(projectData);
   await User.findByIdAndUpdate(studentId, { project: project._id });
+
+  await notificationService.notifyAllAdmins(
+    `${req.user.name} submitted a project proposal "${title}" for your review.`,
+    "request",
+    "/admin/projects",
+    "medium",
+  );
 
   res.status(201).json({
     success: true,
@@ -92,9 +100,28 @@ export const uploadFiles = asyncHandler(async (req, res) => {
 
 export const getAvailableSupervisors = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
-  const supervisors = await User.find({ role: "Teacher" })
+
+  const [student, project] = await Promise.all([
+    User.findById(studentId).select("department"),
+    projectService.getStudentProject(studentId),
+  ]);
+
+  let supervisorsQuery = { role: "Teacher" };
+
+  if (student?.department) {
+    supervisorsQuery.department = student.department;
+  }
+
+  if (project && project.requiredExpertise) {
+    supervisorsQuery.expertise = project.requiredExpertise;
+  }
+
+  const supervisors = await User.find(supervisorsQuery)
     .select("name email department expertise")
+    .populate("department", "department")
+    .populate("expertise", "name")
     .lean();
+
   const pendingSupervisorRequestIds =
     await requestService.getPendingSupervisorIdsForStudent(studentId);
   res.status(200).json({
@@ -171,7 +198,7 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
     teacherId,
     `${student.name} has request ${supervisor.name} to be their supervisor.`,
     "request",
-    "/teacher/requests",
+    "/teacher/pending-requests",
     "medium",
   );
 
@@ -193,9 +220,9 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
   const upcomingDeadlines = await Deadline.find({
     project: project?._id
   })
-    .select("name dueDate")
+    .select("name dueDate status")
     .sort({ createdAt: -1 })
-    .limit(3)
+    .limit(2)
     .lean();
 
   const topNotification = await Notification.find({ user: studentId })

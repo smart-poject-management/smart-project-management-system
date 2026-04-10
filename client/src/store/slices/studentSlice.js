@@ -2,20 +2,20 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
+const getErrorMessage = error =>
+  error?.response?.data?.message || "Something went wrong";
+
 export const submitProjectProposal = createAsyncThunk(
   "student/submitProjectProposal",
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/student/project-proposal", data);
-      toast.success("Project proposal submitted successfully");
-      return res.data.data?.project || res.data.data || res.data;
+      toast.success(res.data?.message);
+      return res.data;
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to submit project proposal"
-      );
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Something went wrong"
-      );
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -25,10 +25,11 @@ export const fetchProject = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/student/project");
-      return res.data.data?.project || null;
+      return res.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to fetch project");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -38,12 +39,11 @@ export const getSupervisor = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/student/supervisor");
-      return res.data.data?.supervisor || null;
+      return res.data;
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Failed to fetch supervisor"
-      );
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -53,16 +53,11 @@ export const fetchAllSupervisor = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/student/fetch-supervisors");
-      const data = res.data.data || {};
-      return {
-        supervisors: data.supervisors || [],
-        pendingSupervisorRequestIds: data.pendingSupervisorRequestIds || [],
-      };
+      return res.data;
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Failed to fetch available supervisors"
-      );
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -75,15 +70,17 @@ export const requestSupervisor = createAsyncThunk(
         teacherId: data.teacherId,
         message: data.message,
       });
-      toast.success("Supervisor request sent successfully");
+
+      toast.success(res.data?.message);
+
       thunkAPI.dispatch(getSupervisor());
       thunkAPI.dispatch(fetchAllSupervisor());
-      return res.data.data?.supervisor || null;
+
+      return res.data;
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Failed to request supervisor"
-      );
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -94,16 +91,20 @@ export const uploadFiles = createAsyncThunk(
     try {
       const form = new FormData();
       for (const file of files) form.append("files", file);
+
       const res = await axiosInstance.post(
         `/student/upload/${projectId}`,
         form,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
-      toast.success(res.data.message || "Files uploaded successfully");
-      return res.data.data?.project || res.data;
+
+      toast.success(res.data?.message);
+
+      return res.data;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to upload files");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -113,12 +114,11 @@ export const fetchDashboardStats = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/student/fetch-dashboard-stats");
-      return res.data.data || res.data;
+      return res.data;
     } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Failed to fetch dashboard stats"
-      );
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -128,10 +128,11 @@ export const getFeedback = createAsyncThunk(
   async (projectId, thunkAPI) => {
     try {
       const res = await axiosInstance.get(`/student/feedback/${projectId}`);
-      return res.data.data?.feedback || res.data.data || res.data;
+      return res.data;
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to fetch feedback");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
@@ -144,37 +145,47 @@ export const downloadFile = createAsyncThunk(
         `/student/download/${projectId}/${fileId}`,
         { responseType: "blob" }
       );
+
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", fileName || "download");
+
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+      link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success(`"${fileName}" downloaded successfully!`);
-      return { success: true, fileId };
+
+      toast.success(`Downloaded Successfully`);
+
+      return { success: true };
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to download file");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
+
 export const deleteProjectFile = createAsyncThunk(
   "student/deleteProjectFile",
   async ({ projectId, fileId }, thunkAPI) => {
     try {
       const res = await axiosInstance.delete(
-        `/student/file/${projectId}/${fileId}`,
+        `/student/file/${projectId}/${fileId}`
       );
-      toast.success(res.data.message || "File deleted successfully");
-      return { fileId, project: res.data.data?.project || null };
+
+      toast.success(res.data?.message);
+
+      return { ...res.data, fileId };
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Failed to delete file");
-      return thunkAPI.rejectWithValue(error.response?.data?.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
-  },
+  }
 );
+
 const studentSlice = createSlice({
   name: "student",
   initialState: {
@@ -191,47 +202,54 @@ const studentSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
+
       .addCase(submitProjectProposal.fulfilled, (state, action) => {
-        state.project = action.payload || null;
+        state.project = action.payload?.data?.project || null;
       })
+
       .addCase(fetchProject.fulfilled, (state, action) => {
-        state.project = action.payload || null;
-        state.files = action.payload?.files || [];
+        const project = action.payload?.data?.project || null;
+        state.project = project;
+        state.files = project?.files || [];
       })
+
       .addCase(getSupervisor.fulfilled, (state, action) => {
-        state.supervisor = action.payload || null;
+        state.supervisor = action.payload?.data?.supervisor || null;
       })
+
       .addCase(fetchAllSupervisor.fulfilled, (state, action) => {
-        const p = action.payload;
-        if (p && typeof p === "object" && Array.isArray(p.supervisors)) {
-          state.supervisors = p.supervisors;
-          state.pendingSupervisorRequestIds = p.pendingSupervisorRequestIds || [];
-        } else {
-          state.supervisors = Array.isArray(p) ? p : [];
-        }
+        const data = action.payload?.data || {};
+        state.supervisors = data.supervisors || [];
+        state.pendingSupervisorRequestIds =
+          data.pendingSupervisorRequestIds || [];
       })
+
       .addCase(uploadFiles.fulfilled, (state, action) => {
-        const newFiles =
-          action.payload?.project?.files || action.payload?.files || [];
-        state.files = Array.isArray(newFiles) ? newFiles : [];
+        const files =
+          action.payload?.data?.project?.files ||
+          action.payload?.data?.files ||
+          [];
+        state.files = files;
       })
-      .addCase(getFeedback.fulfilled, (state, action) => {
-        state.feedback = action.payload || [];
-      })
+
       .addCase(fetchDashboardStats.fulfilled, (state, action) => {
-        state.dashboardStats = action.payload || [];
+        state.dashboardStats = action.payload?.data || {};
       })
+
+      .addCase(getFeedback.fulfilled, (state, action) => {
+        state.feedback = action.payload?.data?.feedback || [];
+      })
+
       .addCase(deleteProjectFile.fulfilled, (state, action) => {
         const deletedId = action.payload?.fileId;
+
         if (deletedId) {
-          state.files = (state.files || []).filter((f) => f._id !== deletedId);
+          state.files = state.files.filter(f => f._id !== deletedId);
         }
 
-
-        const nextProject = action.payload?.project;
-        if (nextProject) {
-          state.project = nextProject;
-          state.files = nextProject.files || state.files || [];
+        if (action.payload?.data?.project) {
+          state.project = action.payload.data.project;
+          state.files = action.payload.data.project.files || [];
         }
       });
   },

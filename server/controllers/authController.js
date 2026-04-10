@@ -8,33 +8,40 @@ import crypto from "crypto";
 
 export const login = asyncHandler(async (req, res) => {
   const { email, password, role } = req.body;
+
   if (!email || !password || !role) {
-    return res
-      .status(400)
-      .json({ error: "Please provide email, password and role" });
+    return res.status(400).json({
+      success: false,
+      message: "Please provide email, password and role",
+    });
   }
 
-  if (role === "Admin") {
-    await seedAdmin();
-  }
+  const user = await User.findOne({ email }).select("+password");
 
-  const user = await User.findOne({ email, role }).select("+password");
-  if (!user) {
-    return res.status(400).json({ error: "Invalid credentials" });
+  if (!user || user.role !== role) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid credentials",
+    });
   }
 
   const isPassword = await user.matchPassword(password);
+
   if (!isPassword) {
-    return res
-      .status(400)
-      .json({ error: "Invalid credentials password is incorrect" });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid credentials",
+    });
   }
+
   generateToken(user, 200, "User logged in successfully", res);
 });
 
 export const getUser = asyncHandler(async (req, res) => {
-  const user = req.user;
-  res.status(200).json({ success: true, user });
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
 });
 
 export const logout = asyncHandler(async (req, res) => {
@@ -47,20 +54,33 @@ export const logout = asyncHandler(async (req, res) => {
       sameSite: "none",
       path: "/",
     })
-    .json({ success: true, message: "User logged out successfully" });
+    .json({
+      success: true,
+      message: "User logged out successfully",
+    });
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {
+  if (!req.body.email) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide email",
+    });
+  }
+
   const user = await User.findOne({ email: req.body.email });
+
   if (!user) {
-    return res.status(404).json({ error: "User not found with this email" });
+    return res.status(404).json({
+      success: false,
+      message: "User not found with this email",
+    });
   }
 
   const resetToken = user.getResetPasswordToken();
-
   await user.save({ validateBeforeSave: false });
 
-  const resetPasswordUrl = ` ${process.env.FRONTEND_URL}/password/reset/${resetToken} `;
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
   const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
 
   try {
@@ -69,17 +89,21 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       subject: "FYP SYSTEM - 🔒 Password Reset Request",
       message,
     });
+
     res.status(200).json({
       success: true,
-      message: `Email send to ${user.email} successfully`,
+      message: `Email sent to ${user.email} successfully`,
     });
   } catch (error) {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
+
     await user.save({ validateBeforeSave: false });
-    return res
-      .status(500)
-      .json({ error: error.message || "Can not send email" });
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Cannot send email",
+    });
   }
 });
 
@@ -96,25 +120,31 @@ export const resetPassword = asyncHandler(async (req, res) => {
   });
   if (!user) {
     return res.status(400).json({
-      error: "Invalid or expired password reset token",
+      success: false,
+      message: "Invalid or expired password reset token",
     });
   }
 
-  if (!req.body.password || !req.body.confirmPassword) {
-    return res
-      .status(400)
-      .json({ error: "Please provide all required fields" });
-  }
-  if (req.body.password !== req.body.confirmPassword) {
-    return res
-      .status(400)
-      .json({ error: "Password and Confirm password do not match" });
+  const { password, confirmPassword } = req.body;
+  if (!password || !confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide all required fields",
+    });
   }
 
-  user.password = req.body.password;
+  if (password !== confirmPassword) {
+    return res.status(400).json({
+      success: false,
+      message: "Password and confirm password do not match",
+    });
+  }
+
+  user.password = password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 
   await user.save();
+
   generateToken(user, 200, "Password reset successfully", res);
 });

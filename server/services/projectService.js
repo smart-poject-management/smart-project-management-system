@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getStudentProject = async (studentId) => {
-  return await Project.findOne({ student: studentId }).sort({ createdAt: -1 });
+  return await Project.findOne({ student: studentId }).sort({ createdAt: -1 }).populate("requiredExpertise", "name");
 };
 
 export const createProject = async (projectData) => {

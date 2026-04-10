@@ -2,15 +2,18 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
+const getErrorMessage = error =>
+  error?.response?.data?.message || "Something went wrong";
+
 export const createStudent = createAsyncThunk(
-  "createStudent",
+  "admin/createStudent",
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/admin/create-student", data);
-      toast.success(res.data.message || "Student created successfully");
-      return res.data.data.user;
+      toast.success(res.data?.message);
+      return res.data?.data?.user;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to create student";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -18,14 +21,14 @@ export const createStudent = createAsyncThunk(
 );
 
 export const updateStudent = createAsyncThunk(
-  "updateStudent",
+  "admin/updateStudent",
   async ({ id, data }, thunkAPI) => {
     try {
       const res = await axiosInstance.put(`/admin/update-student/${id}`, data);
-      toast.success(res.data.message || "Student updated successfully");
-      return res.data.data.user;
+      toast.success(res.data?.message);
+      return res.data?.data?.user;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to update student";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -33,14 +36,14 @@ export const updateStudent = createAsyncThunk(
 );
 
 export const deleteStudent = createAsyncThunk(
-  "deleteStudent",
+  "admin/deleteStudent",
   async (id, thunkAPI) => {
     try {
-      await axiosInstance.delete(`/admin/delete-student/${id}`);
-      toast.success("Student deleted successfully");
+      const res = await axiosInstance.delete(`/admin/delete-student/${id}`);
+      toast.success(res.data?.message || "Student deleted successfully");
       return id;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to delete student";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -48,14 +51,14 @@ export const deleteStudent = createAsyncThunk(
 );
 
 export const createTeacher = createAsyncThunk(
-  "createTeacher",
+  "admin/createTeacher",
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/admin/create-teacher", data);
-      toast.success(res.data.message || "Teacher created successfully");
-      return res.data.data.user;
+      toast.success(res.data?.message);
+      return res.data?.data?.user;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to create teacher";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -63,14 +66,14 @@ export const createTeacher = createAsyncThunk(
 );
 
 export const updateTeacher = createAsyncThunk(
-  "updateTeacher",
+  "admin/updateTeacher",
   async ({ id, data }, thunkAPI) => {
     try {
       const res = await axiosInstance.put(`/admin/update-teacher/${id}`, data);
-      toast.success(res.data.message || "Teacher updated successfully");
-      return res.data.data.user;
+      toast.success(res.data?.message);
+      return res.data?.data?.user;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to update teacher";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -78,14 +81,14 @@ export const updateTeacher = createAsyncThunk(
 );
 
 export const deleteTeacher = createAsyncThunk(
-  "deleteTeacher",
+  "admin/deleteTeacher",
   async (id, thunkAPI) => {
     try {
-      await axiosInstance.delete(`/admin/delete-teacher/${id}`);
-      toast.success("Teacher deleted successfully");
+      const res = await axiosInstance.delete(`/admin/delete-teacher/${id}`);
+      toast.success(res.data?.message || "Teacher deleted successfully");
       return id;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to delete teacher";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -93,13 +96,13 @@ export const deleteTeacher = createAsyncThunk(
 );
 
 export const getAllUsers = createAsyncThunk(
-  "getAllUsers",
+  "admin/getAllUsers",
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/admin/users");
-      return res.data.data.users;
+      return res.data?.data?.users;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to fetch users";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -107,13 +110,13 @@ export const getAllUsers = createAsyncThunk(
 );
 
 export const getAllProjects = createAsyncThunk(
-  "getAllProjects",
+  "admin/getAllProjects",
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/admin/projects");
-      return res.data.data;
+      return res.data?.data;
     } catch (error) {
-      const msg = error.response?.data?.message || "Failed to fetch projects";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -121,15 +124,13 @@ export const getAllProjects = createAsyncThunk(
 );
 
 export const getDashboardStats = createAsyncThunk(
-  "getDashboardStats",
+  "admin/getDashboardStats",
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/admin/fetch-dashboard-stats");
-      return res.data.data.stats;
+      return res.data?.data?.stats;
     } catch (error) {
-      const msg =
-        error.response?.data?.message ||
-        "Failed to fetch admin dashboard stats";
+      const msg = getErrorMessage(error);
       toast.error(msg);
       return thunkAPI.rejectWithValue(msg);
     }
@@ -137,63 +138,70 @@ export const getDashboardStats = createAsyncThunk(
 );
 
 export const assignSupervisor = createAsyncThunk(
-  "assignSupervisor",
+  "admin/assignSupervisor",
   async (data, thunkAPI) => {
     try {
       const res = await axiosInstance.post("/admin/assign-supervisor", data);
-      toast.success(res.data.message);
-      return res.data.data;
+      toast.success(res.data?.message);
+      return res.data?.data;
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to assign supervisor");
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
 
 export const approveProject = createAsyncThunk(
-  "approveProject",
+  "admin/approveProject",
   async (id, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/admin/project/${id}`, { status: "approved" });
-      toast.success(res.data.message || "Project approved successfully");
+      const res = await axiosInstance.put(`/admin/project/${id}`, {
+        status: "approved",
+      });
+      toast.success(res.data?.message);
       return id;
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to approve project");
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
 
 export const rejectProject = createAsyncThunk(
-  "rejectProject",
+  "admin/rejectProject",
   async (id, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/admin/project/${id}`, { status: "rejected" });
-      toast.success(res.data.message || "Project rejected successfully");
-      return id
+      const res = await axiosInstance.put(`/admin/project/${id}`, {
+        status: "rejected",
+      });
+      toast.success(res.data?.message);
+      return id;
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to reject project");
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
 
 export const getProject = createAsyncThunk(
-  "getProject",
+  "admin/getProject",
   async (id, thunkAPI) => {
     try {
       const res = await axiosInstance.get(`/admin/project/${id}`);
-      return res.data?.data?.project || res.data?.data || res.data;
+      return res.data?.data?.project || res.data?.data;
     } catch (error) {
-      toast.error(error.response.data.message || "Failed to fetch project");
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
 
 const adminSlice = createSlice({
   name: "admin",
-
   initialState: {
     users: [],
     projects: [],
@@ -201,58 +209,43 @@ const adminSlice = createSlice({
     loading: false,
     error: null,
   },
-
   reducers: {},
-
   extraReducers: builder => {
     builder
       .addCase(getAllUsers.pending, state => {
         state.loading = true;
       })
-
       .addCase(getAllUsers.fulfilled, (state, action) => {
         state.loading = false;
         state.users = action.payload;
       })
-
       .addCase(getAllUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(getAllProjects.fulfilled, (state, action) => {
-        state.projects = action.payload.projects;
+        state.projects = action.payload?.projects || [];
       })
-
       .addCase(createStudent.fulfilled, (state, action) => {
         state.users.unshift(action.payload);
       })
-
       .addCase(updateStudent.fulfilled, (state, action) => {
         const index = state.users.findIndex(
           user => user._id === action.payload._id
         );
-
-        if (index !== -1) {
-          state.users[index] = action.payload;
-        }
+        if (index !== -1) state.users[index] = action.payload;
       })
-
       .addCase(deleteStudent.fulfilled, (state, action) => {
         state.users = state.users.filter(user => user._id !== action.payload);
       })
-
       .addCase(createTeacher.fulfilled, (state, action) => {
         state.users.unshift(action.payload);
       })
-
       .addCase(updateTeacher.fulfilled, (state, action) => {
         const index = state.users.findIndex(
           user => user._id === action.payload._id
         );
-
-        if (index !== -1) {
-          state.users[index] = action.payload;
-        }
+        if (index !== -1) state.users[index] = action.payload;
       })
       .addCase(deleteTeacher.fulfilled, (state, action) => {
         state.users = state.users.filter(user => user._id !== action.payload);
@@ -262,7 +255,6 @@ const adminSlice = createSlice({
       })
       .addCase(approveProject.fulfilled, (state, action) => {
         const projectId = action.payload;
-
         state.projects = state.projects.map(project =>
           project._id === projectId
             ? { ...project, status: "approved" }
@@ -271,14 +263,12 @@ const adminSlice = createSlice({
       })
       .addCase(rejectProject.fulfilled, (state, action) => {
         const projectId = action.payload;
-
         state.projects = state.projects.map(project =>
           project._id === projectId
             ? { ...project, status: "rejected" }
             : project
         );
-      })
-      ;
+      });
   },
 });
 

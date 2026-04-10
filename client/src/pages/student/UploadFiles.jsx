@@ -35,33 +35,24 @@ const UploadFiles = () => {
     if (!project) {
       dispatch(fetchProject());
     }
-  }, [dispatch , project]);
+  }, [dispatch, project]);
 
   const handleFilePick = e => {
-    const list = Array.from(e.target.files || []);
+    const list = Array.from(e.target.files || []).map(file => ({
+      file,
+      _id: `${Date.now()}-${Math.random().toString(30).slice(2)}`
+    }));
     setSelectedFiles(prev => [...prev, ...list]);
     e.target.value = "";
   };
 
- const handleUpload = () => {
-  if (!project?._id) {
-    toast.error("Project not loaded yet");
-    return;
-  }
+  const handleUpload = (item) => {
+    dispatch(uploadFiles({ projectId: project._id, files: [item.file] }));
+    setSelectedFiles(prev => prev.filter(f => f._id !== item._id));
+  };
 
-  if (selectedFiles.length === 0) {
-    toast.warn("Select the file.");
-    return;
-  }
-
-  dispatch(uploadFiles({ projectId: project._id, files: selectedFiles }));
-  setSelectedFiles([]);
-};
-
-
-  const removeSelected = name => {
-    setSelectedFiles(prev => prev.filter(f => f.name !== name));
-    toast.warn(`"${name}" deleted from upload queue.`);
+  const removeSelected = (id) => {
+    setSelectedFiles(prev => prev.filter(f => f._id !== id));
   };
 
   const getFileIcon = fileName => {
@@ -80,7 +71,7 @@ const UploadFiles = () => {
   const handleDownloadFile = async file => {
     if (downloadingId) return;
     setDownloadingId(file._id);
-    await dispatch(
+    dispatch(
       downloadFile({
         projectId: project._id,
         fileId: file._id,
@@ -99,9 +90,7 @@ const UploadFiles = () => {
     setConfirmFile(null);
     if (!project?._id || !file?._id) return;
     setDeletingId(file._id);
-    await dispatch(
-      deleteProjectFile({ projectId: project._id, fileId: file._id })
-    );
+    dispatch(deleteProjectFile({ projectId: project._id, fileId: file._id }));
     setDeletingId(null);
   };
 
@@ -161,9 +150,7 @@ const UploadFiles = () => {
       <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl p-6">
         <div className="flex items-center justify-between border-b pb-4 mb-6">
           <div>
-            <h2 className="page-header">
-              Upload Project Files
-            </h2>
+            <h2 className="page-header">Upload Project Files</h2>
             <p className="text-gray-500 mt-1">
               Upload your project documents including reports, presentations,
               and code files.
@@ -261,28 +248,27 @@ const UploadFiles = () => {
             </div>
 
             <div className="divide-y divide-slate-200">
-              {selectedFiles.map(file => (
+              {selectedFiles.map(item => (
                 <div
-                  key={file.name}
+                  key={item._id}
                   className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition"
                 >
                   <div className="flex items-center gap-4 min-w-0">
-                    {getFileIcon(file.name)}
+                    {getFileIcon(item.file.name)}
                     <div className="truncate">
                       <p className="font-medium text-slate-800 truncate">
-                        {file.name}
+                        {item.file.name}
                       </p>
                       <p className="text-xs text-slate-500">
-                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                        {(item.file.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={handleUpload}
+                      onClick={() => handleUpload(item)}
                       disabled={loading || !project?._id}
-
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-700 border border-blue-200 rounded-lg bg-white/50 hover:bg-blue-200 transition disabled:opacity-50"
                     >
                       {loading ? (
@@ -293,7 +279,7 @@ const UploadFiles = () => {
                       Upload
                     </button>
                     <button
-                      onClick={() => removeSelected(file.name)}
+                      onClick={() => removeSelected(item._id)}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-700 border border-red-200 rounded-lg bg-white/50 hover:bg-red-200 transition"
                     >
                       <Trash2 className="w-4 h-4" />

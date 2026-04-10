@@ -1,7 +1,11 @@
 import { AlertTriangle, CheckCircle2, FileDown, Folder, Search, X, Calendar, User, FileText, BadgeCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { approveProject, getProject, rejectProject } from "../../store/slices/adminSlice";
+import {
+  approveProject,
+  getProject,
+  rejectProject,
+} from "../../store/slices/adminSlice";
 import { downloadProjectFile } from "../../store/slices/projectSlice";
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm, type, projectTitle, isLoading }) => {
@@ -11,7 +15,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, type, projectTitle, isLoadin
 
   return (
 
-    <div className="fixed inset-0 -top-10 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 -top-10 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
       <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl text-center">
 
@@ -343,7 +347,9 @@ const ProjectsPage = () => {
 
                   {/* Status */}
                   <td className="px-6 py-3 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}
+                    >
                       {project.status}
                     </span>
                   </td>
@@ -399,7 +405,7 @@ const ProjectsPage = () => {
 
       {/* View Project Modal */}
       {showViewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center z-50 px-4">
+        <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50 px-4">
 
           <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-fadeIn">
 
@@ -524,7 +530,7 @@ const ProjectsPage = () => {
                             <button
                               className="btn-outline btn-small"
                               onClick={() =>
-                                handleDownload(file.projectId, file.fileId, file.originalName)
+                                handleDownload(currentProjects._id, file._id, file.originalName)
                               }
                             >
                               Download
@@ -551,7 +557,7 @@ const ProjectsPage = () => {
       {/* Download Reports Modal */}
       {isReportsOpen && (
 
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl p-5">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-base font-semibold text-slate-800">All Files</h2>

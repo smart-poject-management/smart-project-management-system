@@ -12,11 +12,15 @@ const deadlineSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Due date is required"],
     },
+    status: {
+      type: String,
+      enum: ["ongoing", "missed"],
+      default: "ongoing",
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: [true, "created by is required"],
-
     },
     project:{
         type: mongoose.Schema.Types.ObjectId,

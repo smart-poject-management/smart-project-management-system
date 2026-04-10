@@ -141,7 +141,7 @@ const DeadlinesPage = () => {
         )
       );
     } catch (err) {
-      console.error("Failed to create deadline", err);
+      console.error(err);
     } finally {
       handleCloseModal();
     }
@@ -386,8 +386,8 @@ const DeadlinesPage = () => {
                               projectTitle: project.title,
                               deadlineDate: project.deadline
                                 ? new Date(project.deadline)
-                                  .toISOString()
-                                  .slice(0, 10)
+                                    .toISOString()
+                                    .slice(0, 10)
                                 : "",
                             });
                           }}

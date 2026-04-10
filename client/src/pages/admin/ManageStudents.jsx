@@ -46,6 +46,10 @@ const ManageStudents = () => {
 
       return {
         ...student,
+        department:
+          typeof student.department === "object"
+            ? student.department?.department || ""
+            : student.department || "",
         projectTitle: studentProject?.title || null,
         supervisor: studentProject?.supervisor || null,
         projectStatus: studentProject?.status || null,

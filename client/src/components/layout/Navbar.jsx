@@ -1,16 +1,27 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { Bell } from "lucide-react";
 
 import { logout } from "../../store/slices/authSlice";
+import { getNotifications, markAsRead } from "../../store/slices/notificationSlice";
 
-const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
+const Navbar = ({ sidebarOpen, setSidebarOpen, userRole }) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { authUser } = useSelector(state => state.auth);
+  const { list: notifications, unreadCount } = useSelector(
+    state => state.notification,
+  );
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (userRole === "Admin") {
+      dispatch(getNotifications());
+    }
+  }, [dispatch, userRole]);
 
   const handleLogout = () => {
     dispatch(logout()).then(() => {
@@ -92,6 +103,83 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
+            {userRole === "Admin" && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setNotificationsOpen(v => !v);
+                    setProfileDropdownOpen(false);
+                    dispatch(getNotifications());
+                  }}
+                  className="relative p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[1.125rem] h-[1.125rem] px-1 flex items-center justify-center text-[10px] font-bold text-white bg-red-500 rounded-full">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notificationsOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-slate-200 z-50 max-h-[min(70vh,24rem)] flex flex-col"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between shrink-0">
+                      <span className="text-sm font-semibold text-slate-800">
+                        Notifications
+                      </span>
+                      <Link
+                        to="/admin/notifications"
+                        className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                        onClick={() => setNotificationsOpen(false)}
+                      >
+                        View all
+                      </Link>
+                    </div>
+                    <div className="overflow-y-auto flex-1">
+                      {notifications.length === 0 ? (
+                        <p className="px-3 py-6 text-sm text-slate-500 text-center">
+                          No notifications yet
+                        </p>
+                      ) : (
+                        <ul className="py-1">
+                          {notifications.slice(0, 8).map(n => (
+                            <li key={n._id}>
+                              <button
+                                type="button"
+                                className={`w-full text-left px-3 py-2.5 text-sm border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors ${
+                                  n.isRead ? "text-slate-600" : "text-slate-900 font-medium bg-blue-50/50"
+                                }`}
+                                onClick={() => {
+                                  if (!n.isRead) {
+                                    dispatch(markAsRead(n._id));
+                                  }
+                                  if (n.link) {
+                                    navigate(n.link);
+                                  }
+                                  setNotificationsOpen(false);
+                                }}
+                              >
+                                <span className="line-clamp-2">{n.message}</span>
+                                <span className="block text-xs text-slate-400 mt-1">
+                                  {new Date(n.createdAt).toLocaleString()}
+                                </span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Profile dropdown */}
             <div className="relative">
               <button

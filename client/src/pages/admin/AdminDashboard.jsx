@@ -354,7 +354,7 @@ const AdminDashboard = () => {
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                       <span
-                        className={`px-2 py-0.5 rounded text-sm font-medium capitalize ${(getBadgeClasses("type", notification.type))}`}
+                        className={`px-2 py-0.5 rounded text-sm font-medium capitalize ${getBadgeClasses("type", notification.type)}`}
                       >
                         {notification.type}
                       </span>

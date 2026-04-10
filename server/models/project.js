@@ -75,6 +75,11 @@ const projectSchema = new mongoose.Schema({
   ],
   deadline: {
     type: Date,
+  },
+  requiredExpertise: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Expertise",
+    required: false,
   }
 }, {
   timestamps: true,

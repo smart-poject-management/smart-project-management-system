@@ -189,7 +189,7 @@ const SupervisorPage = () => {
                                 key={index}
                                 className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded-full font-medium"
                               >
-                                {item}
+                                {item.name || item}
                               </span>
                             ))
                           ) : (
@@ -353,7 +353,7 @@ const SupervisorPage = () => {
                           {sup.name || "Anonymous"}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          {sup.department || "No Department"}
+                          {sup.department.department || "No Department"}
                         </p>
                       </div>
                     </div>
@@ -370,7 +370,7 @@ const SupervisorPage = () => {
                         <p className="text-gray-400">Expertise</p>
                         <p className="text-gray-700">
                           {Array.isArray(sup?.expertise)
-                            ? sup.expertise.join(", ")
+                            ? sup.expertise.map(exp => exp.name || exp).join(", ")
                             : sup?.expertise || "-"}
                         </p>
                       </div>
@@ -397,7 +397,7 @@ const SupervisorPage = () => {
 
         {/* Modal */}
         {showRequestModal && selectedSupervisor && (
-          <div className="fixed inset-0 -top-10 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 -top-10 bg-black/40 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
 
               {/* Modal Header */}
@@ -424,7 +424,7 @@ const SupervisorPage = () => {
                     {selectedSupervisor.name}
                   </p>
                   <p className="text-sm text-slate-500">
-                    {selectedSupervisor.department || "No Department"}
+                    {selectedSupervisor.department.department || "No Department"}
                   </p>
                 </div>
               </div>

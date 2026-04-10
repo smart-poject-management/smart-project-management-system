@@ -3,6 +3,7 @@ import authReducer from "./slices/authSlice";
 import popupReducer from "./slices/popupSlice";
 import adminReducer from "./slices/adminSlice";
 import deadlineReducer from "./slices/deadlineSlice";
+import departmentReducer from "./slices/departmentSlice";
 import notificationReducer from "./slices/notificationSlice";
 import projectReducer from "./slices/projectSlice";
 import requestReducer from "./slices/requestSlice";
@@ -15,6 +16,7 @@ export const store = configureStore({
     popup: popupReducer,
     admin: adminReducer,
     deadline: deadlineReducer,
+    department: departmentReducer,
     notification: notificationReducer,
     project: projectReducer,
     request: requestReducer,
