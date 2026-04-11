@@ -7,14 +7,15 @@ import { SupervisorRequest } from "../models/supervisorRequest.js";
 import ErrorHandler from "../middlewares/error.js";
 import * as notificationService from "../services/notificationService.js";
 
-// student controllers
 export const createStudent = asyncHandler(async (req, res) => {
   const { name, email, password, department } = req.body;
+
   if (!name || !password || !email || !department) {
     return res
       .status(400)
       .json({ error: "Please provide all required fields" });
   }
+
   const user = await userServices.createUser({
     name,
     email,
@@ -22,6 +23,18 @@ export const createStudent = asyncHandler(async (req, res) => {
     department,
     role: "Student",
   });
+
+  // notify student
+  await notificationService.notifyUser(
+    user._id,
+    "Your account has been created successfully.",
+    "general",
+    "/student",
+    "low",
+    null,
+    "student",
+  );
+
   res.status(201).json({
     success: true,
     message: "Student Created Successfully",
@@ -35,9 +48,11 @@ export const updateStudent = asyncHandler(async (req, res) => {
   delete updateData.role;
 
   const user = await userServices.updateUser(id, updateData);
+
   if (!user) {
     return res.status(404).json({ error: "Student not found" });
   }
+
   res.status(200).json({
     success: true,
     message: "Student Updated Successfully",
@@ -47,25 +62,28 @@ export const updateStudent = asyncHandler(async (req, res) => {
 
 export const deleteStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
   const user = await userServices.getUserById(id);
   if (!user) {
     return res.status(404).json({ error: "Student not found" });
   }
+
   if (user.role !== "Student") {
     return res.status(400).json({ error: "User is not a student" });
   }
 
   await userServices.deleteUser(id);
+
   res.status(200).json({
     success: true,
     message: "Student Deleted Successfully",
   });
 });
 
-// teacher controllers
 export const createTeacher = asyncHandler(async (req, res) => {
   const { name, email, password, department, maxStudents, expertise } =
     req.body;
+
   if (
     !name ||
     !password ||
@@ -78,6 +96,7 @@ export const createTeacher = asyncHandler(async (req, res) => {
       .status(400)
       .json({ error: "Please provide all required fields" });
   }
+
   const user = await userServices.createUser({
     name,
     email,
@@ -91,6 +110,18 @@ export const createTeacher = asyncHandler(async (req, res) => {
         ? expertise.split(",").map((s) => s.trim())
         : [],
   });
+
+  // notify teacher
+  await notificationService.notifyUser(
+    user._id,
+    "Your teacher account has been created.",
+    "general",
+    "/teacher",
+    "low",
+    null,
+    "teacher",
+  );
+
   res.status(201).json({
     success: true,
     message: "Teacher Created Successfully",
@@ -104,9 +135,11 @@ export const updateTeacher = asyncHandler(async (req, res) => {
   delete updateData.role;
 
   const user = await userServices.updateUser(id, updateData);
+
   if (!user) {
     return res.status(404).json({ error: "Teacher not found" });
   }
+
   res.status(200).json({
     success: true,
     message: "Teacher Updated Successfully",
@@ -116,24 +149,27 @@ export const updateTeacher = asyncHandler(async (req, res) => {
 
 export const deleteTeacher = asyncHandler(async (req, res) => {
   const { id } = req.params;
+
   const user = await userServices.getUserById(id);
   if (!user) {
     return res.status(404).json({ error: "Teacher not found" });
   }
+
   if (user.role !== "Teacher") {
     return res.status(400).json({ error: "User is not a Teacher" });
   }
 
   await userServices.deleteUser(id);
+
   res.status(200).json({
     success: true,
     message: "Teacher Deleted Successfully",
   });
 });
 
-// get all users with neglect Admin
 export const getAllUsers = asyncHandler(async (req, res) => {
   const users = await userServices.getAllUsers();
+
   res.status(200).json({
     success: true,
     message: "Users fetched successfully",
@@ -143,6 +179,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 export const getAllProjects = asyncHandler(async (req, res) => {
   const projects = await projectServices.getAllProjects();
+
   res.status(200).json({
     success: true,
     message: "Projects fetched successfully",
@@ -193,20 +230,17 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
   }
 
   const project = await Project.findOne({ student: studentId });
+
   if (!project) {
     return next(new ErrorHandler("Project not found", 404));
   }
 
-  if (project.supervisor !== null) {
+  if (project.supervisor) {
     return next(new ErrorHandler("Supervisor already assigned", 400));
   }
 
   if (project.status !== "approved") {
     return next(new ErrorHandler("Project not approved yet", 400));
-  } else if (project.status === "pending" || project.status === "rejected") {
-    return next(
-      new ErrorHandler("Project is in pending state or rejected", 400),
-    );
   }
 
   const { student, supervisor } = await userServices.assignSupervisorDirectly(
@@ -214,24 +248,30 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
     supervisorId,
   );
 
-  project.supervisor = supervisor;
+  project.supervisor = supervisor._id;
   await project.save();
 
+  // student notification
   await notificationService.notifyUser(
     studentId,
     `You have been assigned a supervisor ${supervisor.name}.`,
     "approval",
-    "/students/status",
+    "/student/supervisor",
     "low",
+    req.user._id,
+    "student",
   );
 
-  await notificationService.notifyUser(
-    supervisorId,
-    `The student ${student.name} has been officially assigned to you for FYP supervisor.`,
-    "general",
-    "/teacher/status",
-    "low",
-  );
+  // teacher notification
+  // await notificationService.notifyUser(
+  //   supervisorId,
+  //   `The student ${student.name} has been officially assigned to you for FYP supervisor.`,
+  //   "general",
+  //   "/teacher/assigned-students",
+  //   "low",
+  //   req.user._id,
+  //   "teacher",
+  // );
 
   res.status(200).json({
     success: true,
@@ -243,13 +283,15 @@ export const assignSupervisor = asyncHandler(async (req, res, next) => {
 export const getProject = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const project = await projectServices.getProjectById(id);
+
   if (!project) {
     return next(new ErrorHandler("Project not found", 404));
   }
 
   const user = req.user;
   const userRole = (user.role || "").toLowerCase();
-  const userId = user._id.toString() || user.id;
+  const userId = user._id.toString();
+
   const hasAccess =
     userRole === "admin" ||
     (userRole === "teacher" &&
@@ -260,9 +302,7 @@ export const getProject = asyncHandler(async (req, res, next) => {
       project.student._id.toString() === userId);
 
   if (!hasAccess) {
-    return next(
-      new ErrorHandler("Unauthorized access to project details", 403),
-    );
+    return next(new ErrorHandler("Unauthorized access", 403));
   }
 
   res.status(200).json({
@@ -278,6 +318,7 @@ export const updateProjectStatus = asyncHandler(async (req, res, next) => {
   const user = req.user;
 
   const project = await projectServices.getProjectById(id);
+
   if (!project) {
     return next(new ErrorHandler("Project not found", 404));
   }
@@ -286,20 +327,31 @@ export const updateProjectStatus = asyncHandler(async (req, res, next) => {
     user.role === "Admin" ||
     (user.role === "Teacher" &&
       project.supervisor &&
-      project.supervisor._id.toString() === user._id);
+      project.supervisor._id.toString() === user._id.toString());
+
   if (!hasAccess) {
-    return next(
-      new ErrorHandler("Unauthorized access to update project status", 403),
-    );
+    return next(new ErrorHandler("Unauthorized", 403));
   }
 
   const updatedProject = await projectServices.updateProjectStatus(
     id,
     updatedData,
   );
-  if (!updatedProject) {
-    return next(new ErrorHandler("Failed to update project status", 500));
+
+  if (updatedData.status === "approved" || updatedData.status === "rejected") {
+    await notificationService.notifyUser(
+      project.student._id,
+      updatedData.status === "approved"
+        ? `Your project "${project.title}" has been approved.`
+        : `Your project "${project.title}" has been rejected.`,
+      updatedData.status === "approved" ? "approval" : "rejection",
+      "/student/supervisor",
+      updatedData.status === "approved" ? "low" : "high",
+      user._id,
+      "student",
+    );
   }
+
   res.status(200).json({
     success: true,
     message: "Project status updated successfully",

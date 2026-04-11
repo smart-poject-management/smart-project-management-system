@@ -4,83 +4,87 @@ import { Notification } from "../models/notifications.js";
 import * as notificationService from "../services/notificationService.js";
 
 export const getNotifications = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-    const role = req.user.role;
+  const userId = req.user._id;
+  const role = req.user.role;
 
-    const query = { user: userId };
-    if (role === "Admin") {
-        query.type = { $in: ["request"] };
-    }
+  // important fix: role + user filter
+  const query = {
+    user: userId,
+    receiverRole: role.toLowerCase(), // student | teacher | admin
+  };
 
-    const notifications = await Notification.find(query).sort({ createdAt: -1 });
-    const unreadOnly = notifications.filter(n => !n.isRead);
-    const readOnly = notifications.filter(n => n.isRead);
-    const highPriorityMessages = notifications.filter((n) => n.priority === "high");
+  // Optional: Admin specific filtering
+  if (role === "Admin") {
+    query.type = { $in: ["request", "approval", "deadline"] };
+  }
 
-    const now = new Date();
-    const dayOfWeek = now.getDate();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - dayOfWeek);
-    startOfWeek.setHours(0, 0, 0, 0);
+  const notifications = await Notification.find(query).sort({ createdAt: -1 });
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
+  const unreadCount = await Notification.countDocuments({
+    user: userId,
+    isRead: false,
+  });
 
-    const thisWeekNotifications = notifications.filter(n => {
-        const created = new Date(n.createdAt);
-        return created >= startOfWeek && created <= endOfWeek;
-    });
-
-    res.status(200).json({
-        success: true,
-        message: "Notifications fetched successfully.",
-        data: {
-            notifications,
-            unreadOnly: unreadOnly.length,
-            readOnly: readOnly.length,
-            highPriorityMessages: highPriorityMessages.length,
-            thisWeekNotifications: thisWeekNotifications.length
-        }
-    });
+  res.status(200).json({
+    success: true,
+    data: notifications,
+    unreadCount,
+  });
 });
 
 export const markAsRead = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const userId = req.user._id;
-    const notification = await notificationService.markAsRead(id, userId);
+  const { id } = req.params;
+  const userId = req.user._id;
 
-    if (!notification) {
-        return next(new ErrorHandler("Notification not found", 404));
-    }
-    res.status(200).json({
-        success: true,
-        message: "Notification marked as read",
-        data: { notification }
-    });
+  const notification = await notificationService.markAsRead(id, userId);
+
+  if (!notification) {
+    return next(new ErrorHandler("Notification not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: notification,
+  });
 });
 
 export const markAllAsRead = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
+  const userId = req.user._id;
 
-    await notificationService.markAllAsRead(userId);
+  await notificationService.markAllAsRead(userId);
 
-    res.status(200).json({
-        success: true,
-        message: "All notification marked as read",
-    });
+  res.status(200).json({
+    success: true,
+    message: "All notifications marked as read",
+  });
 });
 
-export const deleteNotification = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const userId = req.user._id;
-    const notification = await notificationService.deleteNotification(id, userId);
+export const deleteNotification = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const userId = req.user._id;
 
-    if (!notification) {
-        return next(new ErrorHandler("Notification not found", 404));
-    }
-    res.status(200).json({
-        success: true,
-        message: "Notification deleted successfully",
-    });
+  const notification = await notificationService.deleteNotification(id, userId);
+
+  if (!notification) {
+    return next(new ErrorHandler("Notification not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Notification deleted successfully",
+  });
+});
+
+export const getUnreadCount = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const count = await Notification.countDocuments({
+    user: userId,
+    isRead: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    unreadCount: count,
+  });
 });

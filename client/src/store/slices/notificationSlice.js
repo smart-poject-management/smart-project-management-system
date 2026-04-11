@@ -3,52 +3,62 @@ import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
 export const getNotifications = createAsyncThunk(
-  "getNotifications",
+  "notification/getNotifications",
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/notification");
-      return res.data.data;
+
+      return {
+        list: res.data?.data || [],
+        unreadCount: res.data?.unreadCount || 0,
+      };
     } catch (error) {
-      toast.error(
-        error.response.data.message || "Failed to fetch notifications"
-      );
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const msg =
+        error?.response?.data?.message || "Failed to fetch notifications";
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
     }
   }
 );
 
 export const markAsRead = createAsyncThunk(
-  "markAsRead",
+  "notification/markAsRead",
   async (id, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/notification/${id}/read`);
+      await axiosInstance.put(`/notification/${id}/read`);
       return id;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Error"
+      );
     }
   }
 );
 
 export const markAllAsRead = createAsyncThunk(
-  "markAllAsRead",
+  "notification/markAllAsRead",
   async (_, thunkAPI) => {
     try {
-      const res = await axiosInstance.put(`/notification/read-all`);
+      await axiosInstance.put(`/notification/read-all`);
       return true;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Error"
+      );
     }
   }
 );
 
 export const deleteNotification = createAsyncThunk(
-  "deleteNotification",
+  "notification/deleteNotification",
   async (id, thunkAPI) => {
     try {
       await axiosInstance.delete(`/notification/${id}/delete`);
       return id;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      return thunkAPI.rejectWithValue(
+        error?.response?.data?.message || "Error"
+      );
     }
   }
 );
@@ -58,64 +68,52 @@ const notificationSlice = createSlice({
   initialState: {
     list: [],
     unreadCount: 0,
-    readCount: 0,
-    highPriorityMessages: 0,
-    thisWeekNotifications: 0,
     loading: false,
     error: null,
   },
   reducers: {},
+
   extraReducers: builder => {
     builder.addCase(getNotifications.pending, state => {
       state.loading = true;
       state.error = null;
     });
+
     builder.addCase(getNotifications.fulfilled, (state, action) => {
       state.loading = false;
-      state.list = action.payload?.notifications || [];
-      state.unreadCount = action.payload?.unreadOnly ?? 0;
-      state.readCount = action.payload?.readOnly ?? 0;
-      state.highPriorityMessages = action.payload?.highPriorityMessages ?? 0;
-      state.thisWeekNotifications = action.payload?.thisWeekNotifications ?? 0;
+      state.list = action.payload.list;
+      state.unreadCount = action.payload.unreadCount;
     });
+
     builder.addCase(getNotifications.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });
+
     builder.addCase(markAsRead.fulfilled, (state, action) => {
       const notification = state.list.find(n => n._id === action.payload);
+
       if (notification && !notification.isRead) {
         notification.isRead = true;
         state.unreadCount = Math.max(0, state.unreadCount - 1);
-        state.readCount = state.readCount + 1;
       }
     });
+
     builder.addCase(markAllAsRead.fulfilled, state => {
-      const unreadCount = state.list.filter(n => !n.isRead).length;
-      state.list = state.list.map(notification => ({
-        ...notification,
+      state.list = state.list.map(n => ({
+        ...n,
         isRead: true,
       }));
-      state.readCount = state.readCount + unreadCount;
       state.unreadCount = 0;
     });
+
     builder.addCase(deleteNotification.fulfilled, (state, action) => {
       const removed = state.list.find(n => n._id === action.payload);
+
       state.list = state.list.filter(n => n._id !== action.payload);
 
-      if (removed) {
-        if (!removed.isRead) {
-          state.unreadCount = Math.max(0, state.unreadCount - 1);
-        }
-        if (removed.isRead) {
-          state.readCount = Math.max(0, state.readCount - 1);
-        }
-        if (removed.priority === "high") {
-          state.highPriorityMessages = Math.max(
-            0,
-            state.highPriorityMessages - 1
-          );
-        }
+      if (removed && !removed.isRead) {
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
       }
     });
   },
