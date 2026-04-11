@@ -42,6 +42,7 @@ import { getUser } from "./store/slices/authSlice";
 import { getAllProjects, getAllUsers } from "./store/slices/adminSlice";
 import { fetchDashboardStats } from "./store/slices/studentSlice";
 import Unauthorized from "./pages/Unauthorized";
+import Department from "./pages/admin/Department";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
@@ -115,6 +116,7 @@ const App = () => {
           <Route path="assign-supervisor" element={<AssignSupervisor />} />
           <Route path="deadlines" element={<DeadlinesPage />} />
           <Route path="projects" element={<ProjectsPage />} />
+          <Route path="departments" element={<Department />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
         </Route>
 

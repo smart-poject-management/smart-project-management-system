@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import {  useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import AddTeacher from "../../components/modal/AddTeacher";
+import AddTeacher from "./AddTeacher";
 import {
   deleteTeacher,
-  getAllUsers,
   updateTeacher,
 } from "../../store/slices/adminSlice";
 import { toggleTeacherModel } from "../../store/slices/popupSlice";
