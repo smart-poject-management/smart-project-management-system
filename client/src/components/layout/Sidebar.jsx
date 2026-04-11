@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 const Sidebar = ({ open, setOpen, userRole }) => {
@@ -58,6 +57,12 @@ const Sidebar = ({ open, setOpen, userRole }) => {
           },
           { name: "Deadlines", path: "/admin/deadlines", icon: "calendar" },
           { name: "Projects", path: "/admin/projects", icon: "folder" },
+
+          {
+            name: "Department",
+            path: "/admin/departments",
+            icon: "department",
+          },
           {
             name: "Notifications",
             path: "/admin/notifications",
@@ -285,6 +290,36 @@ const Sidebar = ({ open, setOpen, userRole }) => {
               strokeLinejoin="round"
               strokeWidth={2}
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        );
+      case "department":
+        return (
+          <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <rect
+              x="4"
+              y="3"
+              width="16"
+              height="18"
+              rx="2"
+              strokeWidth="2"
+            />
+            <path
+              strokeWidth="2"
+              strokeLinecap="round"
+              d="M8 7h.01M12 7h.01M16 7h.01
+         M8 11h.01M12 11h.01M16 11h.01
+         M8 15h.01M12 15h.01M16 15h.01"
+            />
+            <path
+              strokeWidth="2"
+              strokeLinecap="round"
+              d="M10 21v-3h4v3"
             />
           </svg>
         );

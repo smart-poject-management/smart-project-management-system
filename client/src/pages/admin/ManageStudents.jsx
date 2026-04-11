@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleStudentModel } from "../../store/slices/popupSlice";
 import {
@@ -15,7 +15,7 @@ import {
   Search,
   AlertTriangle,
 } from "lucide-react";
-import AddStudent from "../../components/modal/AddStudent";
+import AddStudent from "./AddStudent";
 
 const ManageStudents = () => {
   const { users, projects } = useSelector(state => state.admin);

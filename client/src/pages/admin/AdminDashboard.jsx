@@ -10,9 +10,8 @@ import {
   Cell,
 } from "recharts";
 import { useDispatch, useSelector } from "react-redux";
-import AddStudent from "../../components/modal/AddStudent";
-import AddTeacher from "../../components/modal/AddTeacher";
-import { toast } from "react-toastify";
+import AddStudent from "./AddStudent";
+import AddTeacher from "./AddTeacher";
 import {
   getAllProjects,
   getDashboardStats,
