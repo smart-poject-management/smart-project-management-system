@@ -2,6 +2,7 @@ import { asyncHandler } from "../middlewares/asyncHandler.js";
 import { User } from "../models/user.js";
 import * as projectService from "../services/projectService.js";
 import * as requestService from "../services/requestService.js";
+import * as deadlineRequestService from "../services/deadlineRequestService.js";
 import * as notificationService from "../services/notificationService.js";
 import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
@@ -206,6 +207,59 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
     success: true,
     data: { request },
     message: "Supervisor request submitted successfully.",
+  });
+});
+
+export const requestDeadlineExtension = asyncHandler(async (req, res) => {
+  const { title, message } = req.body;
+  const studentId = req.user._id;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ message: "Title is required." });
+  }
+  if (!message || !message.trim()) {
+    return res.status(400).json({ message: "Message is required." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ message: "Proof file is required." });
+  }
+
+  const trimmedTitle = title.trim();
+  const trimmedMessage = message.trim();
+
+  if (trimmedTitle.length > 100) {
+    return res.status(400).json({ message: "Title must be 100 characters or less." });
+  }
+  if (trimmedMessage.length > 1000) {
+    return res.status(400).json({ message: "Message must be 1000 characters or less." });
+  }
+
+  const proof = {
+    originalName: req.file.originalname,
+    fileName: req.file.filename,
+    filePath: req.file.path,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+  };
+
+  const request = await deadlineRequestService.createDeadlineExtensionRequest({
+    student: studentId,
+    title: trimmedTitle,
+    message: trimmedMessage,
+    proof,
+  });
+
+  await notificationService.notifyAllAdmins(
+    `${req.user.name} submitted a deadline extension request: ${trimmedTitle}`,
+    "request",
+    "/admin/deadlines",
+    "high",
+  );
+
+  res.status(201).json({
+    success: true,
+    data: { request },
+    message: "Deadline extension request submitted successfully.",
   });
 });
 

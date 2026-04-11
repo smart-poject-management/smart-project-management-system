@@ -85,6 +85,30 @@ export const requestSupervisor = createAsyncThunk(
   }
 );
 
+export const submitDeadlineExtensionRequest = createAsyncThunk(
+  "student/submitDeadlineExtensionRequest",
+  async (formData, thunkAPI) => {
+    try {
+      const res = await axiosInstance.post(
+        "/student/deadline-extension-request",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success(res.data?.message);
+      return res.data;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 export const uploadFiles = createAsyncThunk(
   "student/uploadFiles",
   async ({ projectId, files }, thunkAPI) => {

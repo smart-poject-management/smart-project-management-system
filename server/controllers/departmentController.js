@@ -79,7 +79,7 @@ export const createExpertise = asyncHandler(async (req, res) => {
         return res.status(400).json({ error: 'Expertise already exists in this department' });
     }
 
-    const newExpertise = new Expertise({ name, department: departmentId });
+    const newExpertise = new Expertise({ name: normalizedName, department: departmentId });
     await newExpertise.save();
 
     res.status(201).json({

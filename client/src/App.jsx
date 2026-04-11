@@ -14,6 +14,7 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import SubmitProposal from "./pages/student/SubmitProposal";
 import UploadFiles from "./pages/student/UploadFiles";
 import SupervisorPage from "./pages/student/SupervisorPage";
+import DeadlineExtensionRequest from "./pages/student/DeadlineExtensionRequest";
 import FeedbackPage from "./pages/student/FeedbackPage";
 import NotificationsPage from "./pages/student/NotificationsPage";
 
@@ -128,6 +129,7 @@ const App = () => {
           <Route index element={<StudentDashboard />} />
           <Route path="submit-proposal" element={<SubmitProposal />} />
           <Route path="upload-files" element={<UploadFiles />} />
+          <Route path="deadline-extension" element={<DeadlineExtensionRequest />} />
           <Route path="supervisor" element={<SupervisorPage />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="notifications" element={<NotificationsPage />} />

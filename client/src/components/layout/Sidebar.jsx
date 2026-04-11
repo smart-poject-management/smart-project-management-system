@@ -19,6 +19,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             path: "/student/upload-files",
             icon: "upload",
           },
+          {
+            name: "Deadline Extension",
+            path: "/student/deadline-extension",
+            icon: "calendar",
+          },
           { name: "Supervisor", path: "/student/supervisor", icon: "user" },
           { name: "Feedback", path: "/student/feedback", icon: "chat" },
           {
