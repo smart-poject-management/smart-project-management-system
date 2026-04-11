@@ -23,6 +23,7 @@ import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import PendingRequests from "./pages/teacher/PendingRequests";
 import AssignedStudents from "./pages/teacher/AssignedStudents";
 import TeacherFiles from "./pages/teacher/TeacherFiles";
+import TeacherNotificationsPage from "./pages/teacher/TeacherNotificationsPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -148,14 +149,10 @@ const App = () => {
           <Route path="pending-requests" element={<PendingRequests />} />
           <Route path="assigned-students" element={<AssignedStudents />} />
           <Route path="files" element={<TeacherFiles />} />
+          <Route path="notifications" element={<TeacherNotificationsPage />} />
         </Route>
 
-        <Route
-          path="unauthorized"
-          element={
-            <Unauthorized />
-          }
-        />
+        <Route path="unauthorized" element={<Unauthorized />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
