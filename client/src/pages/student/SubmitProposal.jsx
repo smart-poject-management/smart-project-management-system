@@ -100,7 +100,7 @@ const SubmitProposal = () => {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
 
               {/* Title */}
               <div>

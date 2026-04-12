@@ -65,7 +65,7 @@ const DeadlineExtensionRequest = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <FileText className="w-4 h-4 text-gray-500" />
