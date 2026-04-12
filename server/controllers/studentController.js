@@ -139,10 +139,14 @@ export const getAvailableSupervisors = asyncHandler(async (req, res) => {
 export const getSupervisor = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
 
-  const student = await User.findById(studentId).populate(
-    "supervisor",
-    "name email department expertise",
-  );
+  const student = await User.findById(studentId).populate({
+    path: "supervisor",
+    select: "name email department expertise",
+    populate: [
+      { path: "department", select: "department" },
+      { path: "expertise", select: "name" },
+    ],
+  });
 
   res.status(200).json({
     success: true,
