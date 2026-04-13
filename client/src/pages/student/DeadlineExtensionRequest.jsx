@@ -5,14 +5,12 @@ import { getDeadlineExtensionRequest, submitDeadlineExtensionRequest } from "../
 
 const DeadlineExtensionRequest = () => {
   const dispatch = useDispatch();
-  const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [proofFile, setProofFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [existingRequest, setExistingRequest] = useState(false);
 
   const [errors, setErrors] = useState({
-    title: false,
     message: false,
     proof: false,
   });
@@ -30,19 +28,18 @@ const DeadlineExtensionRequest = () => {
     e.preventDefault();
 
     const newErrors = {
-      title: !title.trim(),
       message: !message.trim(),
       proof: !proofFile,
     };
 
     setErrors(newErrors);
 
-    if (newErrors.title || newErrors.message || newErrors.proof) {
+    if (newErrors.message || newErrors.proof) {
       return;
     }
 
     const formData = new FormData();
-    formData.append("title", title.trim());
+    formData.append("title", "Deadline Extension Request");
     formData.append("message", message.trim());
     formData.append("proof", proofFile);
 
@@ -97,22 +94,12 @@ const DeadlineExtensionRequest = () => {
               <label className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-2">
                 <FileText className="w-4 h-4 text-gray-500" />
                 Request Title
-                {errors.title && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="text"
-                value={title}
-                disabled={!canRequest}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (e.target.value.trim()) {
-                    setErrors((prev) => ({ ...prev, title: false }));
-                  }
-                }}
-                className={`w-full border rounded-md px-4 h-12 focus:outline-none focus:ring-2 ${errors.title
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
-                  }`}
+                value={"Deadline Extension Request"}
+                disabled={true}
+                className={`w-full border rounded-md px-4 h-12 focus:outline-none focus:ring-2`}
               />
             </div>
 
@@ -132,9 +119,10 @@ const DeadlineExtensionRequest = () => {
                   }
                 }}
                 rows={6}
+                placeholder="Briefly explain why you need a deadline extension. Include valid reasons and mention any supporting proof."
                 className={`w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 ${errors.message
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-blue-500"
                   }`}
               />
             </div>
@@ -168,8 +156,8 @@ const DeadlineExtensionRequest = () => {
                 type="submit"
                 disabled={loading || !canRequest}
                 className={`flex items-center gap-2 px-6 py-2 rounded-md text-white ${loading || !canRequest
-                    ? "bg-blue-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
                   }`}
               >
                 <Send className="w-4 h-4" />
