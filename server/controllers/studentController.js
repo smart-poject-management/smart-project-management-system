@@ -12,6 +12,7 @@ import ErrorHandler from "../middlewares/error.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { DeadlineExtensionRequest } from "../models/deadlineExtensionRequest.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -199,6 +200,12 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
 export const requestDeadlineExtension = asyncHandler(async (req, res) => {
   const { title, message } = req.body;
   const studentId = req.user._id;
+  const exist = await DeadlineExtensionRequest.findOne({ student: studentId });
+  if (exist) {
+    return res.status(400).json({
+      message: "You already have a deadline extension request.",
+    });
+  }
 
   if (!title || !title.trim()) {
     return res.status(400).json({ message: "Title is required." });
@@ -354,7 +361,7 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
         await fs.promises.unlink(absolutePath);
       }
     } catch (err) {
-      
+
       console.error("File deletion error:", err);
     }
   }
@@ -362,5 +369,14 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "File deleted successfully",
+  });
+});
+
+export const getDeadlineExtensionRequest = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+  const request = await deadlineRequestService.getDeadlineExtensionRequestsByStudent(studentId);
+  res.status(200).json({
+    success: true,
+    data: { request },
   });
 });

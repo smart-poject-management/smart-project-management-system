@@ -109,6 +109,20 @@ export const submitDeadlineExtensionRequest = createAsyncThunk(
   }
 );
 
+export const getDeadlineExtensionRequest = createAsyncThunk(
+  "student/getDeadlineExtensionRequest",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/student/get-deadline-extension-request");
+      return res.data?.request || res.data;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 export const uploadFiles = createAsyncThunk(
   "student/uploadFiles",
   async ({ projectId, files }, thunkAPI) => {

@@ -15,6 +15,7 @@ import {
   requestDeadlineExtension,
   submitProposal,
   uploadFiles,
+  getDeadlineExtensionRequest,
 } from "../controllers/studentController.js";
 import { handleUploadError, upload } from "../middlewares/upload.js";
 
@@ -99,6 +100,13 @@ router.delete(
   isAuthenticated,
   isAuthorized("Student"),
   deleteProjectFile,
+);
+
+router.get(
+  "/get-deadline-extension-request",
+  isAuthenticated,
+  isAuthorized("Student"),
+  getDeadlineExtensionRequest
 );
 
 export default router;
