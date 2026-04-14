@@ -1,6 +1,14 @@
 import express from 'express';
 import { isAuthenticated, isAuthorized } from '../middlewares/authMiddleware.js';
-import { createDepartment, createExpertise, deleteDepartment, deleteExpertise, getDepartments, getExpertiseByDepartment } from '../controllers/departmentController.js';
+import {
+    createDepartment,
+    createExpertise,
+    deleteDepartment,
+    deleteExpertise,
+    editDepartment,
+    getDepartments,
+    getExpertiseByDepartment
+} from '../controllers/departmentController.js';
 
 const router = express.Router();
 
@@ -43,5 +51,12 @@ router.delete(
     isAuthorized("Admin"),
     deleteExpertise
 );
+
+router.put(
+    '/update/:departmentId',
+    isAuthenticated,
+    isAuthorized("Admin"),
+    editDepartment
+)
 
 export default router;

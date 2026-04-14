@@ -102,3 +102,30 @@ export const deleteExpertise = asyncHandler(async (req, res) => {
     });
 });
 
+export const editDepartment = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    let { department } = req.body;
+
+    if (!department || department.trim() === '') {
+        return res.status(400).json({ error: 'Department is required' });
+    }
+    department = department.trim();
+    const normalizedDepartment = department.toLowerCase().replace(/\s+/g, ' ');
+    const existingDepartment = await Department.findOne({ department: normalizedDepartment, _id: { $ne: id } });
+    if (existingDepartment) {
+        return res.status(400).json({ error: 'Department already exists' });
+    }
+    const updatedDepartment = await Department.findByIdAndUpdate(id, {
+        department: normalizedDepartment
+    }, {
+        returnDocument: 'after',
+        runValidators: true
+    });
+    if (!updatedDepartment) {
+        return res.status(404).json({ error: 'Department not found' });
+    }
+    res.status(200).json({
+        success: true,
+        department: updatedDepartment,
+    });
+});
