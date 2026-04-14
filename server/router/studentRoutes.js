@@ -12,6 +12,7 @@ import {
   getStudentProject,
   getSupervisor,
   requestSupervisor,
+  requestDeadlineExtension,
   submitProposal,
   uploadFiles,
 } from "../controllers/studentController.js";
@@ -61,6 +62,15 @@ router.post(
   isAuthenticated,
   isAuthorized("Student"),
   requestSupervisor,
+);
+
+router.post(
+  "/deadline-extension-request",
+  isAuthenticated,
+  isAuthorized("Student"),
+  upload.single("proof"),
+  handleUploadError,
+  requestDeadlineExtension,
 );
 
 router.get(

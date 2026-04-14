@@ -7,7 +7,7 @@ function Department() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        departmentId: '', 
+        departmentId: '',
     })
 
     const handleClose = () => {
@@ -143,6 +143,7 @@ function Department() {
                         {/* Expertise Fields — Department select bhi hai */}
                         {activeType === 'expertise' && (
                             <div className="space-y-4">
+
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                                         Select Department
@@ -150,7 +151,14 @@ function Department() {
                                     <select
                                         value={formData.departmentId}
                                         onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
+
+                                        className="absolute bottom-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-y-auto"
+                                    // style={{
+                                    //   maxHeight: "180px",
+                                    //   scrollbarWidth: "thin",
+                                    //   scrollbarColor: "gray transparent",
+                                    // }}
+
                                     >
                                         <option value="">-- Select Department  --</option>
                                         <option value="1">Computer Science</option>
@@ -158,6 +166,7 @@ function Department() {
                                     </select>
                                     <p className="text-xs text-slate-400 mt-1">Select Department</p>
                                 </div>
+
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
                                         Expertise Name

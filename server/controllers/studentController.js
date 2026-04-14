@@ -2,6 +2,7 @@ import { asyncHandler } from "../middlewares/asyncHandler.js";
 import { User } from "../models/user.js";
 import * as projectService from "../services/projectService.js";
 import * as requestService from "../services/requestService.js";
+import * as deadlineRequestService from "../services/deadlineRequestService.js";
 import * as notificationService from "../services/notificationService.js";
 import { Project } from "../models/project.js";
 import { Notification } from "../models/notifications.js";
@@ -26,6 +27,7 @@ export const getStudentProject = asyncHandler(async (req, res) => {
       message: "No project found for this student",
     });
   }
+
   res.status(200).json({
     success: true,
     data: { project },
@@ -38,6 +40,7 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
   const studentId = req.user._id;
 
   const existingUser = await projectService.getStudentProject(studentId);
+
   if (existingUser && existingUser.status !== "rejected") {
     return next(
       new Error(
@@ -46,17 +49,17 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
       ),
     );
   }
+
   if (existingUser && existingUser.status === "rejected") {
     await Project.findByIdAndDelete(existingUser._id);
   }
 
-  const projectData = {
+  const project = await projectService.createProject({
     student: studentId,
     title,
     description,
     ...(requiredExpertise && { requiredExpertise }),
-  };
-  const project = await projectService.createProject(projectData);
+  });
   await User.findByIdAndUpdate(studentId, { project: project._id });
 
   await notificationService.notifyAllAdmins(
@@ -64,6 +67,7 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
     "request",
     "/admin/projects",
     "medium",
+    req.user._id,
   );
 
   res.status(201).json({
@@ -76,16 +80,17 @@ export const submitProposal = asyncHandler(async (req, res, next) => {
 export const uploadFiles = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const studentId = req.user._id;
+
   const project = await projectService.getProjectById(projectId);
 
   if (!project || project.student._id.toString() !== studentId.toString()) {
-    return res
-      .status(403)
-      .json({ error: "Not authorized to upload files to this project." });
+    return res.status(403).json({ error: "Not authorized" });
   }
+
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ error: "No files uploaded" });
   }
+
   const updatedProject = await projectService.addFilesToProject(
     projectId,
     req.files,
@@ -124,31 +129,24 @@ export const getAvailableSupervisors = asyncHandler(async (req, res) => {
 
   const pendingSupervisorRequestIds =
     await requestService.getPendingSupervisorIdsForStudent(studentId);
+
   res.status(200).json({
     success: true,
     data: { supervisors, pendingSupervisorRequestIds },
-    message: "Available supervisors fetched successfully",
   });
 });
 
 export const getSupervisor = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
+
   const student = await User.findById(studentId).populate(
     "supervisor",
     "name email department expertise",
   );
 
-  if (!student.supervisor) {
-    return res.status(200).json({
-      success: true,
-      data: { supervisor: null },
-      message: "No supervisor assigned yet",
-    });
-  }
-
   res.status(200).json({
     success: true,
-    data: { supervisor: student.supervisor },
+    data: { supervisor: student.supervisor || null },
   });
 });
 
@@ -156,56 +154,94 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
   const { teacherId, message } = req.body;
   const studentId = req.user._id;
 
-  if (typeof message !== "string") {
-    return res.status(400).json({ message: "Message is required." });
-  }
-  const trimmedMessage = message.trim();
-  if (!trimmedMessage) {
-    return res.status(400).json({ message: "Message cannot be empty." });
-  }
-  if (trimmedMessage.length > 250) {
-    return res
-      .status(400)
-      .json({ message: "Message must be at most 250 characters." });
+  if (!message?.trim()) {
+    return res.status(400).json({ message: "Message is required" });
   }
 
   const student = await User.findById(studentId);
+
   if (student.supervisor) {
-    return res
-      .status(400)
-      .json({ message: "You already have a supervisor assigned." });
+    return res.status(400).json({ message: "Already assigned" });
   }
 
   const supervisor = await User.findById(teacherId);
+
   if (!supervisor || supervisor.role !== "Teacher") {
-    return res.status(400).json({ message: "Invalid supervisor selected." });
+    return res.status(400).json({ message: "Invalid supervisor" });
   }
 
-  if (supervisor.maxStudents === supervisor.assignedStudents.length) {
-    return res.status(400).json({
-      message: "Selected supervisor has reached maximum student capacity.",
-    });
-  }
-
-  const requestData = {
+  const request = await requestService.createRequest({
     student: studentId,
     supervisor: teacherId,
     message,
-  };
+  });
 
-  const request = await requestService.createRequest(requestData);
   await notificationService.notifyUser(
     teacherId,
-    `${student.name} has request ${supervisor.name} to be their supervisor.`,
+    `${student.name} has requested you as supervisor.`,
     "request",
     "/teacher/pending-requests",
     "medium",
+    studentId,
+    "teacher",
   );
 
   res.status(201).json({
     success: true,
     data: { request },
-    message: "Supervisor request submitted successfully.",
+  });
+});
+
+export const requestDeadlineExtension = asyncHandler(async (req, res) => {
+  const { title, message } = req.body;
+  const studentId = req.user._id;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ message: "Title is required." });
+  }
+  if (!message || !message.trim()) {
+    return res.status(400).json({ message: "Message is required." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ message: "Proof file is required." });
+  }
+
+  const trimmedTitle = title.trim();
+  const trimmedMessage = message.trim();
+
+  if (trimmedTitle.length > 100) {
+    return res.status(400).json({ message: "Title must be 100 characters or less." });
+  }
+  if (trimmedMessage.length > 1000) {
+    return res.status(400).json({ message: "Message must be 1000 characters or less." });
+  }
+
+  const proof = {
+    originalName: req.file.originalname,
+    fileName: req.file.filename,
+    filePath: req.file.path,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+  };
+
+  const request = await deadlineRequestService.createDeadlineExtensionRequest({
+    student: studentId,
+    title: trimmedTitle,
+    message: trimmedMessage,
+    proof,
+  });
+
+  await notificationService.notifyAllAdmins(
+    `${req.user.name} submitted a deadline extension request: ${trimmedTitle}`,
+    "request",
+    "/admin/deadlines",
+    "high",
+  );
+
+  res.status(201).json({
+    success: true,
+    data: { request },
+    message: "Deadline extension request submitted successfully.",
   });
 });
 
@@ -214,41 +250,27 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
 
   const project = await Project.findOne({ student: studentId })
     .populate("supervisor", "name")
-    .sort({ createdAt: -1 })
     .lean();
 
-  const upcomingDeadlines = await Deadline.find({
-    project: project?._id
-  })
-    .select("name dueDate status")
-    .sort({ createdAt: -1 })
+  const upcomingDeadlines = await Deadline.find({ project: project?._id })
     .limit(2)
     .lean();
 
-  const topNotification = await Notification.find({ user: studentId })
-    .populate("user", "name")
+  const topNotification = await Notification.find({
+    user: studentId,
+    receiverRole: "student",
+  })
     .sort({ createdAt: -1 })
     .limit(3)
     .lean();
 
-  const feedbackNotification =
-    project?.feedback && project?.feedback.length > 0
-      ? project.feedback
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 2)
-      : [];
-
-  const supervisorName = project?.supervisor?.name || null;
-
   res.status(200).json({
     success: true,
-    message: "Dashboard stats fetched successfully",
     data: {
       project,
       upcomingDeadlines,
       topNotification,
-      feedbackNotification,
-      supervisorName,
+      supervisorName: project?.supervisor?.name || null,
     },
   });
 });
@@ -259,29 +281,20 @@ export const getFeedback = asyncHandler(async (req, res, next) => {
 
   const project = await projectService.getProjectById(projectId);
 
-  if (!project || project.student._id.toString() !== studentId.toString()) {  // check if the student is authorized to view the feedback and fixing the error of undefined
-    return next(
-      new ErrorHandler("Not authorized to view feedback for this project", 403),
-    );
+  if (!project || project.student._id.toString() !== studentId.toString()) {
+    return next(new ErrorHandler("Unauthorized", 403));
   }
 
-  const sortedFeedback = project.feedback.sort(
+  const feedback = project.feedback.sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-  ).map((f) => ({
-    _id: f._id,
-    title: f.title,
-    message: f.message,
-    type: f.type,
-    createdAt: f.createdAt,
-    supervisorName: f.supervisorId?.name,
-    supervisorEmail: f.supervisorId?.email
-  }));
+  );
 
   res.status(200).json({
     success: true,
-    data: { feedback: sortedFeedback },
+    data: { feedback },
   });
 });
+
 export const downloadFile = asyncHandler(async (req, res, next) => {
   const { projectId, fileId } = req.params;
   const studentId = req.user._id;
@@ -292,26 +305,17 @@ export const downloadFile = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Project not found", 404));
   }
 
-
-  const projectStudentId = project.student?._id
-    ? project.student._id.toString()
-    : project.student.toString();
-
-  if (projectStudentId !== studentId.toString()) {
-    return next(new ErrorHandler("Not authorized to download files for this project", 403));
+  if (project.student._id.toString() !== studentId.toString()) {
+    return next(new ErrorHandler("Unauthorized", 403));
   }
 
   const file = project.files.id(fileId);
+
   if (!file) {
     return next(new ErrorHandler("File not found", 404));
   }
 
-  try {
-    await fileService.streamDownload(file.fileUrl, file.originalName, res);
-  } catch (error) {
-    if (res.headersSent) return res.end();
-    return next(error);
-  }
+  await fileService.streamDownload(file.fileUrl, file.originalName, res);
 });
 
 export const deleteProjectFile = asyncHandler(async (req, res, next) => {
@@ -319,18 +323,13 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
   const studentId = req.user._id;
 
   const project = await projectService.getProjectById(projectId);
+
   if (!project) {
     return next(new ErrorHandler("Project not found", 404));
   }
 
-  const projectStudentId = project.student?._id
-    ? project.student._id.toString()
-    : project.student.toString();
-
-  if (projectStudentId !== studentId.toString()) {
-    return next(
-      new ErrorHandler("Not authorized to delete files for this project", 403),
-    );
+  if (project.student._id.toString() !== studentId.toString()) {
+    return next(new ErrorHandler("Unauthorized", 403));
   }
 
   const file = project.files.id(fileId);
@@ -359,6 +358,5 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "File deleted successfully",
-    data: { project },
   });
 });

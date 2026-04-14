@@ -14,6 +14,7 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import SubmitProposal from "./pages/student/SubmitProposal";
 import UploadFiles from "./pages/student/UploadFiles";
 import SupervisorPage from "./pages/student/SupervisorPage";
+import DeadlineExtensionRequest from "./pages/student/DeadlineExtensionRequest";
 import FeedbackPage from "./pages/student/FeedbackPage";
 import NotificationsPage from "./pages/student/NotificationsPage";
 
@@ -22,6 +23,7 @@ import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import PendingRequests from "./pages/teacher/PendingRequests";
 import AssignedStudents from "./pages/teacher/AssignedStudents";
 import TeacherFiles from "./pages/teacher/TeacherFiles";
+import TeacherNotificationsPage from "./pages/teacher/TeacherNotificationsPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -130,6 +132,7 @@ const App = () => {
           <Route index element={<StudentDashboard />} />
           <Route path="submit-proposal" element={<SubmitProposal />} />
           <Route path="upload-files" element={<UploadFiles />} />
+          <Route path="deadline-extension" element={<DeadlineExtensionRequest />} />
           <Route path="supervisor" element={<SupervisorPage />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
@@ -148,14 +151,10 @@ const App = () => {
           <Route path="pending-requests" element={<PendingRequests />} />
           <Route path="assigned-students" element={<AssignedStudents />} />
           <Route path="files" element={<TeacherFiles />} />
+          <Route path="notifications" element={<TeacherNotificationsPage />} />
         </Route>
 
-        <Route
-          path="unauthorized"
-          element={
-            <Unauthorized />
-          }
-        />
+        <Route path="unauthorized" element={<Unauthorized />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
