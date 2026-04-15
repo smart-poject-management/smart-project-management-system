@@ -156,7 +156,7 @@ const SupervisorPage = () => {
                       {supervisor?.name || "-"}
                     </h3>
                     <p className="text-md text-slate-500">
-                      {supervisor?.department || "No Department"}
+                      {supervisor?.department.department || "No Department"}
                     </p>
                   </div>
 

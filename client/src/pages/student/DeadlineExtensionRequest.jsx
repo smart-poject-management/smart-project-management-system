@@ -1,37 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { FileText, MessageCircle, Upload, Send, Paperclip } from "lucide-react";
-import { submitDeadlineExtensionRequest } from "../../store/slices/studentSlice";
+import { getDeadlineExtensionRequest, submitDeadlineExtensionRequest } from "../../store/slices/studentSlice";
 
 const DeadlineExtensionRequest = () => {
   const dispatch = useDispatch();
-  const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [proofFile, setProofFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [existingRequest, setExistingRequest] = useState(false);
+
+  const [errors, setErrors] = useState({
+    message: false,
+    proof: false,
+  });
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0] || null;
     setProofFile(file);
+
+    if (file) {
+      setErrors((prev) => ({ ...prev, proof: false }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title.trim()) {
-      return window.alert("Please enter a request title.");
-    }
+    const newErrors = {
+      message: !message.trim(),
+      proof: !proofFile,
+    };
 
-    if (!message.trim()) {
-      return window.alert("Please enter your request message.");
-    }
+    setErrors(newErrors);
 
-    if (!proofFile) {
-      return window.alert("Please upload a proof file.");
+    if (newErrors.message || newErrors.proof) {
+      return;
     }
 
     const formData = new FormData();
-    formData.append("title", title.trim());
+    formData.append("title", "Deadline Extension Request");
     formData.append("message", message.trim());
     formData.append("proof", proofFile);
 
@@ -42,12 +50,28 @@ const DeadlineExtensionRequest = () => {
       setMessage("");
       setProofFile(null);
       document.getElementById("proof-file-input").value = "";
+      setExistingRequest(true);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchRequest = async () => {
+      try {
+        const res = await dispatch(getDeadlineExtensionRequest()).unwrap();
+        setExistingRequest(Boolean(res?.data?.request));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchRequest();
+  }, [dispatch]);
+
+  const canRequest = !existingRequest;
 
   return (
     <div className="space-y-6">
@@ -65,52 +89,58 @@ const DeadlineExtensionRequest = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-2">
                 <FileText className="w-4 h-4 text-gray-500" />
                 Request Title
               </label>
               <input
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={100}
-                placeholder="Enter a short title for your extension request"
-                className="w-full border border-gray-300 rounded-md px-4 h-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={"Deadline Extension Request"}
+                disabled={true}
+                className={`w-full border rounded-md px-4 h-12 focus:outline-none focus:ring-2`}
               />
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-2">
                 <MessageCircle className="w-4 h-4 text-gray-500" />
                 Request Message
+                {errors.message && <span className="text-red-500">*</span>}
               </label>
               <textarea
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                disabled={!canRequest}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  if (e.target.value.trim()) {
+                    setErrors((prev) => ({ ...prev, message: false }));
+                  }
+                }}
                 rows={6}
-                maxLength={1000}
-                placeholder="Explain why you need the deadline extended and attach proof."
-                className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Briefly explain why you need a deadline extension. Include valid reasons and mention any supporting proof."
+                className={`w-full border rounded-md px-4 py-3 focus:outline-none focus:ring-2 ${errors.message
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-blue-500"
+                  }`}
               />
-              <p className="text-xs text-slate-500 mt-2">
-                Maximum 1000 characters. Be clear and concise.
-              </p>
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <label className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-2">
                 <Upload className="w-4 h-4 text-gray-500" />
                 Proof File
+                {errors.proof && <span className="text-red-500">*</span>}
               </label>
               <div className="flex items-center gap-3">
                 <input
                   id="proof-file-input"
                   type="file"
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.jpg,.jpeg,.png,.gif,.txt"
+                  disabled={!canRequest}
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className={`block w-full text-sm ${errors.proof ? "text-red-500" : "text-slate-500"
+                    }`}
                 />
                 {proofFile && (
                   <span className="text-sm text-slate-600 truncate max-w-xs">
@@ -124,13 +154,18 @@ const DeadlineExtensionRequest = () => {
             <div className="flex justify-end pt-4 border-t border-gray-200">
               <button
                 type="submit"
-                disabled={loading}
-                className={`flex items-center gap-2 px-6 py-2 rounded-md text-white transition ${
-                  loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                }`}
+                disabled={loading || !canRequest}
+                className={`flex items-center gap-2 px-6 py-2 rounded-md text-white ${loading || !canRequest
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+                  }`}
               >
                 <Send className="w-4 h-4" />
-                {loading ? "Submitting..." : "Send Request"}
+                {existingRequest
+                  ? "Already sent request"
+                  : loading
+                    ? "Submitting..."
+                    : "Send Request"}
               </button>
             </div>
           </form>

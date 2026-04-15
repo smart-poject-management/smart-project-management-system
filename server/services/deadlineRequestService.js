@@ -6,7 +6,7 @@ export const createDeadlineExtensionRequest = async (requestData) => {
 };
 
 export const getDeadlineExtensionRequestsByStudent = async (studentId) => {
-  return await DeadlineExtensionRequest.find({ student: studentId }).sort({ createdAt: -1 });
+  return await DeadlineExtensionRequest.findOne({ student: studentId }).sort({ createdAt: -1 });
 };
 
 export const getAllDeadlineExtensionRequests = async () => {
