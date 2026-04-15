@@ -32,6 +32,8 @@ export const deleteDepartment = asyncHandler(async (req, res) => {
         return res.status(404).json({ error: 'Department not found' });
     }
 
+    await Expertise.deleteMany({ department: id });
+
     res.status(200).json({
         success: true,
         message: 'Department deleted successfully',
@@ -39,7 +41,80 @@ export const deleteDepartment = asyncHandler(async (req, res) => {
 });
 
 export const getDepartments = asyncHandler(async (req, res) => {
-    const departments = await Department.find().sort({ createdAt: -1 });
+    const departments = await Department.aggregate([
+        {
+            $lookup: {
+                from: 'expertise',
+                localField: '_id',
+                foreignField: 'department',
+                as: 'expertise'
+            }
+        },
+        {
+            $lookup: {
+                from: 'users',
+                localField: '_id',
+                foreignField: 'department',
+                as: 'users'
+            }
+        },
+        {
+            $lookup: {
+                from: 'projects',
+                let: { deptId: '$_id' },
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: 'users',
+                            localField: 'student',
+                            foreignField: '_id',
+                            as: 'studentInfo'
+                        }
+                    },
+                    {
+                        $unwind: { path: '$studentInfo', preserveNullAndEmptyArrays: true }
+                    },
+                    {
+                        $match: {
+                            $expr: { $eq: ['$studentInfo.department', '$$deptId'] }
+                        }
+                    }
+                ],
+                as: 'projects'
+            }
+        },
+        {
+            $addFields: {
+                expertiseCount: { $size: '$expertise' },
+                totalTeacher: {
+                    $size: {
+                        $filter: {
+                            input: '$users',
+                            cond: { $eq: ['$$this.role', 'Teacher'] }
+                        }
+                    }
+                },
+                totalStudent: {
+                    $size: {
+                        $filter: {
+                            input: '$users',
+                            cond: { $eq: ['$$this.role', 'Student'] }
+                        }
+                    }
+                },
+                totalProject: { $size: '$projects' }
+            }
+        },
+        {
+            $project: {
+                expertise: 0,
+                users: 0,
+                projects: 0
+            }
+        },
+        { $sort: { createdAt: -1 } }
+    ]);
+
     res.status(200).json({
         success: true,
         departments,
@@ -89,9 +164,9 @@ export const createExpertise = asyncHandler(async (req, res) => {
 });
 
 export const deleteExpertise = asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const { expertiseId, departmentId } = req.params;
 
-    const expertise = await Expertise.deleteOne({ _id: id });
+    const expertise = await Expertise.deleteOne({ _id: expertiseId, department: departmentId });
     if (!expertise) {
         return res.status(404).json({ error: 'Expertise not found' });
     }

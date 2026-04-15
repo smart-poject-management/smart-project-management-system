@@ -350,7 +350,7 @@ function Department() {
                                             </div>
                                             <button
                                                 onClick={e => openDeleteExpertise(e, exp, viewDept._id)}
-                                                className="flex items-center gap-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all text-xs"
+                                                className="flex items-center gap-1 text-red-600 transition-all text-xs"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                                 Delete
@@ -389,7 +389,7 @@ function Department() {
 
             {/* ADD MODAL*/}
             {showModal && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-md mx-4">
 
                         <div className="flex justify-between items-center mb-5">
@@ -503,7 +503,7 @@ function Department() {
 
             {/* DELETE CONFIRMATION */}
             {deleteModal.show && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60]">
+                <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-[60]">
                     <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm mx-4">
                         <div className="flex flex-col items-center text-center mb-5">
                             <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-3">
