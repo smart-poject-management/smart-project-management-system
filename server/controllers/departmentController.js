@@ -178,7 +178,7 @@ export const deleteExpertise = asyncHandler(async (req, res) => {
 });
 
 export const editDepartment = asyncHandler(async (req, res) => {
-    const { id } = req.params;
+    const { departmentId } = req.params;
     let { department } = req.body;
 
     if (!department || department.trim() === '') {
@@ -186,11 +186,11 @@ export const editDepartment = asyncHandler(async (req, res) => {
     }
     department = department.trim();
     const normalizedDepartment = department.toLowerCase().replace(/\s+/g, ' ');
-    const existingDepartment = await Department.findOne({ department: normalizedDepartment, _id: { $ne: id } });
+    const existingDepartment = await Department.findOne({ department: normalizedDepartment, _id: { $ne: departmentId } });
     if (existingDepartment) {
         return res.status(400).json({ error: 'Department already exists' });
     }
-    const updatedDepartment = await Department.findByIdAndUpdate(id, {
+    const updatedDepartment = await Department.findByIdAndUpdate(departmentId, {
         department: normalizedDepartment
     }, {
         returnDocument: 'after',
@@ -202,5 +202,35 @@ export const editDepartment = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         department: updatedDepartment,
+    });
+});
+
+export const editExpertise = asyncHandler(async (req, res) => {
+    const { expertiseId, departmentId } = req.params;
+    let { name } = req.body;
+
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Expertise name is required' });
+    }
+
+    name = name.trim();
+    const normalizedName = name.toLowerCase().replace(/\s+/g, ' ');
+    const existingExpertise = await Expertise.findOne({ name: normalizedName, department: departmentId, _id: { $ne: expertiseId } });
+    if (existingExpertise) {
+        return res.status(400).json({ error: 'Expertise already exists in this department' });
+    }
+
+    const updatedExpertise = await Expertise.findByIdAndUpdate(expertiseId, {
+        name: normalizedName
+    }, {
+        returnDocument: 'after',
+        runValidators: true
+    });
+    if (!updatedExpertise) {
+        return res.status(404).json({ error: 'Expertise not found' });
+    }
+    res.status(200).json({
+        success: true,
+        expertise: updatedExpertise,
     });
 });
