@@ -2,7 +2,8 @@ import { Plus, Search, X, Trash2, AlertTriangle, Eye, ChevronDown, PlusIcon, Pen
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
-
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import {
     createDepartment,
     createExpertise,
@@ -245,27 +246,28 @@ function Department() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
 
-                                                <button
-                                                  
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-medium transition-colors"
-                                                >
-                                                    <Pen className="w-3.5 h-3.5" />
-                                                    Edit
-                                                </button>
 
                                                 <button
-                                                    onClick={e => handleViewClick(e, dept)}
+                                                    data-tooltip-id="view-tooltip"
+                                                    data-tooltip-content="View"
+                                                    onClick={(e) => handleViewClick(e, dept)}
                                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-medium transition-colors"
                                                 >
                                                     <Eye className="w-3.5 h-3.5" />
-                                                    View
+                                                    <Tooltip id="view-tooltip" place="top" offset={10} />
+
                                                 </button>
+
+
                                                 <button
+                                                    data-tooltip-id="delete-tooltip"
+                                                    data-tooltip-content="Delete"
                                                     onClick={e => openDeleteDept(e, dept)}
                                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium transition-colors"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
-                                                    Delete
+                                                    <Tooltip id="delete-tooltip" place="top" offset={10} />
+
                                                 </button>
                                             </div>
                                         </td>
@@ -349,11 +351,14 @@ function Department() {
                                                 <span className="text-sm font-medium text-slate-700">{exp.name}</span>
                                             </div>
                                             <button
+                                                data-tooltip-id="delete-tooltip"
+                                                data-tooltip-content="Delete"
                                                 onClick={e => openDeleteExpertise(e, exp, viewDept._id)}
-                                                className="flex items-center gap-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all text-xs"
+                                                className="flex items-center gap-1 text-red-400 transition-all text-xs"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
-                                                Delete
+
+                                                <Tooltip id="delete-tooltip" place="top" offset={10} />
                                             </button>
                                         </li>
                                     ))}
