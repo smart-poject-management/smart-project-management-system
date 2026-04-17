@@ -5,24 +5,39 @@ const supervisorRequestSchema = new mongoose.Schema(
     student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Student ID is required"],
-      
+      required: true,
     },
+
     supervisor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Supervisor ID is required"]
+      required: function () {
+        return this.type === "teacher";
+      },
     },
+
+    handledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    type: {
+      type: String,
+      enum: ["teacher", "admin"],
+      required: true,
+    },
+
     message: {
       type: String,
-      required: [true, "Message is required"],
-      maxlength: [250, "Message cannot be more than 250 characters"],
+      required: true,
+      maxlength: 250,
     },
+
     status: {
       type: String,
-      required: [true, "Status is required"],
       enum: ["pending", "accepted", "rejected"],
-      default: "pending"
+      default: "pending",
     },
   },
   {
@@ -30,10 +45,20 @@ const supervisorRequestSchema = new mongoose.Schema(
   },
 );
 
-//indexing for better query performance
-supervisorRequestSchema.index({ student: 1   });
-supervisorRequestSchema.index({ supervisor: 1 });
+supervisorRequestSchema.index(
+  { student: 1, supervisor: 1, type: 1 },
+  { unique: true, partialFilterExpression: { type: "teacher" } },
+);
+
+supervisorRequestSchema.index(
+  { student: 1, type: 1 },
+  { unique: true, partialFilterExpression: { type: "admin" } },
+);
+
 supervisorRequestSchema.index({ status: 1 });
+supervisorRequestSchema.index({ supervisor: 1 });
+supervisorRequestSchema.index({ student: 1 });
 
 export const SupervisorRequest =
-  mongoose.models.SupervisorRequest || mongoose.model("SupervisorRequest", supervisorRequestSchema);
+  mongoose.models.SupervisorRequest ||
+  mongoose.model("SupervisorRequest", supervisorRequestSchema);

@@ -16,6 +16,7 @@ import {
   submitProposal,
   uploadFiles,
   getDeadlineExtensionRequest,
+  requestAdminSupervisor,
 } from "../controllers/studentController.js";
 import { handleUploadError, upload } from "../middlewares/upload.js";
 
@@ -66,6 +67,13 @@ router.post(
 );
 
 router.post(
+  "/request-admin-supervisor",
+  isAuthenticated,
+  isAuthorized("Student"),
+  requestAdminSupervisor,
+);
+
+router.post(
   "/deadline-extension-request",
   isAuthenticated,
   isAuthorized("Student"),
@@ -106,7 +114,7 @@ router.get(
   "/get-deadline-extension-request",
   isAuthenticated,
   isAuthorized("Student"),
-  getDeadlineExtensionRequest
+  getDeadlineExtensionRequest,
 );
 
 export default router;
