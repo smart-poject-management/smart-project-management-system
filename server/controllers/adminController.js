@@ -22,11 +22,14 @@ export const createStudent = asyncHandler(async (req, res) => {
     department,
     role: "Student",
   });
+  const populatedUser = await User.findById(user._id)
+    .populate("department", "department")
+    .populate("supervisor", "name email");
 
   res.status(201).json({
     success: true,
     message: "Student Created Successfully",
-    data: { user },
+    data: { user: populatedUser },
   });
 });
 
@@ -81,23 +84,36 @@ export const createTeacher = asyncHandler(async (req, res) => {
         : [],
   });
 
+  const populatedUser = await User.findById(user._id)
+    .populate("department", "department")
+    .populate("expertise", "name");
+
   res.status(201).json({
     success: true,
     message: "Teacher Created Successfully",
-    data: { user },
+    data: { user: populatedUser },
   });
 });
 
 export const updateTeacher = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const updateData = { ...req.body };
-  delete updateData.role;
+  const { maxStudents, expertise } = req.body;
 
-  const user = await userServices.updateUser(id, updateData);
+  const result = await userServices.updateUser(id, {
+    maxStudents: Number(maxStudents),
+    expertise: Array.isArray(expertise)
+      ? expertise
+      : typeof expertise === "string" && expertise.trim() !== ""
+        ? expertise.split(",").map((s) => s.trim())
+        : [],
+  });
 
-  if (!user) {
+  if (!result) {
     return res.status(404).json({ error: "Teacher not found" });
   }
+  const user = await User.findById(id)
+    .populate("department", "department")
+    .populate("expertise", "name");
 
   res.status(200).json({
     success: true,
