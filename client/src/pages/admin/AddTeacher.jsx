@@ -207,12 +207,8 @@ const AddTeacher = () => {
 
                 {deptDropdownOpen && (
                   <div
-                    className="absolute bottom-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-y-auto"
-                    style={{
-                      maxHeight: "180px",
-                      scrollbarWidth: "thin",
-                      scrollbarColor: "gray transparent",
-                    }}
+                    className="mini-custom-scroll absolute bottom-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-y-auto"
+                   
                   >
                     {departments.map((dept) => (
                       <button
@@ -285,12 +281,8 @@ const AddTeacher = () => {
               </div>
 
               <div
-                className="border border-gray-200 rounded-lg bg-gray-50 overflow-y-auto"
-                style={{
-                  maxHeight: "180px",
-                  scrollbarWidth: "thin",
-                  scrollbarColor: "#d1d5db transparent",
-                }}
+                className="border mini-custom-scroll border-gray-200 rounded-lg bg-gray-50 overflow-y-auto"
+               
               >
                 {expertise.length > 0 ? (
                   expertise.map((exp, idx) => (

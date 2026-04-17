@@ -245,6 +245,7 @@ const ProjectsPage = () => {
           </div>
         ))}
       </div>
+      
       {/* Search and Filter */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
         <div className="flex flex-col md:flex-row gap-4">
