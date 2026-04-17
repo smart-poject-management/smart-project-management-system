@@ -10,7 +10,6 @@ import {
   getDashboardStats,
   getProject,
   updateProjectStatus,
-  updateStudent,
   updateTeacher,
 } from "../controllers/adminController.js";
 import {
@@ -26,13 +25,6 @@ router.post(
   isAuthenticated,
   isAuthorized("Admin"),
   createStudent,
-);
-
-router.put(
-  "/update-student/:id",
-  isAuthenticated,
-  isAuthorized("Admin"),
-  updateStudent,
 );
 
 router.delete(

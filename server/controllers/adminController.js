@@ -30,23 +30,6 @@ export const createStudent = asyncHandler(async (req, res) => {
   });
 });
 
-export const updateStudent = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const updateData = { ...req.body };
-  delete updateData.role;
-
-  const user = await userServices.updateUser(id, updateData);
-  if (!user) {
-    return res.status(404).json({ error: "Student not found" });
-  }
-
-  res.status(200).json({
-    success: true,
-    message: "Student Updated Successfully",
-    data: { user },
-  });
-});
-
 export const deleteStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
 

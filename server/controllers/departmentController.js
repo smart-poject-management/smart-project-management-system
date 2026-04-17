@@ -1,5 +1,11 @@
 import asyncHandler from '../middlewares/asyncHandler.js';
 import { Department, Expertise } from '../models/department.js';
+import { User } from '../models/user.js';
+import { Project } from '../models/project.js';
+import { SupervisorRequest } from '../models/supervisorRequest.js';
+import { Notification } from '../models/notifications.js';
+import { Deadline } from '../models/deadline.js';
+import { DeadlineExtensionRequest } from '../models/deadlineExtensionRequest.js';
 
 export const createDepartment = asyncHandler(async (req, res) => {
     let { department } = req.body;
@@ -27,12 +33,59 @@ export const createDepartment = asyncHandler(async (req, res) => {
 export const deleteDepartment = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const department = await Department.deleteOne({ _id: id });
+    const department = await Department.findById(id);
     if (!department) {
         return res.status(404).json({ error: 'Department not found' });
     }
 
-    await Expertise.deleteMany({ department: id });
+    const users = await User.find({ department: id }, { _id: 1 });
+    const userIds = users.map((user) => user._id);
+
+    const departmentExpertise = await Expertise.find({ department: id }, { _id: 1 });
+    const expertiseIds = departmentExpertise.map((item) => item._id);
+
+    const projectFilter = {
+        $or: [
+            { student: { $in: userIds } },
+            { supervisor: { $in: userIds } }
+        ]
+    };
+    const projects = await Project.find(projectFilter, { _id: 1 });
+    const projectIds = projects.map((project) => project._id);
+
+    await Promise.all([
+        Expertise.deleteMany({ department: id }),
+        User.updateMany(
+            { expertise: { $in: expertiseIds } },
+            { $pull: { expertise: { $in: expertiseIds } } }
+        ),
+        Project.updateMany(
+            { requiredExpertise: { $in: expertiseIds } },
+            { $unset: { requiredExpertise: "" } }
+        ),
+        Notification.deleteMany({
+            $or: [
+                { user: { $in: userIds } },
+                { sender: { $in: userIds } }
+            ]
+        }),
+        Deadline.deleteMany({
+            $or: [
+                { createdBy: { $in: userIds } },
+                { project: { $in: projectIds } }
+            ]
+        }),
+        DeadlineExtensionRequest.deleteMany({ student: { $in: userIds } }),
+        SupervisorRequest.deleteMany({
+            $or: [
+                { student: { $in: userIds } },
+                { supervisor: { $in: userIds } }
+            ]
+        }),
+        Project.deleteMany(projectFilter),
+        User.deleteMany({ department: id }),
+        Department.deleteOne({ _id: id })
+    ]);
 
     res.status(200).json({
         success: true,
@@ -167,70 +220,20 @@ export const deleteExpertise = asyncHandler(async (req, res) => {
     const { expertiseId, departmentId } = req.params;
 
     const expertise = await Expertise.deleteOne({ _id: expertiseId, department: departmentId });
-    if (!expertise) {
+    if (!expertise || expertise.deletedCount === 0) {
         return res.status(404).json({ error: 'Expertise not found' });
     }
+    await User.updateMany(
+        { expertise: expertiseId },
+        { $pull: { expertise: expertiseId } }
+    );
+    await Project.updateMany(
+        { requiredExpertise: expertiseId },
+        { $unset: { requiredExpertise: "" } }
+    );
 
     res.status(200).json({
         success: true,
         message: 'Expertise deleted successfully',
-    });
-});
-
-export const editDepartment = asyncHandler(async (req, res) => {
-    const { departmentId } = req.params;
-    let { department } = req.body;
-
-    if (!department || department.trim() === '') {
-        return res.status(400).json({ error: 'Department is required' });
-    }
-    department = department.trim();
-    const normalizedDepartment = department.toLowerCase().replace(/\s+/g, ' ');
-    const existingDepartment = await Department.findOne({ department: normalizedDepartment, _id: { $ne: departmentId } });
-    if (existingDepartment) {
-        return res.status(400).json({ error: 'Department already exists' });
-    }
-    const updatedDepartment = await Department.findByIdAndUpdate(departmentId, {
-        department: normalizedDepartment
-    }, {
-        returnDocument: 'after',
-        runValidators: true
-    });
-    if (!updatedDepartment) {
-        return res.status(404).json({ error: 'Department not found' });
-    }
-    res.status(200).json({
-        success: true,
-        department: updatedDepartment,
-    });
-});
-
-export const editExpertise = asyncHandler(async (req, res) => {
-    const { expertiseId, departmentId } = req.params;
-    let { name } = req.body;
-
-    if (!name || name.trim() === '') {
-        return res.status(400).json({ error: 'Expertise name is required' });
-    }
-
-    name = name.trim();
-    const normalizedName = name.toLowerCase().replace(/\s+/g, ' ');
-    const existingExpertise = await Expertise.findOne({ name: normalizedName, department: departmentId, _id: { $ne: expertiseId } });
-    if (existingExpertise) {
-        return res.status(400).json({ error: 'Expertise already exists in this department' });
-    }
-
-    const updatedExpertise = await Expertise.findByIdAndUpdate(expertiseId, {
-        name: normalizedName
-    }, {
-        returnDocument: 'after',
-        runValidators: true
-    });
-    if (!updatedExpertise) {
-        return res.status(404).json({ error: 'Expertise not found' });
-    }
-    res.status(200).json({
-        success: true,
-        expertise: updatedExpertise,
     });
 });

@@ -1,24 +1,32 @@
-import {  useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AddTeacher from "./AddTeacher";
-import {
-  deleteTeacher,
-  updateTeacher,
-} from "../../store/slices/adminSlice";
+import { deleteTeacher, updateTeacher } from "../../store/slices/adminSlice";
 import { toggleTeacherModel } from "../../store/slices/popupSlice";
+import {
+  fetchExpertiseByDepartment,
+  clearExpertise,
+} from "../../store/slices/departmentSlice";
 import {
   AlertTriangle,
   BadgeCheck,
+  Eye,
   Plus,
   Search,
+  Trash2,
   TriangleAlert,
   Users,
   X,
 } from "lucide-react";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
+import { toast } from "react-toastify";
 
 const ManageTeachers = () => {
-  const { users } = useSelector(state => state.admin);
-  const { isCreateTeacherModalOpen } = useSelector(state => state.popup);
+  const { users } = useSelector((state) => state.admin);
+  const { isCreateTeacherModalOpen } = useSelector((state) => state.popup);
+  const expertiseList = useSelector((state) => state.department.expertise);
+
   const [showModel, setShowModel] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,50 +34,78 @@ const ManageTeachers = () => {
   const [showDeleteModel, setShowDeleteModel] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
 
+  // View modal state
+  const [viewModal, setViewModal] = useState({ show: false, teacher: null });
+
   const [teacherData, setTeacherData] = useState({
     name: "",
     email: "",
-    department: "",
-    expertise: "",
+    departmentId: "",
+    departmentLabel: "",
+    expertise: [],
     maxStudents: 1,
   });
+
   const dispatch = useDispatch();
+
   const teachers = useMemo(() => {
     return (users || [])
-      .filter(user => user.role?.toLowerCase() === "teacher")
-      .map(user => ({
+      .filter((user) => user.role?.toLowerCase() === "teacher")
+      .map((user) => ({
         ...user,
         department:
           typeof user.department === "object"
             ? user.department?.department || ""
             : user.department || "",
+        departmentId:
+          typeof user.department === "object"
+            ? user.department?._id || ""
+            : "",
         expertise: Array.isArray(user.expertise)
           ? user.expertise
-              .map(item => (typeof item === "object" ? item?.name || "" : item))
-              .filter(Boolean)
+            .map((item) => (typeof item === "object" ? item?.name || "" : item))
+            .filter(Boolean)
           : typeof user.expertise === "string"
-          ? [user.expertise]
+            ? [user.expertise]
+            : [],
+        expertiseIds: Array.isArray(user.expertise)
+          ? user.expertise
+            .map((item) => (typeof item === "object" ? item?._id || "" : ""))
+            .filter(Boolean)
           : [],
       }));
   }, [users]);
 
   const departments = useMemo(() => {
-    const set = new Set(
-      (teachers || []).map(t => t.department).filter(Boolean)
-    );
+    const set = new Set((teachers || []).map((t) => t.department).filter(Boolean));
     return Array.from(set);
   }, [teachers]);
 
-  const filteredTeachers = teachers.filter(teacher => {
+  const filteredTeachers = teachers.filter((teacher) => {
     const matchesSearch =
       (teacher.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (teacher.email || "").toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesFilter =
       filterDepartment === "all" || teacher.department === filterDepartment;
-
     return matchesSearch && matchesFilter;
   });
+
+  useEffect(() => {
+    if (showModel && teacherData.departmentId) {
+      dispatch(fetchExpertiseByDepartment(teacherData.departmentId));
+    } else if (!showModel) {
+      dispatch(clearExpertise());
+    }
+  }, [showModel, teacherData.departmentId, dispatch]);
+
+  const handleExpertiseChange = (id) => {
+    setTeacherData((prev) => ({
+      ...prev,
+      expertise: prev.expertise.includes(id)
+        ? prev.expertise.filter((e) => e !== id)
+        : [...prev.expertise, id],
+    }));
+  };
 
   const handleCloseModel = () => {
     setShowModel(false);
@@ -77,44 +113,53 @@ const ManageTeachers = () => {
     setTeacherData({
       name: "",
       email: "",
-      department: "",
-      expertise: "",
+      departmentId: "",
+      departmentLabel: "",
+      expertise: [],
       maxStudents: 1,
     });
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingTeacher) {
-      dispatch(updateTeacher({ id: editingTeacher._id, data: teacherData }));
+    if (teacherData.expertise.length === 0) {
+      toast.error("Please select at least one expertise");
+      return;
     }
+
+    if (editingTeacher) {
+      const updatePayload = {
+        id: editingTeacher._id,
+        data: {
+          expertise: teacherData.expertise,
+          maxStudents: teacherData.maxStudents,
+        },
+      };
+      dispatch(updateTeacher(updatePayload));
+    }
+
     handleCloseModel();
   };
 
-  const handleEdit = teacher => {
+  const handleEdit = (teacher) => {
     setEditingTeacher(teacher);
     setTeacherData({
       name: teacher.name,
       email: teacher.email,
-      department:
-        typeof teacher.department === "object"
-          ? teacher.department?.department || ""
-          : teacher.department || "",
-      expertise: Array.isArray(teacher.expertise)
-        ? teacher.expertise[0] || ""
-        : typeof teacher.expertise === "string"
-        ? teacher.expertise
-        : "",
+      departmentId: teacher.departmentId || "",
+      departmentLabel: teacher.department || "",
+      expertise: teacher.expertiseIds || [],
       maxStudents:
         typeof teacher.maxStudents === "number" ? teacher.maxStudents : 1,
     });
     setShowModel(true);
   };
 
-  const handleDelete = teacher => {
+  const handleDelete = (teacher) => {
     setTeacherToDelete(teacher);
     setShowDeleteModel(true);
   };
+
   const confirmDelete = () => {
     if (teacherToDelete) {
       dispatch(deleteTeacher(teacherToDelete._id));
@@ -122,77 +167,68 @@ const ManageTeachers = () => {
       setTeacherToDelete(null);
     }
   };
+
   const cancelDelete = () => {
     setShowDeleteModel(false);
     setTeacherToDelete(null);
   };
+
+  const handleViewClick = (e, teacher) => {
+    e.stopPropagation();
+    setViewModal({ show: true, teacher });
+  };
+
+  const handleCloseView = () => {
+    setViewModal({ show: false, teacher: null });
+  };
+
+  const viewTeacher = viewModal.teacher;
+  const selectedExpertiseNames = useMemo(() => {
+    if (!teacherData.expertise.length || !expertiseList.length) return [];
+    return expertiseList
+      .filter((exp) => teacherData.expertise.includes(exp._id))
+      .map((exp) => ({ id: exp._id, name: exp.name }));
+  }, [teacherData.expertise, expertiseList]);
+
   return (
     <>
       <div className="space-y-6">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
           <div>
-            <h1 className="page-header">
-              Manage Teachers
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Add, edit, and manage teacher accounts
-            </p>
+            <h1 className="page-header">Manage Teachers</h1>
+            <p className="text-gray-500 mt-1">Add, edit, and manage teacher accounts</p>
           </div>
-
           <button
             onClick={() => dispatch(toggleTeacherModel())}
-            className="flex items-center gap-2 mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl shadow-md 
-      transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+            className="flex items-center gap-2 mt-4 md:mt-0 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
           >
-            <Plus className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
+            <Plus className="w-5 h-5" />
             <span>Add New Teacher</span>
           </button>
         </div>
 
-        {/* Cards */}
+        {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Total teachers */}
-          <div
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-    transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
+          <div className="group bg-blue-100 rounded-2xl p-6 shadow-md border border-blue-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
             <div className="flex items-center">
-              <div
-                className="p-4 bg-blue-100 rounded-xl 
-        transition-all duration-300 group-hover:bg-blue-500"
-              >
-                <Users className="w-6 h-6 text-blue-600 group-hover:text-white transition-all duration-300" />
+              <div className="p-4 bg-white rounded-xl transition-all duration-300 shadow">
+                <Users className="w-6 h-6 text-blue-600 transition-all duration-300" />
               </div>
-
               <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">
-                  Total Teachers
-                </p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {teachers.length}
-                </p>
+                <p className="text-sm font-medium text-slate-600">Total Teachers</p>
+                <p className="text-2xl font-bold text-slate-800">{teachers.length}</p>
               </div>
             </div>
           </div>
 
-          {/* Total Projects */}
-          <div
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-    transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
+          <div className="group bg-purple-100 rounded-2xl p-6 shadow-md border border-purple-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
             <div className="flex items-center">
-              <div
-                className="p-4 bg-purple-100 rounded-xl 
-        transition-all duration-300 group-hover:bg-purple-500"
-              >
-                <BadgeCheck className="w-6 h-6 text-purple-600 group-hover:text-white transition-all duration-300" />
+              <div className="p-4 bg-white rounded-xl transition-all duration-300 shadow">
+                <BadgeCheck className="w-6 h-6 text-purple-600 transition-all duration-300" />
               </div>
-
               <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">
-                  Assigned Students
-                </p>
+                <p className="text-sm font-medium text-slate-600">Assigned Students</p>
                 <p className="text-2xl font-bold text-slate-800">
                   {teachers.reduce(
                     (sum, total) => sum + (total.assignedStudents?.length || 0),
@@ -203,74 +239,48 @@ const ManageTeachers = () => {
             </div>
           </div>
 
-          {/* Unassigned */}
-          <div
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-    transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
+          <div className="group bg-yellow-100 rounded-2xl p-6 shadow-md border border-yellow-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
             <div className="flex items-center">
-              <div
-                className="p-4 bg-yellow-100 rounded-xl 
-        transition-all duration-300 group-hover:bg-yellow-500"
-              >
-                <TriangleAlert className="w-6 h-6 text-yellow-600 group-hover:text-white transition-all duration-300" />
+              <div className="p-4 bg-white rounded-xl transition-all duration-300 shadow">
+                <TriangleAlert className="w-6 h-6 text-yellow-600 transition-all duration-300" />
               </div>
-
               <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">
-                  Departments
-                </p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {departments.length}
-                </p>
+                <p className="text-sm font-medium text-slate-600">Departments</p>
+                <p className="text-2xl font-bold text-slate-800">{departments.length}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* filter */}
-
+        {/* Filters */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
           <div className="flex flex-col md:flex-row gap-6 items-end">
-            {/* Search */}
             <div className="flex-1">
               <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
                 Search Teachers
               </label>
-
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-
                 <input
                   type="text"
                   placeholder="Search by name or email..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 
-          bg-slate-50 focus:bg-white
-          focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
-          shadow-sm transition-all duration-200 text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm transition-all duration-200 text-sm"
                   value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-
-            {/* Filter */}
             <div className="w-full md:w-56">
               <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
                 Filter Department
               </label>
-
               <select
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 
-        bg-slate-50 focus:bg-white
-        focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400
-        shadow-sm transition-all duration-200 text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm transition-all duration-200 text-sm"
                 value={filterDepartment}
-                onChange={e => setFilterDepartment(e.target.value)}
+                onChange={(e) => setFilterDepartment(e.target.value)}
               >
                 <option value="all">All Departments</option>
-
-                {departments.map(dept => (
+                {departments.map((dept) => (
                   <option value={dept} key={dept}>
                     {dept}
                   </option>
@@ -280,276 +290,478 @@ const ManageTeachers = () => {
           </div>
         </div>
 
-        {/* Teachers Tables  */}
-
-        {/* Students Table Card */}
+        {/* Teachers Table */}
         <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-800">
-              Teachers List
-            </h2>
+          <div className="px-4 py-4 border-b border-slate-200">
+            <h2 className="text-lg font-semibold text-slate-800">Teachers List</h2>
           </div>
-
-          {/* Table */}
           <div className="overflow-x-auto">
-            {filteredTeachers && filteredTeachers.length > 0 ? (
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-100 text-slate-700 uppercase text-xs">
-                  <tr>
-                    <th className="px-6 py-3">Teachers Info</th>
-                    <th className="px-6 py-3">Department</th>
-                    <th className="px-6 py-3">Expertise</th>
-                    <th className="px-6 py-3">Join Date</th>
-                    <th className="px-6 py-3 text-center">Actions</th>
-                  </tr>
-                </thead>
+            <table className="w-full">
+              <thead className="bg-slate-50">
+                <tr className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <th className="px-4 py-3">Sr.no</th>
+                  <th className="px-6 py-3">Teacher Info</th>
+                  <th className="px-6 py-3">Department</th>
+                  <th className="px-6 py-3">Expertise</th>
+                  <th className="px-6 py-3">Max Students</th>
+                  <th className="px-6 py-3">Assigned</th>
+                  <th className="px-6 py-3">Join Date</th>
+                  <th className="px-6 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTeachers.length > 0 ? (
+                  filteredTeachers.map((teacher, index) => (
+                    <tr
+                      key={teacher._id}
+                      className="border-t hover:bg-slate-50 transition-colors duration-150"
+                    >
+                      <td className="px-4 py-4 text-sm text-slate-500">{index + 1}</td>
 
-                <tbody className="divide-y">
-                  {filteredTeachers.map(teacher => (
-                    <tr key={teacher._id} className="hover:bg-slate-50">
-                      {/* taeacher Info */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-slate-800">{teacher.name}</div>
+                          <div className="text-xs text-slate-500">{teacher.email}</div>
+                        </div>
+                      </td>
+
                       <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="font-medium">{teacher.name}</span>
-                          <span className="text-xs text-slate-500">
-                            {teacher.email}
+                        <span className="font-medium text-slate-700 capitalize text-sm">
+                          {teacher.department || "-"}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {Array.isArray(teacher.expertise) && teacher.expertise.length > 0 ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {teacher.expertise.length} expertise
                           </span>
-                        </div>
+                        ) : (
+                          <span className="text-slate-400 text-sm">-</span>
+                        )}
                       </td>
 
-                      {/* Department */}
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {teacher.maxStudents ?? "-"}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {teacher.assignedStudents?.length ?? 0}
+                      </td>
+
+                      <td className="px-6 py-4 text-sm text-slate-500">
+                        {teacher.createdAt
+                          ? new Date(teacher.createdAt).toLocaleDateString()
+                          : "-"}
+                      </td>
+
                       <td className="px-6 py-4">
-                        <div>{teacher.department || "-"}</div>
-                      </td>
-
-                      {/* Expertise */}
-                      <td className="px-6 py-4">
-                        {Array.isArray(teacher.expertise)
-                          ? teacher.expertise.join(", ") || "-"
-                          : teacher.expertise || "-"}
-                      </td>
-
-                      {/* Teachers join date */}
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-slate-900">
-                          {teacher.createdAt
-                            ? new Date(teacher.createdAt).toLocaleString()
-                            : "-"}
-                        </div>
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex justify-center gap-4">
+                        <div className="flex items-center gap-3">
+                          {/* View Button */}
                           <button
-                            onClick={() => handleEdit(teacher)}
-                            className="text-indigo-600 hover:text-indigo-800 text-sm"
+                            data-tooltip-id="view-tooltip"
+                            data-tooltip-content="View"
+                            onClick={(e) => handleViewClick(e, teacher)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-medium transition-colors"
                           >
-                            Edit
+                            <Eye className="w-3.5 h-3.5" />
+                            <Tooltip id="view-tooltip" place="top" offset={10} />
                           </button>
 
+                          {/* Edit Button */}
                           <button
-                            onClick={() => handleDelete(teacher)}
-                            className="text-red-600 hover:text-red-800 text-sm"
+                            data-tooltip-id="edit-tooltip"
+                            data-tooltip-content="Edit"
+                            onClick={() => handleEdit(teacher)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 text-xs font-medium transition-colors"
                           >
-                            Delete
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <Tooltip id="edit-tooltip" place="top" offset={10} />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+
+                            data-tooltip-id="delete-tooltip"
+                            data-tooltip-content="Delete"
+                            onClick={() => handleDelete(teacher)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <Tooltip id="delete-tooltip" place="top" offset={10} />
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="py-10 text-center text-slate-500">
-                No Teachers Found Matching Your Criteria.
-              </div>
-            )}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-12 text-center text-slate-400 text-sm">
+                      {searchTerm || filterDepartment !== "all"
+                        ? "No teachers found matching your criteria."
+                        : "No teachers found."}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* EDIT STUDENT MODAL */}
-        {showModel && (
+        {/* ── VIEW TEACHER MODAL ── */}
+        {viewModal.show && viewTeacher && (
           <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-md rounded-xl shadow-lg border">
-              {/* Header */}
-              <div className="flex justify-between items-center px-6 py-4 border-b">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Edit Teacher
-                </h3>
+            <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg flex flex-col max-h-5xl">
 
+              {/* Header */}
+              <div className="flex justify-between items-start p-6 border-b border-slate-100 shrink-0">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-800">{viewTeacher.name}</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">Teacher Details</p>
+                </div>
                 <button
-                  onClick={handleCloseModel}
-                  className="p-1 rounded hover:bg-gray-100 transition"
+                  onClick={handleCloseView}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
                 >
-                  <X size={18} />
+                  <X className="w-5 h-5 text-slate-400" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={teacherData.name}
-                    onChange={e =>
-                      setTeacherData({ ...teacherData, name: e.target.value })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
-                  />
+              {/* Stats Row */}
+              <div className="grid grid-cols-3 gap-3 px-6 py-4 border-b border-slate-100 shrink-0">
+                <div className="text-center bg-emerald-50 rounded-xl py-3 border border-emerald-100">
+                  <p className="text-2xl font-bold text-emerald-700">
+                    {viewTeacher.assignedStudents?.length ?? 0}
+                  </p>
+                  <p className="text-xs text-emerald-600 mt-0.5">Assigned</p>
+                </div>
+                <div className="text-center bg-sky-50 rounded-xl py-3 border border-sky-100">
+                  <p className="text-2xl font-bold text-sky-700">
+                    {viewTeacher.maxStudents ?? 0}
+                  </p>
+                  <p className="text-xs text-sky-600 mt-0.5">Max Students</p>
+                </div>
+                <div className="text-center bg-amber-50 rounded-xl py-3 border border-amber-100">
+                  <p className="text-2xl font-bold text-amber-700">
+                    {viewTeacher.expertise?.length ?? 0}
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">Expertise</p>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1  px-6 py-4 space-y-5">
+
+                {/* Basic Info */}
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                    Basic Info
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">Email</span>
+                      <span className="text-sm font-medium text-slate-800">{viewTeacher.email || "-"}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">Department</span>
+                      <span className="text-sm font-medium text-slate-800 capitalize">
+                        {viewTeacher.department || "-"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                      <span className="text-sm text-slate-500">Joined</span>
+                      <span className="text-sm font-medium text-slate-800">
+                        {viewTeacher.createdAt
+                          ? new Date(viewTeacher.createdAt).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                          : "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={teacherData.email}
-                    onChange={e =>
-                      setTeacherData({ ...teacherData, email: e.target.value })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
-                  />
+                {/* Expertise List */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Expertise
+                    </h3>
+                    <span className="text-xs text-slate-400">
+                      {viewTeacher.expertise?.length ?? 0} total
+                    </span>
+                  </div>
+                  {viewTeacher.expertise?.length > 0 ? (
+                    <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                      <ul className="space-y-2">
+                        {viewTeacher.expertise.map((exp, i) => (
+                          <li
+                            key={i}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 transition-colors"
+                          >
+                            <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-semibold flex items-center justify-center shrink-0">
+                              {i + 1}
+                            </span>
+                            <span className="text-sm font-medium text-slate-700">{exp}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 text-center py-4">
+                      No expertise assigned
+                    </p>
+                  )}
                 </div>
 
-                {/* Department */}
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">
-                    Department
-                  </label>
+              </div>
 
-                  <select
-                    required
-                    value={teacherData.department}
-                    onChange={e =>
-                      setTeacherData({
-                        ...teacherData,
-                        department: e.target.value,
-                      })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                  >
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Data Science">Data Science</option>
-                    <option value="Physics">Physics</option>
-                    <option value="Chemistry">Chemistry</option>
-                  </select>
-                </div>
-
-                {/* Expertise */}
-
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">
-                    Expertise
-                  </label>
-
-                  <select
-                    required
-                    value={teacherData.expertise}
-                    onChange={e =>
-                      setTeacherData({
-                        ...teacherData,
-                        expertise: e.target.value,
-                      })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                  >
-                    <option value="Artificial Intelligence">
-                      Artificial Intelligence
-                    </option>
-                    <option value="Machine Learning">Machine Learning</option>
-                    <option value="Data Science">Data Science</option>
-                    <option value="Cloud Computing">Cloud Computing</option>
-                    <option value="Web Development">Web Development</option>
-                    <option value="Computer Networks">Computer Networks</option>
-                  </select>
-                </div>
-
-                {/* max students */}
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">
-                    Max Students
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    max={10} //update the value max or min
-                    min={1}
-                    value={teacherData.maxStudents}
-                    onChange={e =>
-                      setTeacherData({
-                        ...teacherData,
-                        maxStudents: e.target.value,
-                      })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
-                  />
-                </div>
-
-                {/* Buttons */}
-                <div className="flex justify-end gap-3 pt-3">
-                  <button
-                    type="button"
-                    onClick={handleCloseModel}
-                    className="px-4 py-2 text-sm border rounded-md hover:bg-gray-100"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800"
-                  >
-                    Update Teacher
-                  </button>
-                </div>
-              </form>
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0">
+                <button
+                // add the vew profile page link
+                  className="capitalize flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-medium transition-colors"
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={handleCloseView}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {showDeleteModel && teacherToDelete && (
+        {/* ── EDIT TEACHER MODAL ── */}
+        {showModel && (
           <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-md rounded-lg p-6 mx-4 shadow-xl">
-              <div className="flex items-center mb-4">
-                <div className="flex-shrink-0 w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-red-100">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[85vh]">
+
+              {/* Header */}
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 shrink-0">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">
+                    Edit Teacher
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Update teacher expertise and capacity
+                  </p>
+                </div>
+                <button
+                  onClick={handleCloseModel}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    {/* Name + Email */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          disabled
+                          value={teacherData.name}
+                          className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 text-slate-400 cursor-not-allowed outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          disabled
+                          value={teacherData.email}
+                          className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 text-slate-400 cursor-not-allowed outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Department */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Department
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        value={teacherData.departmentLabel}
+                        className="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-slate-50 text-slate-400 cursor-not-allowed outline-none capitalize"
+                      />
+                    </div>
+
+                    {/* Max Students */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                        Max Students
+                      </label>
+
+                      <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden w-full">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = teacherData.maxStudents - 1;
+                            if (next >= 1)
+                              setTeacherData({ ...teacherData, maxStudents: next });
+                          }}
+                          disabled={teacherData.maxStudents <= 1}
+                          className="px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          −
+                        </button>
+
+                        <span className="flex-1 text-center text-sm font-medium text-slate-800 select-none">
+                          {teacherData.maxStudents}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = teacherData.maxStudents + 1;
+                            if (next <= 10)
+                              setTeacherData({ ...teacherData, maxStudents: next });
+                          }}
+                          disabled={teacherData.maxStudents >= 10}
+                          className="px-4 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {selectedExpertiseNames.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                          Selected Expertise
+                        </label>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-600 text-white">
+                          {selectedExpertiseNames.length} selected
+                        </span>
+                      </div>
+
+                      <ul className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {selectedExpertiseNames.map((exp, i) => (
+                          <li
+                            key={exp.id}
+                            className="flex items-center justify-between px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 transition-colors group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-semibold flex items-center justify-center shrink-0">
+                                {i + 1}
+                              </span>
+                              <span className="text-sm font-medium text-slate-700">
+                                {exp.name}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    Add More Expertise
+                  </label>
+
+                  <div className="border border-slate-200 rounded-xl bg-slate-50 max-h-[180px] overflow-y-auto custom-scrollbar">
+                    {expertiseList.length > 0 ? (
+                      expertiseList.map((exp, idx) => (
+                        <label
+                          key={exp._id}
+                          className={`flex items-center gap-2.5 px-3 py-2.5 cursor-pointer hover:bg-white transition ${idx !== expertiseList.length - 1
+                            ? "border-b border-slate-100"
+                            : ""
+                            }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={teacherData.expertise.includes(exp._id)}
+                            onChange={() => handleExpertiseChange(exp._id)}
+                            className="w-4 h-4 cursor-pointer accent-indigo-600 rounded"
+                          />
+                          <span className="text-sm text-slate-700">{exp.name}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-400 py-4 text-center">
+                        {teacherData.departmentId
+                          ? "No expertise available for this department"
+                          : "Department not linked — cannot load expertise"}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="text-center">
-                <h3 className="text-lg font-medium text-slate-900 mb-2">
-                  Delete Teacher
-                </h3>
-                <p className="text-sm text-slate-500 mb-4">
-                  Are you sure you want to delete?{" "}
-                  <span>
-                    {teacherToDelete.name}? This action can't be undone.
-                  </span>
-                </p>
-
-                <div className="flex justify-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={cancelDelete}
-                    className="px-4 py-2 text-sm border rounded-md hover:bg-gray-100"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    onClick={confirmDelete}
-                    type="submit"
-                    className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800"
-                  >
-                    Delete
-                  </button>
+              {/* Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCloseModel}
+                  className="px-5 py-2.5 text-sm border border-slate-300 rounded-xl hover:bg-slate-50 text-slate-600 transition font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={teacherData.expertise.length === 0}
+                  className="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Update Teacher
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* ── DELETE MODAL ── */}
+        {showDeleteModel && teacherToDelete && (
+          <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white w-full max-w-md rounded-2xl p-6 mx-4 shadow-2xl border border-slate-200">
+              <div className="flex flex-col items-center text-center mb-5">
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                  <AlertTriangle className="w-7 h-7 text-red-500" />
                 </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">Delete Teacher</h3>
+                <p className="text-sm text-slate-500">
+                  Are you sure you want to delete{" "}
+                  <span className="font-medium text-slate-700">{teacherToDelete.name}</span>?
+                  This action can't be undone.
+                </p>
+              </div>
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={cancelDelete}
+                  className="px-5 py-2.5 text-sm border border-slate-300 rounded-xl hover:bg-slate-50 text-slate-600 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  type="button"
+                  className="px-5 py-2.5 text-sm bg-red-500 text-white rounded-xl hover:bg-red-600 transition font-medium"
+                >
+                  Yes, Delete
+                </button>
               </div>
             </div>
           </div>

@@ -5,8 +5,6 @@ import {
     createExpertise,
     deleteDepartment,
     deleteExpertise,
-    editDepartment,
-    editExpertise,
     getDepartments,
     getExpertiseByDepartment
 } from '../controllers/departmentController.js';
@@ -51,20 +49,6 @@ router.delete(
     isAuthenticated,
     isAuthorized("Admin"),
     deleteExpertise
-);
-
-router.put(
-    '/update/:departmentId',
-    isAuthenticated,
-    isAuthorized("Admin"),
-    editDepartment
-);
-
-router.put(
-    '/:departmentId/expertise/update/:expertiseId',
-    isAuthenticated,
-    isAuthorized("Admin"),
-    editExpertise
 );
 
 export default router;
