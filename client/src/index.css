@@ -322,6 +322,7 @@ input[type="password"]::-ms-reveal {
   color: #fff;
 }
 
+#reject-tooltip,
 #delete-tooltip,
 #remove-expertise-tooltip {
   font-size: 9px;
@@ -339,5 +340,14 @@ input[type="password"]::-ms-reveal {
   font-weight: 500;
   padding: 3px 6px;
   background: linear-gradient(135deg, #f3c736, #f59e0b);
+  color: #fff;
+}
+
+#approved-tooltip {
+  font-size: 9px;
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 3px 6px;
+  background: linear-gradient(135deg, #065f46, #047857);
   color: #fff;
 }

@@ -10,6 +10,7 @@ import {
 import {
   AlertTriangle,
   BadgeCheck,
+  ChevronDown,
   Eye,
   Plus,
   Search,
@@ -31,6 +32,7 @@ const ManageTeachers = () => {
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
+  const [filterOpen, setFilterOpen] = useState(false);
   const [showDeleteModel, setShowDeleteModel] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
 
@@ -80,6 +82,11 @@ const ManageTeachers = () => {
     const set = new Set((teachers || []).map((t) => t.department).filter(Boolean));
     return Array.from(set);
   }, [teachers]);
+
+  const filterOptions = [
+    { value: "all", label: "All Departments" },
+    ...departments.map(dept => ({ value: dept, label: dept }))
+  ];
 
   const filteredTeachers = teachers.filter((teacher) => {
     const matchesSearch =
@@ -208,6 +215,7 @@ const ManageTeachers = () => {
       icon: BadgeCheck,
       bg: "bg-purple-100",
       border: "border-purple-200",
+      iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
     },
     {
@@ -216,6 +224,7 @@ const ManageTeachers = () => {
       icon: TriangleAlert,
       bg: "bg-yellow-100",
       border: "border-yellow-200",
+      iconBg: "bg-yellow-100",
       iconColor: "text-yellow-600",
     },
   ];
@@ -245,10 +254,10 @@ const ManageTeachers = () => {
             return (
               <div
                 key={index}
-                className={`group ${card.bg} ${card.border} rounded-2xl p-6 shadow-md border transition-all duration-300 hover:-translate-y-2 hover:shadow-xl`}
+                className={`group ${card.bg} ${card.border} rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
               >
                 <div className="flex items-center">
-                  <div className="p-4 bg-white rounded-xl shadow">
+                  <div className={`p-4 ${card.iconBg} rounded-xl shadow`}>
                     <Icon
                       className={`w-6 h-6 ${card.iconColor} transition-all duration-300`}
                     />
@@ -271,8 +280,10 @@ const ManageTeachers = () => {
 
         {/* Filters */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
-          <div className="flex flex-col md:flex-row gap-6 items-end">
-            <div className="flex-1">
+          <div className="flex flex-col md:flex-row gap-6 items-center">
+
+            {/* Search */}
+            <div className="flex-1 w-full">
               <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
                 Search Teachers
               </label>
@@ -281,7 +292,7 @@ const ManageTeachers = () => {
                 <input
                   type="text"
                   placeholder="Search by name or email..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm transition-all duration-200 text-sm"
+                  className="w-full h-[44px] pl-10 pr-4 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm transition-all duration-200 text-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -291,22 +302,55 @@ const ManageTeachers = () => {
               <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
                 Filter Department
               </label>
-              <select
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm transition-all duration-200 text-sm"
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-              >
-                <option value="all">All Departments</option>
-                {departments.map((dept) => (
-                  <option value={dept} key={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen(!filterOpen)}
+                  className="capitalize w-full h-[44px] px-3 rounded-xl border border-slate-300 bg-slate-50 text-sm flex justify-between items-center"
+                >
+                  <span>
+                    {filterOptions.find(f => f.value === filterDepartment)?.label || "Select Department"}
+                  </span>
+
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${filterOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {/* Overlay */}
+                {filterOpen && (
+                  <div
+                    className="fixed inset-0 z-0"
+                    onClick={() => setFilterOpen(false)}
+                  />
+                )}
+
+                {/* Dropdown */}
+                {filterOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border rounded-xl shadow-lg max-h-[120px] overflow-y-auto custom-scrollbar">
+                    {filterOptions
+                      .filter(item => item.value === "all" || item.value !== filterDepartment)
+                      .map((item) => (
+                        <div
+                          key={item.value}
+                          onClick={() => {
+                            setFilterDepartment(item.value);
+                            setFilterOpen(false);
+                          }}
+                          className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                        >
+                          {item.label}
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
-
         {/* Teachers Table */}
         <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
           <div className="px-4 py-4 border-b border-slate-200">
@@ -317,7 +361,7 @@ const ManageTeachers = () => {
               <thead className="bg-slate-50">
                 <tr className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   <th className="px-4 py-3">Sr.no</th>
-                  <th className="px-6 py-3">Teacher Info</th>
+                  <th className="px-6 py-3">Teacher Information</th>
                   <th className="px-6 py-3">Department</th>
                   <th className="px-6 py-3">Expertise</th>
                   <th className="px-6 py-3">Max Students</th>
@@ -326,24 +370,24 @@ const ManageTeachers = () => {
                   <th className="px-6 py-3">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="capitalize font-medium text-slate-900 ">
                 {filteredTeachers.length > 0 ? (
                   filteredTeachers.map((teacher, index) => (
                     <tr
                       key={teacher._id}
-                      className="border-t hover:bg-slate-50 transition-colors duration-150"
+                      className="border-t hover:bg-slate-50 transition-colors duration-150 "
                     >
-                      <td className="px-4 py-4 text-sm text-slate-500">{index + 1}</td>
+                      <td className="px-4 py-4">{index + 1}</td>
 
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 ">
                         <div>
-                          <div className="text-sm font-medium text-slate-800">{teacher.name}</div>
+                          <div>{teacher.name}</div>
                           <div className="text-xs text-slate-500">{teacher.email}</div>
                         </div>
                       </td>
 
                       <td className="px-6 py-4">
-                        <span className="font-medium text-slate-700 capitalize text-sm">
+                        <span>
                           {teacher.department || "-"}
                         </span>
                       </td>
@@ -354,7 +398,7 @@ const ManageTeachers = () => {
                             {teacher.expertise.length} expertise
                           </span>
                         ) : (
-                          <span className="text-slate-400 text-sm">-</span>
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">0 Expertise</span>
                         )}
                       </td>
 
@@ -673,7 +717,7 @@ const ManageTeachers = () => {
                         </span>
                       </div>
 
-                      <ul className="space-y-2 max-h-[200px] overflow-y-auto">
+                      <ul className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                         {selectedExpertiseNames.map((exp, i) => (
                           <li
                             key={exp.id}

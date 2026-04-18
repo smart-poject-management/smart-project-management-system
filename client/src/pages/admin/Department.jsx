@@ -353,18 +353,18 @@ function Department() {
                                 <th className="px-6 py-3">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className='divide-y capitalize font-medium text-slate-900'>
                             {filteredDepartments.map((dept, index) => {
                                 const expertiseCount = Object.prototype.hasOwnProperty.call(expertiseMap, dept._id)
                                     ? expertiseMap[dept._id].length
                                     : (dept.expertiseCount ?? null)
                                 return (
                                     <tr key={dept._id} className="border-t hover:bg-slate-50">
-                                        <td className="px-4 py-4 text-sm text-slate-500">{index + 1}</td>
+                                        <td className="px-4 py-4 ">{index + 1}</td>
                                         <td className="px-6 py-4">
-                                            <span className="font-medium text-slate-800 capitalize">{dept.department}</span>
+                                            <span>{dept.department}</span>
                                         </td>
-                                        <td className="px-6 py-4 capitalize">
+                                        <td className="px-6 py-4">
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                                                 {expertiseCount !== null ? expertiseCount : '—'} expertise
                                             </span>
