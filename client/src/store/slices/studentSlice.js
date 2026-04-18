@@ -85,6 +85,29 @@ export const requestSupervisor = createAsyncThunk(
   }
 );
 
+export const requestAdminSupervisor = createAsyncThunk(
+  "student/requestAdminSupervisor",
+  async (data, thunkAPI) => {
+    try {
+      const res = await axiosInstance.post(
+        "/student/request-admin-supervisor",
+        {
+          message: data.message,
+        }
+      );
+
+      toast.success(res.data?.message || "Request sent to admin");
+
+      return res.data;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
+
 export const submitDeadlineExtensionRequest = createAsyncThunk(
   "student/submitDeadlineExtensionRequest",
   async (formData, thunkAPI) => {
@@ -93,9 +116,7 @@ export const submitDeadlineExtensionRequest = createAsyncThunk(
         "/student/deadline-extension-request",
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
@@ -113,7 +134,9 @@ export const getDeadlineExtensionRequest = createAsyncThunk(
   "student/getDeadlineExtensionRequest",
   async (_, thunkAPI) => {
     try {
-      const res = await axiosInstance.get("/student/get-deadline-extension-request");
+      const res = await axiosInstance.get(
+        "/student/get-deadline-extension-request"
+      );
       return res.data?.request || res.data;
     } catch (error) {
       const msg = getErrorMessage(error);
@@ -137,8 +160,54 @@ export const uploadFiles = createAsyncThunk(
       );
 
       toast.success(res.data?.message);
-
       return res.data;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
+export const downloadFile = createAsyncThunk(
+  "student/downloadFile",
+  async ({ projectId, fileId, fileName }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get(
+        `/student/download/${projectId}/${fileId}`,
+        { responseType: "blob" }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName || "download");
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Downloaded Successfully");
+      return { success: true };
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
+export const deleteProjectFile = createAsyncThunk(
+  "student/deleteProjectFile",
+  async ({ projectId, fileId }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.delete(
+        `/student/file/${projectId}/${fileId}`
+      );
+
+      toast.success(res.data?.message);
+      return { ...res.data, fileId };
     } catch (error) {
       const msg = getErrorMessage(error);
       toast.error(msg);
@@ -175,55 +244,6 @@ export const getFeedback = createAsyncThunk(
   }
 );
 
-export const downloadFile = createAsyncThunk(
-  "student/downloadFile",
-  async ({ projectId, fileId, fileName }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get(
-        `/student/download/${projectId}/${fileId}`,
-        { responseType: "blob" }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", fileName || "download");
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast.success(`Downloaded Successfully`);
-
-      return { success: true };
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
-
-export const deleteProjectFile = createAsyncThunk(
-  "student/deleteProjectFile",
-  async ({ projectId, fileId }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.delete(
-        `/student/file/${projectId}/${fileId}`
-      );
-
-      toast.success(res.data?.message);
-
-      return { ...res.data, fileId };
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
-
 const studentSlice = createSlice({
   name: "student",
   initialState: {
@@ -236,6 +256,9 @@ const studentSlice = createSlice({
     deadlines: [],
     feedback: [],
     status: null,
+
+    // ✅ NEW
+    adminRequestSent: false,
   },
   reducers: {},
   extraReducers: builder => {
@@ -260,6 +283,10 @@ const studentSlice = createSlice({
         state.supervisors = data.supervisors || [];
         state.pendingSupervisorRequestIds =
           data.pendingSupervisorRequestIds || [];
+      })
+
+      .addCase(requestAdminSupervisor.fulfilled, state => {
+        state.adminRequestSent = true;
       })
 
       .addCase(uploadFiles.fulfilled, (state, action) => {

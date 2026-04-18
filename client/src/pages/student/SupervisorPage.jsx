@@ -17,6 +17,7 @@ import {
   fetchAllSupervisor,
   fetchProject,
   getSupervisor,
+  requestAdminSupervisor,
   requestSupervisor,
 } from "../../store/slices/studentSlice";
 
@@ -24,14 +25,17 @@ const MAX_MESSAGE_LENGTH = 250;
 
 const SupervisorPage = () => {
   const dispatch = useDispatch();
-  const { authUser } = useSelector((state) => state.auth);
+  const { authUser } = useSelector(state => state.auth);
   const { project, supervisor, supervisors, pendingSupervisorRequestIds } =
-    useSelector((state) => state.student);
+    useSelector(state => state.student);
 
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
   const [selectedSupervisor, setSelectedSupervisor] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminMessage, setAdminMessage] = useState("");
+  const [adminRequestSent, setAdminRequestSent] = useState(false);
 
   useEffect(() => {
     dispatch(fetchAllSupervisor());
@@ -52,13 +56,13 @@ const SupervisorPage = () => {
 
   const pendingSupervisorIdSet = useMemo(() => {
     const ids = pendingSupervisorRequestIds || [];
-    return new Set(ids.map((id) => String(id)));
+    return new Set(ids.map(id => String(id)));
   }, [pendingSupervisorRequestIds]);
 
-  const hasPendingRequestTo = (supervisorId) =>
+  const hasPendingRequestTo = supervisorId =>
     pendingSupervisorIdSet.has(String(supervisorId));
 
-  const formatDeadline = (dateStr) => {
+  const formatDeadline = dateStr => {
     if (!dateStr) return "-";
 
     const date = new Date(dateStr);
@@ -82,14 +86,29 @@ const SupervisorPage = () => {
     return `${day}${suffix} ${month} ${year}`;
   };
 
-  const handleOpenRequest = (sup) => {
+  const handleOpenRequest = sup => {
     if (isProjectPending) return;
     setSelectedSupervisor(sup);
     setRequestMessage("");
     setShowRequestModal(true);
   };
 
-  const buildDefaultMessage = (sup) =>
+  const handleAdminRequest = async () => {
+    try {
+      await dispatch(
+        requestAdminSupervisor({
+          message: adminMessage,
+        })
+      ).unwrap();
+
+      setShowAdminModal(false);
+      setAdminMessage("");
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const buildDefaultMessage = sup =>
     `${authUser?.name || "Student"} has requested ${sup.name} to be their supervisor.`;
 
   const submitRequest = async () => {
@@ -119,8 +138,6 @@ const SupervisorPage = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white/70 border border-slate-200 rounded-xl shadow-xl">
-
-        {/* Supervisor Section */}
         <div className="p-6">
           <div className="flex items-center justify-between border-b pb-4 mb-6">
             <div>
@@ -161,8 +178,6 @@ const SupervisorPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* Email */}
                     <div className="p-4 flex items-start gap-3">
                       <Mail className="w-5 h-5 text-slate-500 mt-1" />
                       <div>
@@ -175,7 +190,6 @@ const SupervisorPage = () => {
                       </div>
                     </div>
 
-                    {/* Expertise */}
                     <div className="p-4 flex items-start gap-3">
                       <Briefcase className="w-5 h-5 text-slate-500 mt-1" />
                       <div>
@@ -200,7 +214,6 @@ const SupervisorPage = () => {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -212,7 +225,6 @@ const SupervisorPage = () => {
           )}
         </div>
 
-        {/* Project Section */}
         {hasProject && (
           <div className="p-6">
             <div className="mb-6 border-b pb-4">
@@ -226,8 +238,6 @@ const SupervisorPage = () => {
 
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Left */}
                 <div className="bg-white shadow-sm rounded-2xl p-5 border space-y-5">
                   <div className="flex gap-3">
                     <FileText className="w-5 h-5 text-purple-700 mt-1" />
@@ -241,7 +251,6 @@ const SupervisorPage = () => {
                     </div>
                   </div>
 
-                  {/* Project Status */}
                   <div className="flex gap-3">
                     {project?.status === "approved" && (
                       <CheckCircle className="w-5 h-5 text-green-500 mt-1" />
@@ -271,7 +280,6 @@ const SupervisorPage = () => {
                   </div>
                 </div>
 
-                {/* Right */}
                 <div className="bg-white shadow-sm rounded-2xl p-5 border space-y-5">
                   <div className="flex gap-3">
                     <Calendar className="w-5 h-5 text-rose-800 mt-1" />
@@ -303,7 +311,6 @@ const SupervisorPage = () => {
                 </div>
               </div>
 
-              {/* Description */}
               {project?.description && (
                 <div className="bg-white shadow-sm rounded-2xl p-5 border flex gap-3">
                   <Info className="w-5 h-5 text-slate-500 mt-1" />
@@ -321,11 +328,8 @@ const SupervisorPage = () => {
           </div>
         )}
 
-        {/* Available Supervisors */}
         {hasProject && !hasSupervisor && (
           <div className="p-6">
-
-            {/* Header */}
             <div className="mb-8 border-b border-gray-200 pb-4">
               <h2 className="text-3xl font-bold text-gray-900">
                 Available Supervisors
@@ -335,15 +339,13 @@ const SupervisorPage = () => {
               </p>
             </div>
 
-            {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {supervisors &&
-                supervisors.map((sup) => (
+                supervisors.map(sup => (
                   <div
                     key={sup._id}
                     className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition duration-300"
                   >
-                    {/* Top Section */}
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold text-lg">
                         {sup.name?.charAt(0) || "A"}
@@ -358,7 +360,6 @@ const SupervisorPage = () => {
                       </div>
                     </div>
 
-                    {/* Info */}
                     <div className="space-y-3 mb-5 text-sm">
                       <div>
                         <p className="text-gray-400">Email</p>
@@ -370,37 +371,104 @@ const SupervisorPage = () => {
                         <p className="text-gray-400">Expertise</p>
                         <p className="text-gray-700">
                           {Array.isArray(sup?.expertise)
-                            ? sup.expertise.map(exp => exp.name || exp).join(", ")
+                            ? sup.expertise
+                                .map(exp => exp.name || exp)
+                                .join(", ")
                             : sup?.expertise || "-"}
                         </p>
                       </div>
                     </div>
 
-                    {/* Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenRequest(sup)}
-                      disabled={isProjectPending || hasPendingRequestTo(sup._id)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:hover:bg-slate-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-medium transition duration-200"
-                    >
-                      {isProjectPending
-                        ? "Project pending approval"
-                        : hasPendingRequestTo(sup._id)
-                          ? "Request pending"
+                    {hasPendingRequestTo(sup._id) ? (
+                      <div className="w-full text-center">
+                        <span className="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+                          Request Sent ✅
+                        </span>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Waiting for response
+                        </p>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenRequest(sup)}
+                        disabled={isProjectPending}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-medium transition duration-200"
+                      >
+                        {isProjectPending
+                          ? "Project pending approval"
                           : "Request Supervisor"}
-                    </button>
+                      </button>
+                    )}
                   </div>
                 ))}
             </div>
           </div>
         )}
 
-        {/* Modal */}
+        {!hasSupervisor && (
+          <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Can't decide a supervisor?
+              </h3>
+              <p className="text-sm text-gray-500">
+                Send a request to admin and they will assign the best supervisor
+                for you.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowAdminModal(true)}
+              disabled={adminRequestSent}
+              className={`px-5 py-2 rounded-xl font-medium transition ${
+                adminRequestSent
+                  ? "bg-yellow-400 cursor-not-allowed text-white"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              }`}
+            >
+              {adminRequestSent ? "Request Pending ⏳" : "Request Admin"}
+            </button>
+          </div>
+        )}
+
+        {showAdminModal && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+              <h3 className="text-lg font-semibold mb-3">
+                Request Admin to Assign Supervisor
+              </h3>
+
+              <textarea
+                className="w-full border rounded-xl p-3 text-sm mb-4"
+                rows={4}
+                placeholder="Write a message (optional)"
+                value={adminMessage}
+                onChange={e => setAdminMessage(e.target.value)}
+              />
+
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowAdminModal(false)}
+                  className="px-3 py-1 bg-gray-200 rounded"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleAdminRequest}
+                  className="px-4 py-1 bg-indigo-600 text-white rounded"
+                >
+                  Send Request
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showRequestModal && selectedSupervisor && (
           <div className="fixed inset-0 -top-10 bg-black/40 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-
-              {/* Modal Header */}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-slate-800">
                   Request Supervision
@@ -414,7 +482,6 @@ const SupervisorPage = () => {
                 </button>
               </div>
 
-              {/* Supervisor Info */}
               <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 rounded-xl">
                 <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 font-semibold">
                   {selectedSupervisor.name?.charAt(0) || "A"}
@@ -424,12 +491,12 @@ const SupervisorPage = () => {
                     {selectedSupervisor.name}
                   </p>
                   <p className="text-sm text-slate-500">
-                    {selectedSupervisor.department.department || "No Department"}
+                    {selectedSupervisor.department.department ||
+                      "No Department"}
                   </p>
                 </div>
               </div>
 
-              {/* Message Input */}
               <label className="block text-sm font-medium text-slate-600 mb-1">
                 Message (optional, max {MAX_MESSAGE_LENGTH} characters)
               </label>
@@ -442,14 +509,13 @@ const SupervisorPage = () => {
                   MAX_MESSAGE_LENGTH
                 )}
                 value={requestMessage}
-                onChange={(e) => setRequestMessage(e.target.value)}
+                onChange={e => setRequestMessage(e.target.value)}
                 disabled={loading}
               />
               <p className="text-xs text-slate-500 mt-1 text-right">
                 {requestMessage.length}/{MAX_MESSAGE_LENGTH}
               </p>
 
-              {/* Actions */}
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={() => setShowRequestModal(false)}
@@ -492,11 +558,9 @@ const SupervisorPage = () => {
                   )}
                 </button>
               </div>
-
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

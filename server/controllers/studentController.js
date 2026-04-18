@@ -107,10 +107,17 @@ export const uploadFiles = asyncHandler(async (req, res) => {
 export const getAvailableSupervisors = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
 
-  const [student, project] = await Promise.all([
-    User.findById(studentId).select("department"),
-    projectService.getStudentProject(studentId),
-  ]);
+  let student = null;
+  let project = null;
+
+  try {
+    [student, project] = await Promise.all([
+      User.findById(studentId).select("department"),
+      projectService.getStudentProject(studentId),
+    ]);
+  } catch (err) {
+    console.log("PROJECT ERROR:", err);
+  }
 
   let supervisorsQuery = { role: "Teacher" };
 
@@ -118,22 +125,37 @@ export const getAvailableSupervisors = asyncHandler(async (req, res) => {
     supervisorsQuery.department = student.department;
   }
 
-  if (project && project.requiredExpertise) {
+  if (project?.requiredExpertise) {
     supervisorsQuery.expertise = project.requiredExpertise;
   }
 
-  const supervisors = await User.find(supervisorsQuery)
-    .select("name email department expertise")
-    .populate("department", "department")
-    .populate("expertise", "name")
-    .lean();
+  let supervisors = [];
 
-  const pendingSupervisorRequestIds =
-    await requestService.getPendingSupervisorIdsForStudent(studentId);
+  try {
+    supervisors = await User.find(supervisorsQuery)
+      .select("name email department expertise")
+      .populate("department", "department")
+      .populate("expertise", "name")
+      .lean();
+  } catch (err) {
+    console.log("SUPERVISOR FETCH ERROR:", err);
+  }
+
+  let pendingSupervisorRequestIds = [];
+
+  try {
+    pendingSupervisorRequestIds =
+      await requestService.getPendingSupervisorIdsForStudent(studentId);
+  } catch (err) {
+    console.log("REQUEST SERVICE ERROR:", err);
+  }
 
   res.status(200).json({
     success: true,
-    data: { supervisors, pendingSupervisorRequestIds },
+    data: {
+      supervisors,
+      pendingSupervisorRequestIds,
+    },
   });
 });
 
@@ -179,6 +201,7 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
     student: studentId,
     supervisor: teacherId,
     message,
+    type: "teacher",
   });
 
   await notificationService.notifyUser(
@@ -189,10 +212,47 @@ export const requestSupervisor = asyncHandler(async (req, res) => {
     "medium",
     studentId,
     "teacher",
+    studentId,
+    "system",
   );
 
   res.status(201).json({
     success: true,
+    message: "Request sent to supervisor",
+    data: { request },
+  });
+});
+
+export const requestAdminSupervisor = asyncHandler(async (req, res) => {
+  const { message } = req.body;
+  const studentId = req.user._id;
+
+  const student = await User.findById(studentId);
+
+  if (student.supervisor) {
+    return res.status(400).json({ message: "Already assigned" });
+  }
+
+  // Store Request
+  const request = await requestService.createRequest({
+    student: studentId,
+    message: message || "Student requested admin to assign supervisor",
+    type: "admin",
+  });
+
+  await notificationService.notifyAllAdmins(
+    `${student.name} requested you to assign a supervisor.`,
+    "request",
+    "/admin/assign-supervisor",
+    "high",
+    studentId,
+    studentId,
+    "system",
+  );
+
+  res.status(201).json({
+    success: true,
+    message: "Request sent to admin",
     data: { request },
   });
 });
@@ -221,10 +281,14 @@ export const requestDeadlineExtension = asyncHandler(async (req, res) => {
   const trimmedMessage = message.trim();
 
   if (trimmedTitle.length > 100) {
-    return res.status(400).json({ message: "Title must be 100 characters or less." });
+    return res
+      .status(400)
+      .json({ message: "Title must be 100 characters or less." });
   }
   if (trimmedMessage.length > 1000) {
-    return res.status(400).json({ message: "Message must be 1000 characters or less." });
+    return res
+      .status(400)
+      .json({ message: "Message must be 1000 characters or less." });
   }
 
   const proof = {
@@ -350,7 +414,6 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
 
   const filePath = file.fileUrl;
 
-  // Remove from DB first 
   project.files = project.files.filter((f) => f._id.toString() !== fileId);
   await project.save();
 
@@ -361,7 +424,6 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
         await fs.promises.unlink(absolutePath);
       }
     } catch (err) {
-
       console.error("File deletion error:", err);
     }
   }
@@ -374,7 +436,10 @@ export const deleteProjectFile = asyncHandler(async (req, res, next) => {
 
 export const getDeadlineExtensionRequest = asyncHandler(async (req, res) => {
   const studentId = req.user._id;
-  const request = await deadlineRequestService.getDeadlineExtensionRequestsByStudent(studentId);
+  const request =
+    await deadlineRequestService.getDeadlineExtensionRequestsByStudent(
+      studentId,
+    );
   res.status(200).json({
     success: true,
     data: { request },

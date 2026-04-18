@@ -7,10 +7,12 @@ export const getNotifications = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/notification");
+      const list = res.data?.data || res.data?.notifications || res.data || [];
 
       return {
-        list: res.data?.data || [],
-        unreadCount: res.data?.unreadCount || 0,
+        list,
+        unreadCount:
+          res.data?.unreadCount ?? list.filter(n => !n.isRead).length,
       };
     } catch (error) {
       const msg =
@@ -29,7 +31,7 @@ export const markAsRead = createAsyncThunk(
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message || "Error"
+        error?.response?.data?.message || "Error marking as read"
       );
     }
   }
@@ -43,7 +45,7 @@ export const markAllAsRead = createAsyncThunk(
       return true;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message || "Error"
+        error?.response?.data?.message || "Error marking all as read"
       );
     }
   }
@@ -57,7 +59,7 @@ export const deleteNotification = createAsyncThunk(
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error?.response?.data?.message || "Error"
+        error?.response?.data?.message || "Error deleting notification"
       );
     }
   }
@@ -81,8 +83,12 @@ const notificationSlice = createSlice({
 
     builder.addCase(getNotifications.fulfilled, (state, action) => {
       state.loading = false;
-      state.list = action.payload.list;
-      state.unreadCount = action.payload.unreadCount;
+
+      const list = action.payload.list || [];
+
+      state.list = list;
+      state.unreadCount =
+        action.payload.unreadCount ?? list.filter(n => !n.isRead).length;
     });
 
     builder.addCase(getNotifications.rejected, (state, action) => {

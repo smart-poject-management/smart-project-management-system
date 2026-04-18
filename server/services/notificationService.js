@@ -14,6 +14,8 @@ export const notifyUser = async (
   priority = "low",
   sender = null,
   receiverRole = "student",
+  entityId = null,
+  entityType = "system",
 ) => {
   return await createNotification({
     user: userId,
@@ -23,6 +25,8 @@ export const notifyUser = async (
     priority,
     sender,
     receiverRole,
+    entityId,
+    entityType,
   });
 };
 
@@ -34,6 +38,7 @@ export const notifyMultipleUsers = async (
   priority = "low",
   sender = null,
   receiverRole = "student",
+  referenceId = null,
 ) => {
   const notifications = userIds.map((id) => ({
     user: id,
@@ -43,6 +48,7 @@ export const notifyMultipleUsers = async (
     priority,
     sender,
     receiverRole,
+    referenceId,
   }));
 
   return await Notification.insertMany(notifications);
@@ -54,28 +60,35 @@ export const notifyAllAdmins = async (
   link = null,
   priority = "medium",
   sender = null,
+  entityId = null,
+  entityType = "system",
 ) => {
   const admins = await User.find({ role: "Admin" }).select("_id").lean();
 
   if (!admins.length) return [];
 
-  return Promise.all(
-    admins.map((a) =>
+  return await Promise.all(
+    admins.map((admin) =>
       createNotification({
-        user: a._id,
+        user: admin._id,
         message,
         type,
         link,
         priority,
         sender,
         receiverRole: "admin",
+        entityId,
+        entityType,
       }),
     ),
   );
 };
 
 export const getUserNotifications = async (userId) => {
-  return await Notification.find({ user: userId }).sort({ createdAt: -1 }); // latest first
+  return await Notification.find({ user: userId })
+    .sort({ createdAt: -1 })
+    .populate("sender", "name email")
+    .populate("entityId", "name email");
 };
 
 export const markAsRead = async (notificationId, userId) => {
