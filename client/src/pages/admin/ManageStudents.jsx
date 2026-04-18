@@ -1,11 +1,7 @@
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleStudentModel } from "../../store/slices/popupSlice";
-import {
-  deleteStudent,
-  getAllUsers,
-  updateStudent,
-} from "../../store/slices/adminSlice";
+import { deleteStudent } from "../../store/slices/adminSlice";
 import {
   CheckCircle,
   Plus,
@@ -20,18 +16,11 @@ import AddStudent from "./AddStudent";
 const ManageStudents = () => {
   const { users, projects } = useSelector(state => state.admin);
   const { isCreateStudentModalOpen } = useSelector(state => state.popup);
-  const [showModel, setShowModel] = useState(false);
-  const [editingStudent, setEditingStudent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
   const [showDeleteModel, setShowDeleteModel] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    department: "",
-  });
   const dispatch = useDispatch();
   const students = useMemo(() => {
     const studentUsers = (users || []).filter(
@@ -75,34 +64,6 @@ const ManageStudents = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleCloseModel = () => {
-    setShowModel(false);
-    setEditingStudent(null);
-    setFormData({
-      name: "",
-      email: "",
-      department: "",
-    });
-  };
-
-  const handleSubmit = e => {
-    e.preventDefault();
-    if (editingStudent) {
-      dispatch(updateStudent({ id: editingStudent._id, data: formData }));
-    }
-    handleCloseModel();
-  };
-
-  const handleEdit = students => {
-    setEditingStudent(students);
-    setFormData({
-      name: students.name,
-      email: students.email,
-      department: students.department,
-    });
-    setShowModel(true);
-  };
-
   const handleDelete = students => {
     setStudentToDelete(students);
     setShowDeleteModel(true);
@@ -118,6 +79,36 @@ const ManageStudents = () => {
     setShowDeleteModel(false);
     setStudentToDelete(null);
   };
+
+  const statsCards = [
+    {
+      title: "Total Students",
+      value: students.length,
+      icon: User,
+      bg: "bg-blue-100",
+      hoverBg: "group-hover:bg-blue-500",
+      text: "text-blue-600",
+    },
+    {
+      title: "Completed Projects",
+      value: students.filter(
+        s => s.projectStatus === "completed"
+      ).length,
+      icon: CheckCircle,
+      bg: "bg-purple-100",
+      hoverBg: "group-hover:bg-purple-500",
+      text: "text-purple-600",
+    },
+    {
+      title: "Unassigned",
+      value: students.filter(s => !s.supervisor).length,
+      icon: TriangleAlert,
+      bg: "bg-yellow-100",
+      hoverBg: "group-hover:bg-yellow-500",
+      text: "text-yellow-600",
+    },
+  ];
+
   return (
     <>
       <div className="space-y-6">
@@ -128,7 +119,7 @@ const ManageStudents = () => {
               Manage Students
             </h1>
             <p className="text-gray-500 mt-1">
-              Add, edit, and manage student accounts
+              Add and manage student accounts
             </p>
           </div>
 
@@ -142,77 +133,36 @@ const ManageStudents = () => {
           </button>
         </div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Total Students */}
-          <div
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-    transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
-            <div className="flex items-center">
+          {statsCards.map((card, index) => {
+            const Icon = card.icon;
+
+            return (
               <div
-                className="p-4 bg-blue-100 rounded-xl 
-        transition-all duration-300 group-hover:bg-blue-500"
+                key={index}
+                className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
               >
-                <User className="w-6 h-6 text-blue-600 group-hover:text-white transition-all duration-300" />
-              </div>
+                <div className="flex items-center">
+                  <div
+                    className={`p-4 rounded-xl transition-all duration-300 ${card.bg} ${card.hoverBg}`}
+                  >
+                    <Icon
+                      className={`w-6 h-6 ${card.text} group-hover:text-white transition-all duration-300`}
+                    />
+                  </div>
 
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">
-                  Total Students
-                </p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {students.length}
-                </p>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-slate-500">
+                      {card.title}
+                    </p>
+                    <p className="text-2xl font-bold text-slate-800">
+                      {card.value}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Total Projects */}
-          <div
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-    transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
-            <div className="flex items-center">
-              <div
-                className="p-4 bg-purple-100 rounded-xl 
-        transition-all duration-300 group-hover:bg-purple-500"
-              >
-                <CheckCircle className="w-6 h-6 text-purple-600 group-hover:text-white transition-all duration-300" />
-              </div>
-
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">
-                  Completed Projects
-                </p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {students.filter(s => s.projectStatus === "completed").length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Unassigned */}
-          <div
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-    transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
-            <div className="flex items-center">
-              <div
-                className="p-4 bg-yellow-100 rounded-xl 
-        transition-all duration-300 group-hover:bg-yellow-500"
-              >
-                <TriangleAlert className="w-6 h-6 text-yellow-600 group-hover:text-white transition-all duration-300" />
-              </div>
-
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">Unassigned</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {students.filter(s => !s.supervisor).length}
-                </p>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
         {/* filter */}
@@ -339,10 +289,10 @@ const ManageStudents = () => {
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center gap-4">
                           <button
-                            onClick={() => handleEdit(student)}
+                            // view details will be implemented in future
                             className="text-indigo-600 hover:text-indigo-800 text-sm"
                           >
-                            Edit
+                            View
                           </button>
 
                           <button
@@ -365,93 +315,6 @@ const ManageStudents = () => {
           </div>
         </div>
 
-        {/* EDIT STUDENT MODAL */}
-        {showModel && (
-          <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-md rounded-xl shadow-lg border">
-              {/* Header */}
-              <div className="flex justify-between items-center px-6 py-4 border-b">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Edit Student
-                </h3>
-
-                <button
-                  onClick={handleCloseModel}
-                  className="p-1 rounded hover:bg-gray-100 transition"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={e =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={e =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-300"
-                  />
-                </div>
-                {/* Department */}
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">
-                    Department
-                  </label>
-
-                  <select
-                    required
-                    value={formData.department}
-                    onChange={e =>
-                      setFormData({ ...formData, department: e.target.value })
-                    }
-                    className="border rounded-md px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer"
-                  >
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Data Science">Data Science</option>
-                    <option value="Physics">Physics</option>
-                    <option value="Chemistry">Chemistry</option>
-                  </select>
-                </div>
-                {/* Buttons */}
-                <div className="flex justify-end gap-3 pt-3">
-                  <button
-                    type="button"
-                    onClick={handleCloseModel}
-                    className="px-4 py-2 text-sm border rounded-md hover:bg-gray-100"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800"
-                  >
-                    Update Student
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {showDeleteModel && studentToDelete && (
           <div className="fixed inset-0 -top-10 bg-black/40 flex items-center justify-center z-50">

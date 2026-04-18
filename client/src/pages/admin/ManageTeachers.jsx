@@ -190,6 +190,36 @@ const ManageTeachers = () => {
       .map((exp) => ({ id: exp._id, name: exp.name }));
   }, [teacherData.expertise, expertiseList]);
 
+  const statsCards = [
+    {
+      title: "Total Teachers",
+      value: teachers.length,
+      icon: Users,
+      bg: "bg-blue-100",
+      border: "border-blue-200",
+      iconColor: "text-blue-600",
+    },
+    {
+      title: "Assigned Students",
+      value: teachers.reduce(
+        (sum, total) => sum + (total.assignedStudents?.length || 0),
+        0
+      ),
+      icon: BadgeCheck,
+      bg: "bg-purple-100",
+      border: "border-purple-200",
+      iconColor: "text-purple-600",
+    },
+    {
+      title: "Departments",
+      value: departments.length,
+      icon: TriangleAlert,
+      bg: "bg-yellow-100",
+      border: "border-yellow-200",
+      iconColor: "text-yellow-600",
+    },
+  ];
+
   return (
     <>
       <div className="space-y-6">
@@ -208,48 +238,35 @@ const ManageTeachers = () => {
           </button>
         </div>
 
-        {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="group bg-blue-100 rounded-2xl p-6 shadow-md border border-blue-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
-            <div className="flex items-center">
-              <div className="p-4 bg-white rounded-xl transition-all duration-300 shadow">
-                <Users className="w-6 h-6 text-blue-600 transition-all duration-300" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">Total Teachers</p>
-                <p className="text-2xl font-bold text-slate-800">{teachers.length}</p>
-              </div>
-            </div>
-          </div>
+          {statsCards.map((card, index) => {
+            const Icon = card.icon;
 
-          <div className="group bg-purple-100 rounded-2xl p-6 shadow-md border border-purple-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
-            <div className="flex items-center">
-              <div className="p-4 bg-white rounded-xl transition-all duration-300 shadow">
-                <BadgeCheck className="w-6 h-6 text-purple-600 transition-all duration-300" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">Assigned Students</p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {teachers.reduce(
-                    (sum, total) => sum + (total.assignedStudents?.length || 0),
-                    0
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
+            return (
+              <div
+                key={index}
+                className={`group ${card.bg} ${card.border} rounded-2xl p-6 shadow-md border transition-all duration-300 hover:-translate-y-2 hover:shadow-xl`}
+              >
+                <div className="flex items-center">
+                  <div className="p-4 bg-white rounded-xl shadow">
+                    <Icon
+                      className={`w-6 h-6 ${card.iconColor} transition-all duration-300`}
+                    />
+                  </div>
 
-          <div className="group bg-yellow-100 rounded-2xl p-6 shadow-md border border-yellow-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
-            <div className="flex items-center">
-              <div className="p-4 bg-white rounded-xl transition-all duration-300 shadow">
-                <TriangleAlert className="w-6 h-6 text-yellow-600 transition-all duration-300" />
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-slate-600">
+                      {card.title}
+                    </p>
+
+                    <p className="text-2xl font-bold text-slate-800">
+                      {card.value}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">Departments</p>
-                <p className="text-2xl font-bold text-slate-800">{departments.length}</p>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
         {/* Filters */}
@@ -523,7 +540,7 @@ const ManageTeachers = () => {
               {/* Footer */}
               <div className="px-6 py-4 border-t border-slate-100 flex gap-3 shrink-0">
                 <button
-                // add the vew profile page link
+                  // add the vew profile page link
                   className="capitalize flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm font-medium transition-colors"
                 >
                   View Profile

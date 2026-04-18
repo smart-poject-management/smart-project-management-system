@@ -20,21 +20,6 @@ export const createStudent = createAsyncThunk(
   }
 );
 
-export const updateStudent = createAsyncThunk(
-  "admin/updateStudent",
-  async ({ id, data }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.put(`/admin/update-student/${id}`, data);
-      toast.success(res.data?.message);
-      return res.data?.data?.user;
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
-
 export const deleteStudent = createAsyncThunk(
   "admin/deleteStudent",
   async (id, thunkAPI) => {
@@ -228,12 +213,6 @@ const adminSlice = createSlice({
       })
       .addCase(createStudent.fulfilled, (state, action) => {
         state.users.unshift(action.payload);
-      })
-      .addCase(updateStudent.fulfilled, (state, action) => {
-        const index = state.users.findIndex(
-          user => user._id === action.payload._id
-        );
-        if (index !== -1) state.users[index] = action.payload;
       })
       .addCase(deleteStudent.fulfilled, (state, action) => {
         state.users = state.users.filter(user => user._id !== action.payload);
