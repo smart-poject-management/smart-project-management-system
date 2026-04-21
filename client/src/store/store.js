@@ -9,6 +9,7 @@ import projectReducer from "./slices/projectSlice";
 import requestReducer from "./slices/requestSlice";
 import studentReducer from "./slices/studentSlice";
 import teacherReducer from "./slices/teacherSlice";
+import attendanceReducer from "./slices/attendanceSlice";
 
 export const store = configureStore({
   reducer: {
@@ -22,5 +23,6 @@ export const store = configureStore({
     request: requestReducer,
     student: studentReducer,
     teacher: teacherReducer,
+    attendance: attendanceReducer,
   },
 });

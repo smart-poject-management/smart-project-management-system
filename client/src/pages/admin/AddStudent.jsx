@@ -12,6 +12,9 @@ const AddStudent = () => {
     email: "",
     department: "",
     password: "",
+    roll_no: "",
+    semester: 1,
+    session: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -31,11 +34,22 @@ const AddStudent = () => {
     setDeptDropdownOpen(false);
   };
 
-  const handleCreateStudent = (e) => {
+  const handleCreateStudent = async (e) => {
     e.preventDefault();
-    dispatch(createStudent(studentData));
-    setStudentData({ name: "", email: "", department: "", password: "" });
-    dispatch(toggleStudentModel());
+    const result = await dispatch(createStudent(studentData));
+
+    if (createStudent.fulfilled.match(result)) {
+      setStudentData({
+        name: "",
+        email: "",
+        department: "",
+        password: "",
+        roll_no: "",
+        semester: 1,
+        session: "",
+      });
+      dispatch(toggleStudentModel());
+    }
   };
 
   return (
@@ -63,7 +77,7 @@ const AddStudent = () => {
           </button>
         </div>
 
-        <form onSubmit={handleCreateStudent} className="p-5 space-y-4">
+        <form id="add-student-form" onSubmit={handleCreateStudent} className="p-5 space-y-4">
 
           {/* Name */}
           <div className="grid grid-cols-2 gap-3">
@@ -124,6 +138,55 @@ const AddStudent = () => {
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
+          </div>
+
+          {/* Department Dropdown */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                Roll No
+              </label>
+              <input
+                type="text"
+                value={studentData.roll_no}
+                onChange={(e) =>
+                  setStudentData({ ...studentData, roll_no: e.target.value })
+                }
+                placeholder="2024-CS-001"
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition placeholder:text-gray-300"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                Semester
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={studentData.semester}
+                onChange={(e) =>
+                  setStudentData({
+                    ...studentData,
+                    semester: Number(e.target.value || 1),
+                  })
+                }
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition placeholder:text-gray-300"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+              Session
+            </label>
+            <input
+              type="text"
+              value={studentData.session}
+              onChange={(e) =>
+                setStudentData({ ...studentData, session: e.target.value })
+              }
+              placeholder="2024-2028"
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition placeholder:text-gray-300"
+            />
           </div>
 
           {/* Department Dropdown */}
@@ -202,8 +265,7 @@ const AddStudent = () => {
           </button>
           <button
             type="submit"
-            form=""
-            onClick={handleCreateStudent}
+            form="add-student-form"
             disabled={!studentData.department}
             className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-weight disabled:opacity-40 disabled:cursor-not-allowed"
           >

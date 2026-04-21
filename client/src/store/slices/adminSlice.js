@@ -2,8 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
-const getErrorMessage = error =>
-  error?.response?.data?.message || "Something went wrong";
+const getErrorMessage = (error) =>
+  error?.response?.data?.error ||
+  error?.response?.data?.message ||
+  "Something went wrong";
 
 export const createStudent = createAsyncThunk(
   "admin/createStudent",
