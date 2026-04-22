@@ -17,6 +17,7 @@ import SupervisorPage from "./pages/student/SupervisorPage";
 import DeadlineExtensionRequest from "./pages/student/DeadlineExtensionRequest";
 import FeedbackPage from "./pages/student/FeedbackPage";
 import NotificationsPage from "./pages/student/NotificationsPage";
+import StudentAttendancePage from "./pages/student/AttendancePage";
 
 // Teacher Pages
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
@@ -24,6 +25,7 @@ import PendingRequests from "./pages/teacher/PendingRequests";
 import AssignedStudents from "./pages/teacher/AssignedStudents";
 import TeacherFiles from "./pages/teacher/TeacherFiles";
 import TeacherNotificationsPage from "./pages/teacher/TeacherNotificationsPage";
+import TeacherAttendancePage from "./pages/teacher/AttendancePage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -43,6 +45,7 @@ import { getAllProjects, getAllUsers } from "./store/slices/adminSlice";
 import { fetchDashboardStats } from "./store/slices/studentSlice";
 import Unauthorized from "./pages/Unauthorized";
 import Department from "./pages/admin/Department";
+import AdminAttendancePage from "./pages/admin/AttendancePage";
 import StudentsOverview from "./pages/teacher/StudentsOverview";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
@@ -118,6 +121,7 @@ const App = () => {
           <Route path="deadlines" element={<DeadlinesPage />} />
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="departments" element={<Department />} />
+          <Route path="attendance" element={<AdminAttendancePage />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
         </Route>
 
@@ -139,6 +143,7 @@ const App = () => {
           />
           <Route path="supervisor" element={<SupervisorPage />} />
           <Route path="feedback" element={<FeedbackPage />} />
+          <Route path="attendance" element={<StudentAttendancePage />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
@@ -154,6 +159,7 @@ const App = () => {
           <Route index element={<TeacherDashboard />} />
           <Route path="pending-requests" element={<PendingRequests />} />
           <Route path="assigned-students" element={<AssignedStudents />} />
+          <Route path="attendance" element={<TeacherAttendancePage />} />
           <Route path="files" element={<TeacherFiles />} />
           <Route path="notifications" element={<TeacherNotificationsPage />} />
           <Route path="/teacher/students" element={<StudentsOverview />} />

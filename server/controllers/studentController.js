@@ -13,6 +13,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { DeadlineExtensionRequest } from "../models/deadlineExtensionRequest.js";
+import { getStudentAttendanceSummary } from "../services/attendanceService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -327,17 +328,17 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
     .populate("supervisor", "name")
     .lean();
 
-  const upcomingDeadlines = await Deadline.find({ project: project?._id })
-    .limit(2)
-    .lean();
-
-  const topNotification = await Notification.find({
-    user: studentId,
-    receiverRole: "student",
-  })
-    .sort({ createdAt: -1 })
-    .limit(3)
-    .lean();
+  const [upcomingDeadlines, topNotification, attendanceSummary] = await Promise.all([
+    Deadline.find({ project: project?._id }).limit(2).lean(),
+    Notification.find({
+      user: studentId,
+      receiverRole: "student",
+    })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean(),
+    getStudentAttendanceSummary(studentId),
+  ]);
 
   res.status(200).json({
     success: true,
@@ -346,6 +347,7 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
       upcomingDeadlines,
       topNotification,
       supervisorName: project?.supervisor?.name || null,
+      attendanceSummary,
     },
   });
 });

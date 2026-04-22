@@ -60,6 +60,52 @@ const userSchema = new mongoose.Schema(
       ref: "Project",
       default: null,
     },
+    roll_no: {
+      type: String,
+      trim: true,
+      unique: true,
+      sparse: true,
+    },
+    semester: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    session: {
+      type: String,
+      trim: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    father_name: {
+      type: String,
+      trim: true,
+    },
+    mother_name: {
+      type: String,
+      trim: true,
+    },
+    phone_no: {
+      type: String,
+      trim: true,
+    },
+    ocAssignments: [
+      {
+        department: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Department",
+          required: true,
+        },
+        semester: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 8,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
@@ -77,11 +123,19 @@ userSchema.pre("validate", function () {
     this.expertise = undefined;
     this.assignedStudents = undefined;
     this.maxStudents = undefined;
+    this.ocAssignments = undefined;
   }
 
   if (this.role === "Teacher") {
     this.supervisor = undefined;
     this.project = undefined;
+    this.roll_no = undefined;
+    this.semester = undefined;
+    this.session = undefined;
+    this.address = undefined;
+    this.father_name = undefined;
+    this.mother_name = undefined;
+    this.phone_no = undefined;
   }
 
   if (this.role === "Admin") {
@@ -90,6 +144,14 @@ userSchema.pre("validate", function () {
     this.supervisor = undefined;
     this.project = undefined;
     this.maxStudents = undefined;
+    this.roll_no = undefined;
+    this.semester = undefined;
+    this.session = undefined;
+    this.address = undefined;
+    this.father_name = undefined;
+    this.mother_name = undefined;
+    this.phone_no = undefined;
+    this.ocAssignments = undefined;
   }
 });
 

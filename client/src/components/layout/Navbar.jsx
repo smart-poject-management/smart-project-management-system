@@ -59,13 +59,13 @@ const Navbar = ({ sidebarOpen, setSidebarOpen, userRole }) => {
           <div className="flex items-center">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+              className="p-1 rounded-lg text-slate-600 hover:bg-slate-100"
             >
               ☰
             </button>
 
             <h1 className="ml-4 text-lg font-semibold">
-              Final Year Project Management System
+              Smart Education System
             </h1>
           </div>
 

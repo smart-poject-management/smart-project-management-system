@@ -11,6 +11,7 @@ import projectRoutes from './router/projectRoutes.js';
 import deadlineRoutes from './router/deadlineRoutes.js';
 import teacherRoutes from './router/teacherRoutes.js';
 import departmentRoutes from './router/departmentRoutes.js';
+import attendanceRoutes from "./router/attendanceRoutes.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -52,6 +53,7 @@ app.use("/api/project", projectRoutes);
 app.use("/api/deadline", deadlineRoutes);
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/department", departmentRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 app.use(errorMiddleware);
 

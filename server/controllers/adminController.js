@@ -8,7 +8,19 @@ import ErrorHandler from "../middlewares/error.js";
 import * as notificationService from "../services/notificationService.js";
 
 export const createStudent = asyncHandler(async (req, res) => {
-  const { name, email, password, department } = req.body;
+  const {
+    name,
+    email,
+    password,
+    department,
+    roll_no,
+    semester,
+    session,
+    address,
+    father_name,
+    mother_name,
+    phone_no,
+  } = req.body;
 
   if (!name || !password || !email || !department) {
     return res
@@ -21,6 +33,13 @@ export const createStudent = asyncHandler(async (req, res) => {
     password,
     department,
     role: "Student",
+    roll_no,
+    semester: semester || 1,
+    session,
+    address,
+    father_name,
+    mother_name,
+    phone_no,
   });
   const populatedUser = await User.findById(user._id)
     .populate("department", "department")
