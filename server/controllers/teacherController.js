@@ -166,22 +166,24 @@ export const rejectRequest = asyncHandler(async (req, res, next) => {
 export const getAssignedStudents = asyncHandler(async (req, res) => {
   const teacherId = req.user._id;
 
-  const students = await User.find({
-    supervisor: teacherId,
-    role: "Student",
-  })
-    .populate("project")
+  const projects = await Project.find({ supervisor: teacherId })
+    .populate("student", "name email department")
+    .select("title status student createdAt")
     .sort({ createdAt: -1 });
 
-  const total = await User.countDocuments({
-    supervisor: teacherId,
-    role: "Student",
-  });
+  const students = projects.map((project) => ({
+    _id: project.student._id,
+    name: project.student.name,
+    email: project.student.email,
+    department: project.student.department,
+    projectTitle: project.title,
+    status: project.status,
+    projectId: project._id,
+  }));
 
   res.status(200).json({
     success: true,
-    message: "Assigned students fetched successfully.",
-    data: { students, total },
+    data: { students, total: students.length },
   });
 });
 

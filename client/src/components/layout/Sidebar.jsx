@@ -50,6 +50,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             path: "/teacher/notifications",
             icon: "bell",
           },
+          {
+            name: "Students Overview",
+            path: "/teacher/students",
+            icon: "users",
+          },
         ];
       case "Admin":
         return [
@@ -311,14 +316,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <rect
-              x="4"
-              y="3"
-              width="16"
-              height="18"
-              rx="2"
-              strokeWidth="2"
-            />
+            <rect x="4" y="3" width="16" height="18" rx="2" strokeWidth="2" />
             <path
               strokeWidth="2"
               strokeLinecap="round"
@@ -326,11 +324,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
          M8 11h.01M12 11h.01M16 11h.01
          M8 15h.01M12 15h.01M16 15h.01"
             />
-            <path
-              strokeWidth="2"
-              strokeLinecap="round"
-              d="M10 21v-3h4v3"
-            />
+            <path strokeWidth="2" strokeLinecap="round" d="M10 21v-3h4v3" />
           </svg>
         );
       default:

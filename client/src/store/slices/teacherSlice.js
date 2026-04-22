@@ -5,6 +5,9 @@ import { toast } from "react-toastify";
 const getErrorMessage = error =>
   error?.response?.data?.message || "Something went wrong";
 
+/* ================================
+   DASHBOARD
+================================ */
 export const getTeacherDashboardStats = createAsyncThunk(
   "teacher/getDashboardStats",
   async (_, thunkAPI) => {
@@ -19,6 +22,9 @@ export const getTeacherDashboardStats = createAsyncThunk(
   }
 );
 
+/* ================================
+   REQUESTS
+================================ */
 export const getTeacherRequests = createAsyncThunk(
   "teacher/getRequests",
   async (supervisorId, thunkAPI) => {
@@ -69,6 +75,28 @@ export const rejectRequest = createAsyncThunk(
   }
 );
 
+/* ================================
+   STUDENTS (🔥 MAIN FEATURE)
+================================ */
+export const getAssignedStudents = createAsyncThunk(
+  "teacher/getAssignedStudents",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/teacher/assigned-students");
+
+      // ✅ SAFE NORMALIZATION
+      return res?.data?.data?.students || [];
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
+/* ================================
+   PROJECT ACTIONS
+================================ */
 export const markComplete = createAsyncThunk(
   "teacher/markComplete",
   async (projectId, thunkAPI) => {
@@ -107,20 +135,9 @@ export const addFeedback = createAsyncThunk(
   }
 );
 
-export const getAssignedStudents = createAsyncThunk(
-  "teacher/getAssignedStudents",
-  async (_, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get("/teacher/assigned-students");
-      return res.data;
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
-
+/* ================================
+   FILES
+================================ */
 export const downloadTeacherFile = createAsyncThunk(
   "teacher/downloadFile",
   async ({ projectId, fileId, fileName }, thunkAPI) => {
@@ -141,7 +158,7 @@ export const downloadTeacherFile = createAsyncThunk(
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      toast.success(`Downloaded Successfully`);
+      toast.success("Downloaded Successfully");
 
       return { success: true };
     } catch (error) {
@@ -166,10 +183,14 @@ export const getTeacherFiles = createAsyncThunk(
   }
 );
 
+/* ================================
+   SLICE
+================================ */
 const teacherSlice = createSlice({
   name: "teacher",
   initialState: {
     assignedStudents: [],
+    selectedStudent: null, // 🔥 IMPORTANT
     files: [],
     pendingRequests: [],
     dashboardStats: null,
@@ -177,24 +198,40 @@ const teacherSlice = createSlice({
     error: null,
     list: [],
   },
-  reducers: {},
+
+  reducers: {
+    // 🔥 SELECT STUDENT (UI FIX)
+    setSelectedStudent: (state, action) => {
+      state.selectedStudent = action.payload;
+    },
+  },
+
   extraReducers: builder => {
     builder
 
+      /* ======================
+         STUDENTS
+      ====================== */
       .addCase(getAssignedStudents.pending, state => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(getAssignedStudents.fulfilled, (state, action) => {
         state.loading = false;
-        state.assignedStudents =
-          action.payload?.data?.students || action.payload || [];
+        state.assignedStudents = action.payload;
+
+        // ⭐ AUTO SELECT FIRST STUDENT
+        if (action.payload.length > 0) {
+          state.selectedStudent = action.payload[0];
+        }
       })
       .addCase(getAssignedStudents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
+      /* ======================
+         FEEDBACK
+      ====================== */
       .addCase(addFeedback.fulfilled, (state, action) => {
         const { projectId, feedback } = action.payload;
 
@@ -212,6 +249,9 @@ const teacherSlice = createSlice({
         });
       })
 
+      /* ======================
+         MARK COMPLETE
+      ====================== */
       .addCase(markComplete.fulfilled, (state, action) => {
         const { projectId } = action.payload;
 
@@ -229,10 +269,16 @@ const teacherSlice = createSlice({
         });
       })
 
+      /* ======================
+         DASHBOARD
+      ====================== */
       .addCase(getTeacherDashboardStats.fulfilled, (state, action) => {
         state.dashboardStats = action.payload?.data?.dashboardStats;
       })
 
+      /* ======================
+         REQUESTS
+      ====================== */
       .addCase(getTeacherRequests.fulfilled, (state, action) => {
         state.list = action.payload?.data?.requests || [];
       })
@@ -249,10 +295,15 @@ const teacherSlice = createSlice({
         state.list = state.list.filter(r => r._id !== rejected._id);
       })
 
+      /* ======================
+         FILES
+      ====================== */
       .addCase(getTeacherFiles.fulfilled, (state, action) => {
         state.files = action.payload?.data?.files || [];
       });
   },
 });
+
+export const { setSelectedStudent } = teacherSlice.actions;
 
 export default teacherSlice.reducer;
