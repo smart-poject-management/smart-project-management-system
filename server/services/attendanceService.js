@@ -5,6 +5,14 @@ import { buildStudentFilters } from "../utils/studentFilters.js";
 import { calculateAttendancePercentage } from "../utils/attendanceUtils.js";
 
 const normalizeDate = (value) => {
+  if (typeof value === "string") {
+    const matched = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (matched) {
+      const [, year, month, day] = matched;
+      return new Date(Number(year), Number(month) - 1, Number(day));
+    }
+  }
+
   const parsed = new Date(value);
   return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 };
@@ -19,20 +27,92 @@ const PRESENT_UNITS_EXPR = {
   },
 };
 
+const ensureValidSemester = (semester) => {
+  const parsedSemester = Number(semester);
+  if (!Number.isInteger(parsedSemester) || parsedSemester < 1 || parsedSemester > 8) {
+    return null;
+  }
+  return parsedSemester;
+};
+
+const getTeacherAssignments = async (teacherId) => {
+  const teacher = await User.findOne({ _id: teacherId, role: "Teacher" })
+    .select("department ocAssignments")
+    .lean();
+
+  return teacher?.ocAssignments || [];
+};
+
+const normalizeDepartmentId = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (value._id) return value._id.toString();
+  return value.toString();
+};
+
+const hasAssignmentForPair = (assignments, departmentId, semester) => {
+  const targetDepartmentId = normalizeDepartmentId(departmentId);
+  return assignments.some((assignment) => {
+    const assignmentDepartmentId = normalizeDepartmentId(assignment.department);
+    return (
+      assignmentDepartmentId === targetDepartmentId &&
+      Number(assignment.semester) === Number(semester)
+    );
+  });
+};
+
+export const getTeacherAttendanceScope = async ({
+  teacherId,
+  department,
+  semester,
+}) => {
+  const assignments = await getTeacherAssignments(teacherId);
+  if (!assignments.length) {
+    return null;
+  }
+
+  if (!department || !semester) {
+    return {
+      department: assignments[0].department.toString(),
+      semester: Number(assignments[0].semester),
+      assignments,
+    };
+  }
+
+  const parsedSemester = ensureValidSemester(semester);
+  if (!parsedSemester) {
+    return null;
+  }
+
+  const isAllowed = hasAssignmentForPair(assignments, department, parsedSemester);
+  if (!isAllowed) {
+    return null;
+  }
+
+  return {
+    department,
+    semester: parsedSemester,
+    assignments,
+  };
+};
+
 export const markBulkAttendance = async ({ entries, markedBy }) => {
+  const currentMarkedAt = new Date();
+  const currentAttendanceDay = normalizeDate(currentMarkedAt);
+
   const operations = entries.map((entry) => ({
     updateOne: {
       filter: {
         student: entry.studentId,
-        date: normalizeDate(entry.date),
+        attendanceDay: currentAttendanceDay,
       },
       update: {
         $setOnInsert: {
           student: entry.studentId,
-          date: normalizeDate(entry.date),
-          markedBy,
+          attendanceDay: currentAttendanceDay,
         },
         $set: {
+          date: currentMarkedAt,
           status: entry.status,
           markedBy,
         },
@@ -58,13 +138,27 @@ export const getStudentsForAttendance = async ({
   session,
   semester,
 }) => {
-  const filters = buildStudentFilters({ department, session, semester });
+  let scopedDepartment = department;
+  let scopedSemester = semester;
 
-  // Teachers should be able to mark attendance for all students;
-  // filtering is handled by optional department/session/semester params.
-  // Keep teacherId/role in signature for future role-specific policy extensions.
-  void teacherId;
-  void role;
+  if (role === "Teacher") {
+    const scope = await getTeacherAttendanceScope({
+      teacherId,
+      department,
+      semester,
+    });
+    if (!scope) {
+      return [];
+    }
+    scopedDepartment = scope.department;
+    scopedSemester = scope.semester;
+  }
+
+  const filters = buildStudentFilters({
+    department: scopedDepartment,
+    session,
+    semester: scopedSemester,
+  });
 
   const students = await User.find(filters)
     .select("name email roll_no department semester session")
@@ -72,13 +166,24 @@ export const getStudentsForAttendance = async ({
     .sort({ createdAt: -1 })
     .lean();
 
-  // Temporary debug log for attendance fetch flow.
-  console.log("[Attendance][Service] getStudentsForAttendance", {
-    filters,
-    count: students.length,
-  });
-
   return students;
+};
+
+export const getDateAttendanceForStudents = async ({ studentIds, date }) => {
+  const normalizedDate = normalizeDate(date);
+
+  const records = await Attendance.find({
+    student: { $in: studentIds },
+    $or: [
+      { attendanceDay: normalizedDate },
+      { date: normalizedDate },
+    ],
+  })
+    .select("student status date markedBy")
+    .populate("markedBy", "name email")
+    .lean();
+
+  return records;
 };
 
 export const getStudentAttendanceHistory = async (studentId) =>
@@ -159,3 +264,101 @@ export const getAttendanceOverview = async ({ department, session, semester }) =
     },
   };
 };
+
+export const assignOcByDepartmentSemester = async ({
+  teacherId,
+  departmentId,
+  semester,
+}) => {
+  const parsedSemester = ensureValidSemester(semester);
+  if (!parsedSemester) {
+    throw new Error("Semester must be between 1 and 8");
+  }
+
+  const teacher = await User.findOne({ _id: teacherId, role: "Teacher" });
+  if (!teacher) {
+    throw new Error("Teacher not found");
+  }
+
+  if (!teacher.department || teacher.department.toString() !== departmentId.toString()) {
+    throw new Error("Only same department teacher can be assigned as OC");
+  }
+
+  await User.updateMany(
+    {
+      role: "Teacher",
+      _id: { $ne: teacherId },
+    },
+    {
+      $pull: {
+        ocAssignments: {
+          department: departmentId,
+          semester: parsedSemester,
+        },
+      },
+    },
+  );
+
+  await User.findByIdAndUpdate(teacherId, {
+    $addToSet: {
+      ocAssignments: {
+        department: departmentId,
+        semester: parsedSemester,
+      },
+    },
+  });
+
+  return User.findById(teacherId)
+    .select("name email department ocAssignments")
+    .populate("department", "department")
+    .populate("ocAssignments.department", "department")
+    .lean();
+};
+
+export const getOcAssignments = async ({ department }) => {
+  const query = {
+    role: "Teacher",
+    ocAssignments: { $exists: true, $ne: [] },
+  };
+  if (department) {
+    query["ocAssignments.department"] = department;
+  }
+
+  const teachers = await User.find(query)
+    .select("name email department ocAssignments")
+    .populate("department", "department")
+    .populate("ocAssignments.department", "department")
+    .lean();
+
+  const rows = [];
+  teachers.forEach((teacher) => {
+    (teacher.ocAssignments || []).forEach((assignment) => {
+      if (department && assignment.department?._id?.toString() !== department.toString()) {
+        return;
+      }
+      rows.push({
+        teacher: {
+          _id: teacher._id,
+          name: teacher.name,
+          email: teacher.email,
+        },
+        department: assignment.department,
+        semester: assignment.semester,
+      });
+    });
+  });
+
+  return rows;
+};
+
+export const getTeacherOcAssignments = async (teacherId) => {
+  const teacher = await User.findOne({ _id: teacherId, role: "Teacher" })
+    .select("ocAssignments")
+    .populate("ocAssignments.department", "department")
+    .lean();
+
+  return teacher?.ocAssignments || [];
+};
+
+export const canTeacherManageStudentAttendance = ({ assignments, student }) =>
+  hasAssignmentForPair(assignments, student.department, student.semester);

@@ -56,8 +56,8 @@ const AttendancePage = () => {
             <thead className="bg-slate-100 text-slate-700 uppercase text-xs">
               <tr>
                 <th className="px-6 py-3">Date</th>
-                <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Marked By</th>
+                <th className="px-6 py-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -66,6 +66,7 @@ const AttendancePage = () => {
                   <td className="px-6 py-4">
                     {new Date(record.date).toLocaleDateString("en-GB")}
                   </td>
+                  <td className="px-6 py-4">{record.markedBy?.name || "-"}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(
@@ -75,7 +76,6 @@ const AttendancePage = () => {
                       {record.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">{record.markedBy?.name || "-"}</td>
                 </tr>
               ))}
             </tbody>

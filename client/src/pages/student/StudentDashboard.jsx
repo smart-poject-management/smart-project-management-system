@@ -91,16 +91,6 @@ const StudentDashboard = () => {
           color="bg-orange-500"
         />
         <StatCard
-          icon={MessageSquare}
-          title="Latest Feedback"
-          value={
-            feedbackList?.length
-              ? formatDate(feedbackList[0]?.createdAt)
-              : "No feedback"
-          }
-          color="bg-purple-500"
-        />
-        <StatCard
           icon={Percent}
           title="Attendance %"
           value={`${attendanceSummary.percentage || 0}%`}

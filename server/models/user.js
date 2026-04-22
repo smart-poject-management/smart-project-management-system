@@ -91,6 +91,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    ocAssignments: [
+      {
+        department: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Department",
+          required: true,
+        },
+        semester: {
+          type: Number,
+          required: true,
+          min: 1,
+          max: 8,
+        },
+      },
+    ],
   },
   { timestamps: true },
 );
@@ -108,6 +123,7 @@ userSchema.pre("validate", function () {
     this.expertise = undefined;
     this.assignedStudents = undefined;
     this.maxStudents = undefined;
+    this.ocAssignments = undefined;
   }
 
   if (this.role === "Teacher") {
@@ -135,6 +151,7 @@ userSchema.pre("validate", function () {
     this.father_name = undefined;
     this.mother_name = undefined;
     this.phone_no = undefined;
+    this.ocAssignments = undefined;
   }
 });
 

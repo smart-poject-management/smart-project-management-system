@@ -1,7 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Sidebar = ({ open, setOpen, userRole }) => {
   const location = useLocation();
+  const { authUser } = useSelector((state) => state.auth);
 
   const getNavigationItems = () => {
     switch (userRole) {
@@ -60,7 +62,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             path: "/teacher/notifications",
             icon: "bell",
           },
-        ];
+        ].filter((item) =>
+          item.path === "/teacher/attendance"
+            ? Array.isArray(authUser?.ocAssignments) && authUser.ocAssignments.length > 0
+            : true,
+        );
       case "Admin":
         return [
           { name: "Home", path: "/admin", icon: "home" },

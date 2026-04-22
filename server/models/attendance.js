@@ -13,6 +13,10 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    attendanceDay: {
+      type: Date,
+      index: true,
+    },
     status: {
       type: String,
       enum: ["Present", "Absent", "Half Day", "Leave"],
@@ -27,6 +31,9 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-attendanceSchema.index({ student: 1, date: 1 }, { unique: true });
+attendanceSchema.index(
+  { student: 1, attendanceDay: 1 },
+  { unique: true, partialFilterExpression: { attendanceDay: { $exists: true } } },
+);
 
 export const Attendance = mongoose.model("Attendance", attendanceSchema);
