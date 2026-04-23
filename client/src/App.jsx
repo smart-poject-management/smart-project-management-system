@@ -46,6 +46,9 @@ import { fetchDashboardStats } from "./store/slices/studentSlice";
 import Unauthorized from "./pages/Unauthorized";
 import Department from "./pages/admin/Department";
 import AdminAttendancePage from "./pages/admin/AttendancePage";
+import StudentsOverview from "./pages/teacher/StudentsOverview";
+import LearningTab from "./pages/student/LearningTab";
+import StudentWorkspace from "./components/StudentWorkspace";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
@@ -136,8 +139,12 @@ const App = () => {
           <Route index element={<StudentDashboard />} />
           <Route path="submit-proposal" element={<SubmitProposal />} />
           <Route path="upload-files" element={<UploadFiles />} />
-          <Route path="deadline-extension" element={<DeadlineExtensionRequest />} />
+          <Route
+            path="deadline-extension"
+            element={<DeadlineExtensionRequest />}
+          />
           <Route path="supervisor" element={<SupervisorPage />} />
+          <Route path="/student/learning" element={<StudentWorkspace />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="attendance" element={<StudentAttendancePage />} />
           <Route path="notifications" element={<NotificationsPage />} />
@@ -158,6 +165,7 @@ const App = () => {
           <Route path="attendance" element={<TeacherAttendancePage />} />
           <Route path="files" element={<TeacherFiles />} />
           <Route path="notifications" element={<TeacherNotificationsPage />} />
+          <Route path="/teacher/students" element={<StudentsOverview />} />
         </Route>
 
         <Route path="unauthorized" element={<Unauthorized />} />

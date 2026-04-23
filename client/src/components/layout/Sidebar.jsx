@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 
 const Sidebar = ({ open, setOpen, userRole }) => {
   const location = useLocation();
-  const { authUser } = useSelector((state) => state.auth);
+  const { authUser } = useSelector(state => state.auth);
 
   const getNavigationItems = () => {
     switch (userRole) {
@@ -26,6 +26,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             icon: "calendar",
           },
           { name: "Supervisor", path: "/student/supervisor", icon: "user" },
+          { name: "Learning", path: "/student/learning", icon: "book" },
           { name: "Feedback", path: "/student/feedback", icon: "chat" },
           {
             name: "Attendance",
@@ -62,11 +63,18 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             path: "/teacher/notifications",
             icon: "bell",
           },
-        ].filter((item) =>
+          {
+            name: "Students Overview",
+            path: "/teacher/students",
+            icon: "users",
+          },
+        ].filter(item =>
           item.path === "/teacher/attendance"
-            ? Array.isArray(authUser?.ocAssignments) && authUser.ocAssignments.length > 0
-            : true,
+            ? Array.isArray(authUser?.ocAssignments) &&
+              authUser.ocAssignments.length > 0
+            : true
         );
+
       case "Admin":
         return [
           { name: "Home", path: "/admin", icon: "home" },
@@ -328,14 +336,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <rect
-              x="4"
-              y="3"
-              width="16"
-              height="18"
-              rx="2"
-              strokeWidth="2"
-            />
+            <rect x="4" y="3" width="16" height="18" rx="2" strokeWidth="2" />
             <path
               strokeWidth="2"
               strokeLinecap="round"
@@ -343,11 +344,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
          M8 11h.01M12 11h.01M16 11h.01
          M8 15h.01M12 15h.01M16 15h.01"
             />
-            <path
-              strokeWidth="2"
-              strokeLinecap="round"
-              d="M10 21v-3h4v3"
-            />
+            <path strokeWidth="2" strokeLinecap="round" d="M10 21v-3h4v3" />
           </svg>
         );
       default:

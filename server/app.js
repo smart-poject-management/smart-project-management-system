@@ -12,6 +12,9 @@ import deadlineRoutes from './router/deadlineRoutes.js';
 import teacherRoutes from './router/teacherRoutes.js';
 import departmentRoutes from './router/departmentRoutes.js';
 import attendanceRoutes from "./router/attendanceRoutes.js";
+import assignmentRoutes from "./router/assignmentRoutes.js";
+import chatRoutes from "./router/chatRoutes.js";
+import learningRoutes from "./router/learningRoutes.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -54,6 +57,9 @@ app.use("/api/deadline", deadlineRoutes);
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/department", departmentRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/assignment", assignmentRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/learning", learningRoutes);
 
 app.use(errorMiddleware);
 
