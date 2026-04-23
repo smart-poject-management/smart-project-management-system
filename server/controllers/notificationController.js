@@ -13,7 +13,7 @@ export const getNotifications = asyncHandler(async (req, res) => {
   };
 
   if (role === "Admin") {
-    query.type = { $in: ["request", "approval", "deadline"] };
+    query.type = { $in: ["request", "approval", "deadline", "FEE_PAYMENT"] };
   }
 
   const notifications = await Notification.find(query).sort({ createdAt: -1 });

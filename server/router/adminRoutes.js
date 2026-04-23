@@ -7,8 +7,11 @@ import {
   deleteTeacher,
   getAllProjects,
   getAllUsers,
+  getAdminNotifications,
+  getAllStudentsFeeStatus,
   getDashboardStats,
   getProject,
+  markAdminNotificationAsRead,
   updateProjectStatus,
   updateTeacher,
 } from "../controllers/adminController.js";
@@ -69,6 +72,34 @@ router.get(
   isAuthenticated,
   isAuthorized("Admin"),
   getDashboardStats,
+);
+
+router.get(
+  "/all-fees",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  getAllStudentsFeeStatus
+);
+
+router.get(
+  "/notifications",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  getAdminNotifications
+);
+
+router.patch(
+  "/notifications/:id",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  markAdminNotificationAsRead
+);
+
+router.get(
+  "/fees-status",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  getAllStudentsFeeStatus
 );
 
 router.get(

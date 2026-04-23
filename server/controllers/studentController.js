@@ -14,6 +14,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { DeadlineExtensionRequest } from "../models/deadlineExtensionRequest.js";
 import { getStudentAttendanceSummary } from "../services/attendanceService.js";
+import {
+  mapFeeWithPending,
+  validateFees,
+} from "../services/feeService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -349,6 +353,87 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
       supervisorName: project?.supervisor?.name || null,
       attendanceSummary,
     },
+  });
+});
+
+export const getMyFees = asyncHandler(async (req, res) => {
+  const student = await User.findById(req.user._id).select("fees").lean();
+  const fees = (student?.fees || []).map(mapFeeWithPending);
+
+  res.status(200).json({
+    success: true,
+    data: { fees },
+  });
+});
+
+export const payMyFees = asyncHandler(async (req, res) => {
+  const { semester, amount } = req.body;
+  const paidAmountToAdd = Number(amount);
+  const semesterNumber = Number(semester);
+
+  if (!Number.isInteger(semesterNumber) || semesterNumber < 1 || semesterNumber > 8) {
+    return res.status(400).json({ message: "Valid semester is required" });
+  }
+
+  if (!Number.isFinite(paidAmountToAdd) || paidAmountToAdd <= 0) {
+    return res.status(400).json({ message: "Amount must be greater than 0" });
+  }
+
+  const student = await User.findById(req.user._id).select("name fees");
+  if (!student) {
+    return res.status(404).json({ message: "Student not found" });
+  }
+
+  const feeIndex = (student.fees || []).findIndex(
+    (item) => Number(item.semester) === semesterNumber,
+  );
+
+  if (feeIndex === -1) {
+    return res.status(404).json({ message: "Fee entry not found for this semester" });
+  }
+
+  const fee = student.fees[feeIndex];
+  const currentPaidAmount = (fee.payments || []).reduce(
+    (sum, payment) => sum + Number(payment.amount || 0),
+    0,
+  );
+  const updatedPaidAmount = currentPaidAmount + paidAmountToAdd;
+
+  if (updatedPaidAmount > Number(fee.totalAmount)) {
+    return res.status(400).json({ message: "Payment exceeds total semester fee" });
+  }
+
+  student.fees[feeIndex].payments.push({
+    amount: paidAmountToAdd,
+    date: new Date(),
+  });
+  student.fees[feeIndex].paidAmount = updatedPaidAmount;
+  const feeValidationError = validateFees(student.fees);
+  if (feeValidationError) {
+    return res.status(400).json({ message: feeValidationError });
+  }
+
+  await student.save();
+
+  const updatedFee = mapFeeWithPending(student.fees[feeIndex]);
+  const latestPayment = student.fees[feeIndex].payments?.[
+    student.fees[feeIndex].payments.length - 1
+  ];
+
+  await notificationService.notifyAdminsOnFeePayment({
+    studentId: student._id,
+    studentName: student.name,
+    semester: updatedFee.semester,
+    amountPaid: paidAmountToAdd,
+    totalFees: updatedFee.totalAmount,
+    remainingFees: updatedFee.pendingAmount,
+    paymentDate: latestPayment?.date || new Date(),
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Fee paid successfully",
+    data: { fee: updatedFee },
   });
 });
 

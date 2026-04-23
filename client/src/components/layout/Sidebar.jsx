@@ -33,6 +33,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             icon: "check",
           },
           {
+            name: "My Fees",
+            path: "/student/fees",
+            icon: "fees",
+          },
+          {
             name: "Notifications",
             path: "/student/notifications",
             icon: "bell",
@@ -84,6 +89,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
           { name: "Deadlines", path: "/admin/deadlines", icon: "calendar" },
           { name: "Projects", path: "/admin/projects", icon: "folder" },
           { name: "Attendance", path: "/admin/attendance", icon: "check" },
+          { name: "Fees Status", path: "/admin/fees", icon: "fees" },
           {
             name: "Department",
             path: "/admin/departments",
@@ -350,6 +356,22 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             />
           </svg>
         );
+      case "fees":
+        return (
+          <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8c-1.657 0-3 .672-3 1.5S10.343 11 12 11s3 .672 3 1.5S13.657 14 12 14s-3 .672-3 1.5S10.343 17 12 17m0-9v9m8-5a8 8 0 11-16 0 8 8 0 0116 0z"
+            />
+          </svg>
+        );
       default:
         return (
           <svg
@@ -389,7 +411,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   key={item.path}
                   to={item.path}
                   // isActive is remove
-                  className={({}) => `  
+                  className={() => `  
                     flex items-center px-4 py-3 rounded-lg transition-all duration-200
                     ${
                       isActive

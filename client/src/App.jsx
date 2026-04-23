@@ -18,6 +18,7 @@ import DeadlineExtensionRequest from "./pages/student/DeadlineExtensionRequest";
 import FeedbackPage from "./pages/student/FeedbackPage";
 import NotificationsPage from "./pages/student/NotificationsPage";
 import StudentAttendancePage from "./pages/student/AttendancePage";
+import MyFees from "./pages/student/MyFees";
 
 // Teacher Pages
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
@@ -46,6 +47,7 @@ import { fetchDashboardStats } from "./store/slices/studentSlice";
 import Unauthorized from "./pages/Unauthorized";
 import Department from "./pages/admin/Department";
 import AdminAttendancePage from "./pages/admin/AttendancePage";
+import FeesStatus from "./pages/admin/FeesStatus";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
@@ -121,6 +123,7 @@ const App = () => {
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="departments" element={<Department />} />
           <Route path="attendance" element={<AdminAttendancePage />} />
+          <Route path="fees" element={<FeesStatus />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
         </Route>
 
@@ -140,6 +143,7 @@ const App = () => {
           <Route path="supervisor" element={<SupervisorPage />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="attendance" element={<StudentAttendancePage />} />
+          <Route path="fees" element={<MyFees />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 

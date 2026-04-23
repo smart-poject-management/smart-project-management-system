@@ -3,6 +3,48 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
+const feeSchema = new mongoose.Schema(
+  {
+    semester: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 8,
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    payments: {
+      type: [
+        new mongoose.Schema(
+          {
+            amount: {
+              type: Number,
+              required: true,
+              min: 0,
+            },
+            date: {
+              type: Date,
+              required: true,
+              default: Date.now,
+            },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
+    paidAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+  },
+  { _id: false },
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -106,6 +148,17 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    fees: {
+      type: [feeSchema],
+      default: [],
+      validate: {
+        validator: function (fees) {
+          const semesters = fees.map((item) => Number(item.semester));
+          return new Set(semesters).size === semesters.length;
+        },
+        message: "Duplicate fee entry found for the same semester",
+      },
+    },
   },
   { timestamps: true },
 );
@@ -136,6 +189,7 @@ userSchema.pre("validate", function () {
     this.father_name = undefined;
     this.mother_name = undefined;
     this.phone_no = undefined;
+    this.fees = undefined;
   }
 
   if (this.role === "Admin") {
@@ -152,6 +206,7 @@ userSchema.pre("validate", function () {
     this.mother_name = undefined;
     this.phone_no = undefined;
     this.ocAssignments = undefined;
+    this.fees = undefined;
   }
 });
 

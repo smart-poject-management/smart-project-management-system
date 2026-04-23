@@ -35,6 +35,7 @@ const notificationSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
+        "FEE_PAYMENT",
         "general",
         "request",
         "approval",
@@ -45,6 +46,33 @@ const notificationSchema = new mongoose.Schema(
         "system",
       ],
       default: "general",
+    },
+    studentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    data: {
+      semester: {
+        type: Number,
+        default: null,
+      },
+      amountPaid: {
+        type: Number,
+        default: null,
+      },
+      totalFees: {
+        type: Number,
+        default: null,
+      },
+      remainingFees: {
+        type: Number,
+        default: null,
+      },
+      paymentDate: {
+        type: Date,
+        default: null,
+      },
     },
 
     priority: {
