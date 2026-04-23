@@ -3,6 +3,7 @@ import { Project } from "../models/project.js"
 import { SupervisorRequest } from "../models/supervisorRequest.js"
 import { Notification } from "../models/notifications.js"
 import { Deadline } from "../models/deadline.js"
+import { Attendance } from "../models/attendance.js"
 
 export const createUser = async (userData) => {
     try {
@@ -44,6 +45,7 @@ export const deleteUser = async (id) => {
         await Deadline.deleteMany({ project: studentProject?._id });
 
         await SupervisorRequest.deleteMany({ student: id });
+        await Attendance.deleteMany({ student: id });
 
         if (user.supervisor) {
             await User.findByIdAndUpdate(
@@ -75,6 +77,8 @@ export const deleteUser = async (id) => {
                 { supervisor: null }
             );
         }
+
+        await Attendance.deleteMany({ markedBy: id });
     }
 
     await Notification.deleteMany({ user: id });

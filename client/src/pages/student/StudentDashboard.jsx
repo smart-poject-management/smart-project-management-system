@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   MessageCircleOff,
   Send,
+  Percent,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -28,6 +29,7 @@ const StudentDashboard = () => {
   const upcomingDeadlines = dashboardStats?.upcomingDeadlines || [];
   const topNotifications = dashboardStats?.topNotification || [];
   const feedbackList = dashboardStats?.feedbackNotification || [];
+  const attendanceSummary = dashboardStats?.attendanceSummary || {};
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
@@ -89,14 +91,10 @@ const StudentDashboard = () => {
           color="bg-orange-500"
         />
         <StatCard
-          icon={MessageSquare}
-          title="Latest Feedback"
-          value={
-            feedbackList?.length
-              ? formatDate(feedbackList[0]?.createdAt)
-              : "No feedback"
-          }
-          color="bg-purple-500"
+          icon={Percent}
+          title="Attendance %"
+          value={`${attendanceSummary.percentage || 0}%`}
+          color="bg-sky-500"
         />
       </div>
 

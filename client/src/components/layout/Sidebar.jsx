@@ -1,7 +1,9 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Sidebar = ({ open, setOpen, userRole }) => {
   const location = useLocation();
+  const { authUser } = useSelector((state) => state.auth);
 
   const getNavigationItems = () => {
     switch (userRole) {
@@ -26,6 +28,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
           { name: "Supervisor", path: "/student/supervisor", icon: "user" },
           { name: "Feedback", path: "/student/feedback", icon: "chat" },
           {
+            name: "Attendance",
+            path: "/student/attendance",
+            icon: "check",
+          },
+          {
             name: "Notifications",
             path: "/student/notifications",
             icon: "bell",
@@ -44,13 +51,22 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             path: "/teacher/assigned-students",
             icon: "users",
           },
+          {
+            name: "Attendance",
+            path: "/teacher/attendance",
+            icon: "check",
+          },
           { name: "Files", path: "/teacher/files", icon: "folder" },
           {
             name: "Notifications",
             path: "/teacher/notifications",
             icon: "bell",
           },
-        ];
+        ].filter((item) =>
+          item.path === "/teacher/attendance"
+            ? Array.isArray(authUser?.ocAssignments) && authUser.ocAssignments.length > 0
+            : true,
+        );
       case "Admin":
         return [
           { name: "Home", path: "/admin", icon: "home" },
@@ -67,6 +83,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
           },
           { name: "Deadlines", path: "/admin/deadlines", icon: "calendar" },
           { name: "Projects", path: "/admin/projects", icon: "folder" },
+          { name: "Attendance", path: "/admin/attendance", icon: "check" },
           {
             name: "Department",
             path: "/admin/departments",
