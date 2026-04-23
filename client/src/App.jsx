@@ -47,6 +47,8 @@ import Unauthorized from "./pages/Unauthorized";
 import Department from "./pages/admin/Department";
 import AdminAttendancePage from "./pages/admin/AttendancePage";
 import StudentsOverview from "./pages/teacher/StudentsOverview";
+import LearningTab from "./pages/student/LearningTab";
+import StudentWorkspace from "./components/StudentWorkspace";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
@@ -142,6 +144,7 @@ const App = () => {
             element={<DeadlineExtensionRequest />}
           />
           <Route path="supervisor" element={<SupervisorPage />} />
+          <Route path="/student/learning" element={<StudentWorkspace />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="attendance" element={<StudentAttendancePage />} />
           <Route path="notifications" element={<NotificationsPage />} />

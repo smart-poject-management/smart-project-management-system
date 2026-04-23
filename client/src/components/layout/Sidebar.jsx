@@ -26,6 +26,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             icon: "calendar",
           },
           { name: "Supervisor", path: "/student/supervisor", icon: "user" },
+          { name: "Learning", path: "/student/learning", icon: "book" },
           { name: "Feedback", path: "/student/feedback", icon: "chat" },
           {
             name: "Attendance",

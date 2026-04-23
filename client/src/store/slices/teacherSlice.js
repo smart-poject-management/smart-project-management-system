@@ -5,9 +5,6 @@ import { toast } from "react-toastify";
 const getErrorMessage = error =>
   error?.response?.data?.message || "Something went wrong";
 
-/* ================================
-   DASHBOARD
-================================ */
 export const getTeacherDashboardStats = createAsyncThunk(
   "teacher/getDashboardStats",
   async (_, thunkAPI) => {
@@ -22,9 +19,6 @@ export const getTeacherDashboardStats = createAsyncThunk(
   }
 );
 
-/* ================================
-   REQUESTS
-================================ */
 export const getTeacherRequests = createAsyncThunk(
   "teacher/getRequests",
   async (supervisorId, thunkAPI) => {
@@ -75,9 +69,6 @@ export const rejectRequest = createAsyncThunk(
   }
 );
 
-/* ================================
-   STUDENTS (🔥 MAIN FEATURE)
-================================ */
 export const getAssignedStudents = createAsyncThunk(
   "teacher/getAssignedStudents",
   async (_, thunkAPI) => {
@@ -94,9 +85,6 @@ export const getAssignedStudents = createAsyncThunk(
   }
 );
 
-/* ================================
-   PROJECT ACTIONS
-================================ */
 export const markComplete = createAsyncThunk(
   "teacher/markComplete",
   async (projectId, thunkAPI) => {
@@ -135,9 +123,6 @@ export const addFeedback = createAsyncThunk(
   }
 );
 
-/* ================================
-   FILES
-================================ */
 export const downloadTeacherFile = createAsyncThunk(
   "teacher/downloadFile",
   async ({ projectId, fileId, fileName }, thunkAPI) => {
@@ -183,24 +168,79 @@ export const getTeacherFiles = createAsyncThunk(
   }
 );
 
-/* ================================
-   SLICE
-================================ */
+export const getAssignments = createAsyncThunk(
+  "teacher/getAssignments",
+  async (studentId, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get(`/assignment/${studentId}`);
+      return res.data.assignments;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to fetch assignments");
+    }
+  }
+);
+
+export const createAssignment = createAsyncThunk(
+  "teacher/createAssignment",
+  async (data, thunkAPI) => {
+    try {
+      const res = await axiosInstance.post("/assignment/create", data);
+      return res.data.assignment;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Failed to create assignment");
+    }
+  }
+);
+
+// Get messages
+export const getMessages = createAsyncThunk(
+  "teacher/getMessages",
+  async ({ senderId, receiverId }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get(`/chat/${senderId}/${receiverId}`);
+      return res.data.messages;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
+// Save message
+export const sendMessage = createAsyncThunk(
+  "teacher/sendMessage",
+  async ({ sender, receiver, message }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.post("/chat/send", {
+        sender,
+        receiver,
+        message,
+      });
+      return res.data.chat;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 const teacherSlice = createSlice({
   name: "teacher",
   initialState: {
     assignedStudents: [],
-    selectedStudent: null, // 🔥 IMPORTANT
+    selectedStudent: null,
     files: [],
     pendingRequests: [],
     dashboardStats: null,
     loading: false,
     error: null,
     list: [],
+    messages: [],
   },
 
   reducers: {
-    // 🔥 SELECT STUDENT (UI FIX)
     setSelectedStudent: (state, action) => {
       state.selectedStudent = action.payload;
     },
@@ -208,18 +248,12 @@ const teacherSlice = createSlice({
 
   extraReducers: builder => {
     builder
-
-      /* ======================
-         STUDENTS
-      ====================== */
       .addCase(getAssignedStudents.pending, state => {
         state.loading = true;
       })
       .addCase(getAssignedStudents.fulfilled, (state, action) => {
         state.loading = false;
         state.assignedStudents = action.payload;
-
-        // ⭐ AUTO SELECT FIRST STUDENT
         if (action.payload.length > 0) {
           state.selectedStudent = action.payload[0];
         }
@@ -228,10 +262,6 @@ const teacherSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      /* ======================
-         FEEDBACK
-      ====================== */
       .addCase(addFeedback.fulfilled, (state, action) => {
         const { projectId, feedback } = action.payload;
 
@@ -248,10 +278,6 @@ const teacherSlice = createSlice({
           return student;
         });
       })
-
-      /* ======================
-         MARK COMPLETE
-      ====================== */
       .addCase(markComplete.fulfilled, (state, action) => {
         const { projectId } = action.payload;
 
@@ -268,17 +294,10 @@ const teacherSlice = createSlice({
           return student;
         });
       })
-
-      /* ======================
-         DASHBOARD
-      ====================== */
       .addCase(getTeacherDashboardStats.fulfilled, (state, action) => {
         state.dashboardStats = action.payload?.data?.dashboardStats;
       })
 
-      /* ======================
-         REQUESTS
-      ====================== */
       .addCase(getTeacherRequests.fulfilled, (state, action) => {
         state.list = action.payload?.data?.requests || [];
       })
@@ -295,11 +314,15 @@ const teacherSlice = createSlice({
         state.list = state.list.filter(r => r._id !== rejected._id);
       })
 
-      /* ======================
-         FILES
-      ====================== */
       .addCase(getTeacherFiles.fulfilled, (state, action) => {
         state.files = action.payload?.data?.files || [];
+      })
+
+      .addCase(getMessages.fulfilled, (state, action) => {
+        state.messages = action.payload;
+      })
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        state.messages.push(action.payload);
       });
   },
 });

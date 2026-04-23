@@ -4,16 +4,10 @@ import {
   getAssignedStudents,
   setSelectedStudent,
 } from "../../store/slices/teacherSlice";
+import AssignmentsTab from "../../components/AssignmentsTab";
+import ChatTab from "../../components/ChatTab";
 
-const tabsList = [
-  "Overview",
-  "Assignments",
-  "Learning",
-  "Resources",
-  "Chat",
-  "Analytics",
-  "Calendar",
-];
+const tabsList = ["Overview", "Assignments", "Learning", "Chat"];
 
 const StudentsOverview = () => {
   const dispatch = useDispatch();
@@ -24,12 +18,10 @@ const StudentsOverview = () => {
 
   const [activeTab, setActiveTab] = useState("Overview");
 
-  // 🔥 Fetch students
   useEffect(() => {
     dispatch(getAssignedStudents());
   }, [dispatch]);
 
-  // 🔄 Loading
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full text-gray-500">
@@ -40,7 +32,6 @@ const StudentsOverview = () => {
 
   return (
     <div className="flex h-full bg-gray-50">
-      {/* 🧑‍🎓 LEFT SIDEBAR */}
       <div className="w-1/4 bg-white border-r overflow-y-auto">
         <h2 className="text-lg font-semibold p-4 border-b">Students</h2>
 
@@ -65,8 +56,6 @@ const StudentsOverview = () => {
           ))
         )}
       </div>
-
-      {/* 📊 RIGHT CONTENT */}
       <div className="flex-1 p-6">
         {!selectedStudent ? (
           <div className="flex items-center justify-center h-full text-gray-400 text-lg">
@@ -74,13 +63,11 @@ const StudentsOverview = () => {
           </div>
         ) : (
           <>
-            {/* 🔝 HEADER */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold">{selectedStudent.name}</h1>
               <p className="text-gray-500">{selectedStudent.email}</p>
             </div>
 
-            {/* 📌 TABS */}
             <div className="flex gap-6 border-b mb-6">
               {tabsList.map(tab => (
                 <button
@@ -97,15 +84,13 @@ const StudentsOverview = () => {
               ))}
             </div>
 
-            {/* 📄 TAB CONTENT */}
             <div className="bg-white p-6 rounded-xl shadow-sm min-h-[300px]">
-              {/* 🔹 OVERVIEW TAB */}
               {activeTab === "Overview" && (
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="text-gray-500 text-sm">Department</p>
                     <p className="font-medium">
-                      {selectedStudent.department || "N/A"}
+                      {selectedStudent.department?.department || "N/A"}
                     </p>
                   </div>
 
@@ -129,48 +114,17 @@ const StudentsOverview = () => {
                   </div>
                 </div>
               )}
-
-              {/* 🔹 ASSIGNMENTS TAB */}
               {activeTab === "Assignments" && (
-                <div className="text-gray-500">
-                  🚧 Assignment system coming next
-                </div>
+                <AssignmentsTab student={selectedStudent} />
               )}
 
-              {/* 🔹 LEARNING TAB */}
               {activeTab === "Learning" && (
                 <div className="text-gray-500">
                   📘 Learning materials will be shown here
                 </div>
               )}
 
-              {/* 🔹 RESOURCES TAB */}
-              {activeTab === "Resources" && (
-                <div className="text-gray-500">
-                  📂 Resources & files section
-                </div>
-              )}
-
-              {/* 🔹 CHAT TAB */}
-              {activeTab === "Chat" && (
-                <div className="text-gray-500">
-                  💬 Chat feature (can integrate socket.io)
-                </div>
-              )}
-
-              {/* 🔹 ANALYTICS TAB */}
-              {activeTab === "Analytics" && (
-                <div className="text-gray-500">
-                  📊 Analytics dashboard coming soon
-                </div>
-              )}
-
-              {/* 🔹 CALENDAR TAB */}
-              {activeTab === "Calendar" && (
-                <div className="text-gray-500">
-                  📅 Calendar integration pending
-                </div>
-              )}
+              {activeTab === "Chat" && <ChatTab student={selectedStudent} />}
             </div>
           </>
         )}
