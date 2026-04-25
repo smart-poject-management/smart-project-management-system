@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import { getFeesStatus } from "../../store/slices/adminSlice";
+import DataTable from "../../components/common/DataTable";
+import StatusBadge from "../../components/common/StatusBadge";
 
 const FeesStatus = () => {
   const dispatch = useDispatch();
   const { feeStatus } = useSelector((state) => state.admin);
   const [statusFilter, setStatusFilter] = useState("All");
   const [semesterFilter, setSemesterFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     dispatch(getFeesStatus());
@@ -18,26 +22,21 @@ const FeesStatus = () => {
         (student.fees || []).map((fee) => ({
           studentId: student.studentId,
           studentName: student.studentName,
+          rollNo: student.rollNo || "-",
+          department: student.department || "-",
           semester: fee.semester,
           totalAmount: fee.totalAmount,
           paidAmount: fee.paidAmount,
           pendingAmount: fee.pendingAmount,
           status: fee.status,
           payments: fee.payments || [],
+          lastPaymentDate: fee.payments?.length
+            ? fee.payments[fee.payments.length - 1]?.date
+            : null,
         })),
       ),
     [feeStatus],
   );
-
-  const getStatusStyles = (status) => {
-    if (status === "Paid") {
-      return "bg-green-100 text-green-700";
-    }
-    if (status === "Unpaid") {
-      return "bg-red-100 text-red-700";
-    }
-    return "bg-amber-100 text-amber-700";
-  };
 
   const formatDate = (date) => {
     if (!date) return "-";
@@ -60,10 +59,57 @@ const FeesStatus = () => {
         const matchesStatus = statusFilter === "All" || row.status === statusFilter;
         const matchesSemester =
           semesterFilter === "All" || Number(row.semester) === Number(semesterFilter);
-        return matchesStatus && matchesSemester;
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+        const matchesSearch =
+          !normalizedSearch ||
+          row.studentName?.toLowerCase().includes(normalizedSearch) ||
+          row.rollNo?.toLowerCase().includes(normalizedSearch);
+        return matchesStatus && matchesSemester && matchesSearch;
       }),
-    [rows, statusFilter, semesterFilter],
+    [rows, searchTerm, statusFilter, semesterFilter],
   );
+
+  const tableColumns = [
+    {
+      key: "studentName",
+      label: "Student Name",
+      render: (row) => (
+        <Link
+          to={`/admin/student-fees/${row.studentId}`}
+          className="font-medium text-indigo-700 hover:text-indigo-900 hover:underline"
+        >
+          {row.studentName}
+        </Link>
+      ),
+    },
+    { key: "department", label: "Department" },
+    { key: "semester", label: "Semester" },
+    {
+      key: "totalAmount",
+      label: "Total Fees",
+      render: (row) => `Rs. ${row.totalAmount}`,
+    },
+    {
+      key: "paidAmount",
+      label: "Paid Amount",
+      render: (row) => `Rs. ${row.paidAmount}`,
+    },
+    {
+      key: "pendingAmount",
+      label: "Pending Amount",
+      render: (row) => `Rs. ${row.pendingAmount}`,
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: "lastPaymentDate",
+      label: "Last Payment Date",
+      render: (row) => formatDate(row.lastPaymentDate),
+    },
+  ];
 
   const exportCsv = () => {
     if (!filteredRows.length) return;
@@ -133,6 +179,12 @@ const FeesStatus = () => {
           </div>
         </div>
         <div className="flex flex-col md:flex-row gap-2">
+          <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by student name or roll number"
+            className="border border-slate-300 rounded-lg px-3 py-2 text-sm min-w-[260px]"
+          />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -158,59 +210,14 @@ const FeesStatus = () => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-100 text-slate-700 uppercase text-xs">
-            <tr>
-              <th className="px-6 py-3">Student Name</th>
-              <th className="px-6 py-3">Semester</th>
-              <th className="px-6 py-3">Total</th>
-              <th className="px-6 py-3">Paid</th>
-              <th className="px-6 py-3">Pending</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3">Payment History</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {filteredRows.map((row, index) => (
-              <tr key={`${row.studentId}-${row.semester}-${index}`}>
-                <td className="px-6 py-4">{row.studentName}</td>
-                <td className="px-6 py-4">{row.semester}</td>
-                <td className="px-6 py-4">Rs. {row.totalAmount}</td>
-                <td className="px-6 py-4">Rs. {row.paidAmount}</td>
-                <td className="px-6 py-4">Rs. {row.pendingAmount}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusStyles(row.status)}`}
-                  >
-                    {row.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  {row.payments.length ? (
-                    <div className="space-y-1">
-                      {row.payments.map((payment, paymentIndex) => (
-                        <div key={`${row.semester}-${paymentIndex}`} className="text-xs text-slate-600">
-                          Rs. {payment.amount} on {formatDate(payment.date)}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-slate-400">No payments</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {!filteredRows.length && (
-              <tr>
-                <td colSpan="7" className="px-6 py-8 text-center text-slate-500">
-                  No fee records available for selected filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={tableColumns}
+        rows={filteredRows.map((row, index) => ({
+          ...row,
+          key: `${row.studentId}-${row.semester}-${index}`,
+        }))}
+        emptyMessage="No fee records available for selected filters."
+      />
     </div>
   );
 };

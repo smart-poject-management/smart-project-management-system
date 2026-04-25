@@ -138,6 +138,21 @@ export const getFeesStatus = createAsyncThunk(
   }
 );
 
+export const getStudentFeesDetails = createAsyncThunk(
+  "admin/getStudentFeesDetails",
+  async (studentId, thunkAPI) => {
+    try {
+      console.log("Fetching student:", studentId);
+      const res = await axiosInstance.get(`/admin/student-fees/${studentId}`);
+      return res.data?.data || null;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 export const assignSupervisor = createAsyncThunk(
   "admin/assignSupervisor",
   async (data, thunkAPI) => {
@@ -207,6 +222,9 @@ const adminSlice = createSlice({
     users: [],
     projects: [],
     feeStatus: [],
+    studentFeeDetails: null,
+    studentFeeDetailsLoading: false,
+    studentFeeDetailsError: null,
     stats: null,
     loading: false,
     error: null,
@@ -251,6 +269,19 @@ const adminSlice = createSlice({
       })
       .addCase(getFeesStatus.fulfilled, (state, action) => {
         state.feeStatus = action.payload;
+      })
+      .addCase(getStudentFeesDetails.pending, (state) => {
+        state.studentFeeDetailsLoading = true;
+        state.studentFeeDetailsError = null;
+        state.studentFeeDetails = null;
+      })
+      .addCase(getStudentFeesDetails.fulfilled, (state, action) => {
+        state.studentFeeDetailsLoading = false;
+        state.studentFeeDetails = action.payload;
+      })
+      .addCase(getStudentFeesDetails.rejected, (state, action) => {
+        state.studentFeeDetailsLoading = false;
+        state.studentFeeDetailsError = action.payload || "Failed to fetch student fee details";
       })
       .addCase(approveProject.fulfilled, (state, action) => {
         const projectId = action.payload;

@@ -9,6 +9,7 @@ import {
   getAllUsers,
   getAdminNotifications,
   getAllStudentsFeeStatus,
+  getStudentFeeDetails,
   getDashboardStats,
   getProject,
   markAdminNotificationAsRead,
@@ -79,6 +80,13 @@ router.get(
   isAuthenticated,
   isAuthorized("Admin"),
   getAllStudentsFeeStatus
+);
+
+router.get(
+  "/student-fees/:id",
+  isAuthenticated,
+  isAuthorized("Admin"),
+  getStudentFeeDetails
 );
 
 router.get(

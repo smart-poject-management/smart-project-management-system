@@ -48,6 +48,7 @@ import Unauthorized from "./pages/Unauthorized";
 import Department from "./pages/admin/Department";
 import AdminAttendancePage from "./pages/admin/AttendancePage";
 import FeesStatus from "./pages/admin/FeesStatus";
+import StudentFeesDetail from "./pages/admin/StudentFeesDetail";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
@@ -124,6 +125,7 @@ const App = () => {
           <Route path="departments" element={<Department />} />
           <Route path="attendance" element={<AdminAttendancePage />} />
           <Route path="fees" element={<FeesStatus />} />
+          <Route path="student-fees/:id" element={<StudentFeesDetail />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
         </Route>
 

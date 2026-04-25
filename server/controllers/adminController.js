@@ -7,6 +7,7 @@ import { SupervisorRequest } from "../models/supervisorRequest.js";
 import ErrorHandler from "../middlewares/error.js";
 import * as notificationService from "../services/notificationService.js";
 import {
+  mapFeeWithPending,
   mapStudentFees,
   normalizeFees,
   validateFees,
@@ -68,7 +69,8 @@ export const createStudent = asyncHandler(async (req, res) => {
 
 export const getAllStudentsFeeStatus = asyncHandler(async (req, res) => {
   const students = await User.find({ role: "Student" })
-    .select("name fees")
+    .select("name roll_no department fees")
+    .populate("department", "department")
     .sort({ createdAt: -1 })
     .lean();
 
@@ -78,6 +80,39 @@ export const getAllStudentsFeeStatus = asyncHandler(async (req, res) => {
     success: true,
     message: "Student fee status fetched successfully",
     data: { feeStatus },
+  });
+});
+
+export const getStudentFeeDetails = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  console.log("Student ID:", id);
+
+  const student = await User.findById(id)
+    .select("name role roll_no department fees")
+    .populate("department", "department")
+    .lean();
+
+  if (!student || student.role !== "Student") {
+    return res.status(404).json({ error: "Student not found" });
+  }
+
+  const fees = (student.fees || []).map(mapFeeWithPending);
+
+  res.status(200).json({
+    success: true,
+    message: "Student fee details fetched successfully",
+    data: {
+      student: {
+        id: student._id,
+        name: student.name,
+        rollNo: student.roll_no || "-",
+        department:
+          typeof student.department === "object"
+            ? student.department?.department || "-"
+            : student.department || "-",
+      },
+      fees,
+    },
   });
 });
 

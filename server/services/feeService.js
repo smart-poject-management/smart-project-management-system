@@ -115,5 +115,10 @@ export const mapFeeWithPending = (fee) => {
 export const mapStudentFees = (student) => ({
   studentId: student._id,
   studentName: student.name,
+  rollNo: student.roll_no || "-",
+  department:
+    typeof student.department === "object"
+      ? student.department?.department || "-"
+      : student.department || "-",
   fees: (student.fees || []).map(mapFeeWithPending),
 });
