@@ -10,7 +10,8 @@ import requestReducer from "./slices/requestSlice";
 import studentReducer from "./slices/studentSlice";
 import teacherReducer from "./slices/teacherSlice";
 import attendanceReducer from "./slices/attendanceSlice";
-
+import assignmentReducer from "./slices/assignmentSlice";
+import chatReducer from "./slices/chatSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -24,5 +25,7 @@ export const store = configureStore({
     student: studentReducer,
     teacher: teacherReducer,
     attendance: attendanceReducer,
+    assignment: assignmentReducer,
+    chat: chatReducer,
   },
 });

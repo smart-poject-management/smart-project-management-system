@@ -237,7 +237,7 @@ const AdminDashboard = () => {
         {dashboardStats.map((item, i) => (
           <div
             key={i}
-            className={`${item.bg} rounded-2xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
+            className={`${item.bg} rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
           >
             <div className="flex items-center space-x-3">
               <div className={`${item.iconBg} p-3 rounded-xl shadow`}>

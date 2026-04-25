@@ -5,7 +5,6 @@ import {
   Folder,
   User,
   CalendarDays,
-  MessageSquare,
   MessageCircle,
   Bell,
   AlertTriangle,

@@ -69,6 +69,22 @@ export const rejectRequest = createAsyncThunk(
   }
 );
 
+export const getAssignedStudents = createAsyncThunk(
+  "teacher/getAssignedStudents",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/teacher/assigned-students");
+
+      // ✅ SAFE NORMALIZATION
+      return res?.data?.data?.students || [];
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 export const markComplete = createAsyncThunk(
   "teacher/markComplete",
   async (projectId, thunkAPI) => {
@@ -107,20 +123,6 @@ export const addFeedback = createAsyncThunk(
   }
 );
 
-export const getAssignedStudents = createAsyncThunk(
-  "teacher/getAssignedStudents",
-  async (_, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get("/teacher/assigned-students");
-      return res.data;
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
-
 export const downloadTeacherFile = createAsyncThunk(
   "teacher/downloadFile",
   async ({ projectId, fileId, fileName }, thunkAPI) => {
@@ -141,7 +143,7 @@ export const downloadTeacherFile = createAsyncThunk(
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      toast.success(`Downloaded Successfully`);
+      toast.success("Downloaded Successfully");
 
       return { success: true };
     } catch (error) {
@@ -166,35 +168,43 @@ export const getTeacherFiles = createAsyncThunk(
   }
 );
 
+
 const teacherSlice = createSlice({
   name: "teacher",
   initialState: {
     assignedStudents: [],
+    selectedStudent: null,
     files: [],
     pendingRequests: [],
     dashboardStats: null,
     loading: false,
     error: null,
     list: [],
+    messages: [],
   },
-  reducers: {},
+
+  reducers: {
+    setSelectedStudent: (state, action) => {
+      state.selectedStudent = action.payload;
+    },
+  },
+
   extraReducers: builder => {
     builder
-
       .addCase(getAssignedStudents.pending, state => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(getAssignedStudents.fulfilled, (state, action) => {
         state.loading = false;
-        state.assignedStudents =
-          action.payload?.data?.students || action.payload || [];
+        state.assignedStudents = action.payload;
+        if (action.payload.length > 0) {
+          state.selectedStudent = action.payload[0];
+        }
       })
       .addCase(getAssignedStudents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(addFeedback.fulfilled, (state, action) => {
         const { projectId, feedback } = action.payload;
 
@@ -211,7 +221,6 @@ const teacherSlice = createSlice({
           return student;
         });
       })
-
       .addCase(markComplete.fulfilled, (state, action) => {
         const { projectId } = action.payload;
 
@@ -228,7 +237,6 @@ const teacherSlice = createSlice({
           return student;
         });
       })
-
       .addCase(getTeacherDashboardStats.fulfilled, (state, action) => {
         state.dashboardStats = action.payload?.data?.dashboardStats;
       })
@@ -254,5 +262,7 @@ const teacherSlice = createSlice({
       });
   },
 });
+
+export const { setSelectedStudent } = teacherSlice.actions;
 
 export default teacherSlice.reducer;

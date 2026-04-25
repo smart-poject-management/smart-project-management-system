@@ -1,17 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
   assignSupervisor as assignSupervisorThunk,
   getAllUsers,
 } from "../../store/slices/adminSlice";
-import { Search, Users, UserCheck, UserX, } from "lucide-react";
+import { Search, Users, UserCheck, UserX, ChevronDown } from "lucide-react";
 
 const AssignSupervisor = () => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatusOpen, setFilterStatusOpen] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] = useState({});
+  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [pendingFor, setPendingFor] = useState(null);
 
   const { users, projects } = useSelector((state) => state.admin);
@@ -21,7 +23,6 @@ const AssignSupervisor = () => {
       dispatch(getAllUsers());
     }
   }, [dispatch]);
-
 
   const teachers = useMemo(() => {
     const teacherUsers = (users || []).filter(
@@ -39,7 +40,6 @@ const AssignSupervisor = () => {
           : 0),
     }));
   }, [users]);
-
 
   const studentProjects = useMemo(() => {
     return (projects || [])
@@ -63,20 +63,18 @@ const AssignSupervisor = () => {
       }));
   }, [projects]);
 
-
   const filtered = studentProjects.filter((row) => {
     const matchesSearch =
       (row.studentName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       (row.title || "").toLowerCase().includes(searchTerm.toLowerCase());
-
     const status = row.supervisorId ? "assigned" : "not-assigned";
     const matchFilter = filterStatus === "all" || status === filterStatus;
-
     return matchesSearch && matchFilter;
   });
 
   const handleSupervisorSelect = (projectId, supervisorId) => {
     setSelectedSupervisor((prev) => ({ ...prev, [projectId]: supervisorId }));
+    setOpenDropdownId(null);
   };
 
   const handleAssign = async (studentId, projectStatus, projectId) => {
@@ -90,9 +88,7 @@ const AssignSupervisor = () => {
       return;
     }
     setPendingFor(projectId);
-    const res = await dispatch(
-      assignSupervisorThunk({ studentId, supervisorId })
-    );
+    const res = await dispatch(assignSupervisorThunk({ studentId, supervisorId }));
     setPendingFor(null);
     if (assignSupervisorThunk.fulfilled.match(res)) {
       setSelectedSupervisor((prev) => {
@@ -104,50 +100,13 @@ const AssignSupervisor = () => {
     }
   };
 
-
-  const dashboardCards = [
-    {
-      title: "Assigned Students",
-      value: studentProjects.filter((p) => !!p.supervisorId).length,
-      icon: <UserCheck />,
-      iconBg: "bg-emerald-100",
-      hoverBg: "bg-emerald-500",
-      iconColor: "text-emerald-600",
-    },
-    {
-      title: "Unassigned Students",
-      value: studentProjects.filter((p) => !p.supervisorId).length,
-      icon: <UserX />,
-      iconBg: "bg-yellow-100",
-      hoverBg: "bg-yellow-500",
-      iconColor: "text-yellow-600",
-    },
-    {
-      title: "Available Teachers",
-      value: teachers.filter(
-        (t) => (t.assignedCount ?? 0) < (t.maxStudents ?? 0)
-      ).length,
-      icon: <Users />,
-      iconBg: "bg-blue-100",
-      hoverBg: "bg-blue-500",
-      iconColor: "text-blue-600",
-    },
-  ];
-  const headers = [
-    "Student",
-    "Project Title",
-    "Supervisor",
-    "Updated",
-    "Deadline",
-    "Assign Supervisor",
-    "Actions",
+  const filterStatusOptions = [
+    { value: "all", label: "All Students" },
+    { value: "assigned", label: "Assigned Students" },
+    { value: "not-assigned", label: "Unassigned Students" },
   ];
 
-  const Badge = ({ color, children }) => (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${color}`}>
-      {children}
-    </span>
-  );
+  const availableTeachers = teachers.filter((t) => t.capacityLeft > 0);
 
   const getButtonLabel = (row) => {
     if (pendingFor === row.projectId) return "Assigning...";
@@ -164,58 +123,92 @@ const AssignSupervisor = () => {
     !row.isApproved ||
     !selectedSupervisor[row.projectId];
 
+  const dashboardCards = [
+    {
+      title: "Assigned Students",
+      value: studentProjects.filter((p) => !!p.supervisorId).length,
+      Icon: UserCheck,
+      bg: "bg-emerald-100",
+      border: "border-emerald-200",
+      iconColor: "text-emerald-600",
+    },
+    {
+      title: "Unassigned Students",
+      value: studentProjects.filter((p) => !p.supervisorId).length,
+      Icon: UserX,
+      bg: "bg-yellow-100",
+      border: "border-yellow-200",
+      iconColor: "text-yellow-600",
+    },
+    {
+      title: "Available Teachers",
+      value: teachers.filter((t) => (t.assignedCount ?? 0) < (t.maxStudents ?? 0)).length,
+      Icon: Users,
+      bg: "bg-blue-100",
+      border: "border-blue-200",
+      iconColor: "text-blue-600",
+    },
+  ];
+
+  const headers = [
+    "Sr.No",
+    "Student",
+    "Project Title",
+    "Supervisor",
+    "Updated",
+    "Deadline",
+    "Assign Supervisor",
+    "Actions",
+  ];
+
+  const Badge = ({ color, children }) => (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${color}`}>
+      {children}
+    </span>
+  );
+
   return (
     <div className="space-y-6">
+
       {/* Header */}
-      <div className="bg-white/70 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md p-6">
-        <h1 className="page-header">Assign Supervisor</h1>
-        <p className="text-gray-500 mt-1">
-          Manage supervisor assignments for students and projects
-        </p>
+      <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row justify-between items-center border border-slate-200 transition-all duration-300 hover:shadow-lg">
+        <div>
+          <h1 className="page-header">Assign Supervisor</h1>
+          <p className="text-gray-500 mt-1">
+            Manage supervisor assignments for students and projects
+          </p>
+        </div>
       </div>
 
-
-
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {dashboardCards.map((card) => (
-          <div
-            key={card.title}
-            className="group bg-white rounded-2xl p-6 shadow-md border border-slate-200
-      transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
-          >
-            <div className="flex items-center">
-
-              {/* Icon Box */}
-              <div
-                className={`p-4 rounded-xl transition-all duration-300 ${card.iconBg} group-hover:${card.hoverBg}`}
-              >
-                <div
-                  className={`w-6 h-6 transition-all duration-300 ${card.iconColor} group-hover:text-black`}
-                >
-                  {card.icon}
+        {dashboardCards.map((card) => {
+          const Icon = card.Icon;
+          return (
+            <div
+              key={card.title}
+              className={`group ${card.bg} ${card.border} rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}
+            >
+              <div className="flex items-center">
+                <div className={`p-4 ${card.bg} rounded-xl shadow`}>
+                  <Icon className={`w-6 h-6 ${card.iconColor} transition-all duration-300`} />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-slate-600">{card.title}</p>
+                  <p className="text-2xl font-bold text-slate-800">{card.value}</p>
                 </div>
               </div>
-
-              {/* Text Content */}
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-500">
-                  {card.title}
-                </p>
-                <p className="text-2xl font-bold text-slate-800">
-                  {card.value}
-                </p>
-              </div>
-
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6">
-        <div className="flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex flex-col md:flex-row gap-6 items-center">
+
           {/* Search */}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
               Search Students
             </label>
@@ -224,34 +217,53 @@ const AssignSupervisor = () => {
               <input
                 type="text"
                 placeholder="Search by name or project title..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300
-                  bg-slate-50 focus:bg-white focus:outline-none focus:ring-2
-                  focus:ring-indigo-400 focus:border-indigo-400 shadow-sm
-                  transition-all duration-200 text-sm"
+                className="w-full h-[44px] pl-10 pr-4 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-sm transition-all duration-200 text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Filter */}
+          {/* Filter Status — custom dropdown */}
           <div className="w-full md:w-56">
             <label className="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">
               Filter Status
             </label>
-            <select
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-300
-                bg-slate-50 focus:bg-white focus:outline-none focus:ring-2
-                focus:ring-indigo-400 focus:border-indigo-400 shadow-sm
-                transition-all duration-200 text-sm"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="all">All Students</option>
-              <option value="assigned">Assigned Students</option>
-              <option value="not-assigned">Unassigned Students</option>
-            </select>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setFilterStatusOpen(!filterStatusOpen)}
+                className="capitalize w-full h-[44px] px-3 rounded-xl border border-slate-300 bg-slate-50 text-sm flex justify-between items-center"
+              >
+                <span>{filterStatusOptions.find((f) => f.value === filterStatus)?.label || "All Students"}</span>
+                <ChevronDown
+                  size={16}
+                  className={`transition-transform duration-200 ${filterStatusOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {filterStatusOpen && (
+                <div className="fixed inset-0 z-0" onClick={() => setFilterStatusOpen(false)} />
+              )}
+
+              {filterStatusOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-[132px] overflow-y-auto custom-scrollbar">
+                  {filterStatusOptions
+                    .filter((item) => item.value === "all" || item.value !== filterStatus)
+                    .map((item) => (
+                      <div
+                        key={item.value}
+                        onClick={() => { setFilterStatus(item.value); setFilterStatusOpen(false); }}
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                      >
+                        {item.label}
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -267,123 +279,145 @@ const AssignSupervisor = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
+          <table className="w-full">
+            <thead className="bg-slate-50">
+              <tr className="text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                 {headers.map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
+                  <th key={h} className="px-4 py-3">{h}</th>
                 ))}
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((row) => (
-                <tr key={row.projectId} className="hover:bg-slate-50 transition-colors">
-                  {/* Student */}
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-slate-900">
-                      {row.studentName}
-                    </div>
-                    <div className="text-xs text-slate-500">{row.studentEmail}</div>
-                  </td>
+            <tbody className="capitalize font-medium text-slate-900">
+              {filtered.length > 0 ? (
+                filtered.map((row, index) => (
+                  <tr key={row.projectId} className="border-t hover:bg-slate-50 transition-colors duration-150">
 
-                  {/* Project Title */}
-                  <td className="px-4 py-4 max-w-[180px]">
-                    <span
-                      className="text-slate-700 font-medium line-clamp-2"
-                      title={row.title}
-                    >
-                      {row.title}
-                    </span>
-                  </td>
+                    {/* Sr.No */}
+                    <td className="px-4 py-4 text-sm">{index + 1}</td>
 
+                    {/* Student */}
+                    <td className="px-4 py-4">
+                      <div className="text-sm font-medium text-slate-900">{row.studentName}</div>
+                      <div className="text-xs text-slate-500 normal-case">{row.studentEmail}</div>
+                    </td>
 
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div>
+                    {/* Project Title */}
+                    <td className="px-4 py-4 max-w-[180px]">
+                      <span className="text-sm text-slate-700 font-medium line-clamp-2" title={row.title}>
+                        {row.title}
+                      </span>
+                    </td>
+
+                    {/* Supervisor Badge */}
+                    <td className="px-4 py-4">
                       {row.supervisor ? (
-                        <Badge color="bg-green-100 text-green-700">
+                        <Badge color="bg-green-50 text-green-700 border-green-100">
                           {row.supervisor}
                         </Badge>
                       ) : (
-                        <Badge color="bg-red-100 text-red-700">
+                        <Badge color="bg-red-50 text-red-700 border-red-100">
                           {row.status === "rejected" ? "Rejected" : "Not Assigned"}
                         </Badge>
                       )}
-                    </div>
-                  </td>
+                    </td>
 
+                    {/* Updated */}
+                    <td className="px-4 py-4 text-sm text-slate-600 normal-case">{row.updatedAt}</td>
 
-                  <td className="px-4 py-4 whitespace-nowrap text-slate-600">
-                    {row.updatedAt}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-slate-600">
-                    {row.deadline}
-                  </td>
+                    {/* Deadline */}
+                    <td className="px-4 py-4 text-sm text-slate-600 normal-case">{row.deadline}</td>
 
-                  {/* Supervisor Select */}
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <select
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm
-                        bg-slate-50 focus:bg-white focus:outline-none focus:ring-2
-                        focus:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                      value={selectedSupervisor[row.projectId] || ""}
-                      disabled={
-                        !!row.supervisor ||
-                        row.status === "rejected" ||
-                        row.isApproved === false
-                      }
-                      onChange={(e) =>
-                        handleSupervisorSelect(row.projectId, e.target.value)
-                      }
-                    >
-                      <option value="" disabled>
-                        Select Supervisor
-                      </option>
+                    {/* Assign Supervisor — custom dropdown */}
+                    <td className="px-4 py-4">
+                      {!!row.supervisor || row.status === "rejected" || !row.isApproved ? (
+                        <div className="w-48 h-[38px] px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-400 flex items-center cursor-not-allowed">
+                          {row.supervisor
+                            ? "Already Assigned"
+                            : row.status === "rejected"
+                            ? "Project Rejected"
+                            : "Not Yet Approved"}
+                        </div>
+                      ) : (
+                        <div className="relative w-48">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setOpenDropdownId(openDropdownId === row.projectId ? null : row.projectId)
+                            }
+                            className="w-full h-[38px] px-3 rounded-xl border border-slate-300 bg-slate-50 hover:bg-white text-sm flex justify-between items-center gap-1 transition-colors"
+                          >
+                            <span className="truncate text-left normal-case">
+                              {selectedSupervisor[row.projectId]
+                                ? teachers.find((t) => t._id === selectedSupervisor[row.projectId])?.name || "Select"
+                                : "Select Supervisor"}
+                            </span>
+                            <ChevronDown
+                              size={14}
+                              className={`shrink-0 transition-transform duration-200 ${openDropdownId === row.projectId ? "rotate-180" : ""}`}
+                            />
+                          </button>
 
+                          {openDropdownId === row.projectId && (
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setOpenDropdownId(null)}
+                            />
+                          )}
 
-                      {
-                        teachers
-                          .filter((t) => t.capacityLeft > 0)
-                          .map((t) => (
-                            <option value={t._id} key={t._id}
-                            > {t.name} ({t.capacityLeft} solote left) </option>
-                          ))
-                      }
+                          {openDropdownId === row.projectId && (
+                            <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-[132px] overflow-y-auto custom-scrollbar">
+                              {availableTeachers.length > 0 ? (
+                                availableTeachers.map((t) => (
+                                  <div
+                                    key={t._id}
+                                    onClick={() => handleSupervisorSelect(row.projectId, t._id)}
+                                    className={`px-3 py-2 text-sm cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 transition-colors normal-case
+                                      ${selectedSupervisor[row.projectId] === t._id ? "bg-indigo-50 text-indigo-700 font-semibold" : "text-slate-700"}`}
+                                  >
+                                    <div className="font-medium capitalize">{t.name}</div>
+                                    <div className="text-xs text-slate-400">{t.capacityLeft} slot{t.capacityLeft !== 1 ? "s" : ""} left</div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="px-3 py-3 text-sm text-slate-400 text-center">
+                                  No teachers available
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </td>
 
-                    </select>
-                  </td>
+                    {/* Assign Button */}
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => handleAssign(row.studentId, row.status, row.projectId)}
+                        disabled={isButtonDisabled(row)}
+                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200
+                          ${isButtonDisabled(row)
+                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                            : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md active:scale-95"
+                          }`}
+                      >
+                        {getButtonLabel(row)}
+                      </button>
+                    </td>
 
-                  {/* Action Button */}
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() =>
-                        handleAssign(row.studentId, row.status, row.projectId)
-                      }
-                      disabled={isButtonDisabled(row)}
-                      className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200
-                        ${isButtonDisabled(row)
-                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                          : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm hover:shadow-md"
-                        }`}
-                    >
-                      {getButtonLabel(row)}
-                    </button>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-400 text-sm">
+                    {searchTerm || filterStatus !== "all"
+                      ? "No students found matching your criteria."
+                      : "No student assignments found."}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
-
-          {filtered.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-slate-400 text-sm">No students match your search</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

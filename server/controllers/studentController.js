@@ -332,17 +332,18 @@ export const getDashboardStats = asyncHandler(async (req, res, next) => {
     .populate("supervisor", "name")
     .lean();
 
-  const [upcomingDeadlines, topNotification, attendanceSummary] = await Promise.all([
-    Deadline.find({ project: project?._id }).limit(2).lean(),
-    Notification.find({
-      user: studentId,
-      receiverRole: "student",
-    })
-      .sort({ createdAt: -1 })
-      .limit(3)
-      .lean(),
-    getStudentAttendanceSummary(studentId),
-  ]);
+  const [upcomingDeadlines, topNotification, attendanceSummary] =
+    await Promise.all([
+      Deadline.find({ project: project?._id }).limit(2).lean(),
+      Notification.find({
+        user: studentId,
+        receiverRole: "student",
+      })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .lean(),
+      getStudentAttendanceSummary(studentId),
+    ]);
 
   res.status(200).json({
     success: true,
@@ -530,5 +531,72 @@ export const getDeadlineExtensionRequest = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { request },
+  });
+});
+
+export const getLearning = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+
+  let project = await Project.findOne({ student: studentId });
+
+  if (!project) {
+    return res.status(404).json({ message: "No project found" });
+  }
+
+  // 🔥 First time auto create topics
+  if (!project.learning || project.learning.length === 0) {
+    project.learning = [
+      { title: "Project Setup" },
+      { title: "Frontend Development" },
+      { title: "Backend API" },
+      { title: "Testing & Deployment" },
+    ];
+
+    await project.save();
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      learning: project.learning,
+      progress: project.progress,
+      projectTitle: project.title,
+    },
+  });
+});
+
+export const completeTopic = asyncHandler(async (req, res) => {
+  const { topicId } = req.params;
+  const studentId = req.user._id;
+
+  const project = await Project.findOne({ student: studentId });
+
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
+
+  const topic = project.learning.id(topicId);
+
+  if (!topic) {
+    return res.status(404).json({ message: "Topic not found" });
+  }
+
+  topic.status = "completed";
+  topic.completedAt = new Date();
+
+  // 🔥 PROGRESS CALCULATION
+  const total = project.learning.length;
+  const done = project.learning.filter((t) => t.status === "completed").length;
+
+  project.progress = Math.round((done / total) * 100);
+
+  await project.save();
+
+  res.status(200).json({
+    success: true,
+    data: {
+      learning: project.learning,
+      progress: project.progress,
+    },
   });
 });

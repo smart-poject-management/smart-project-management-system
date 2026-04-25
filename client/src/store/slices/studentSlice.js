@@ -107,7 +107,6 @@ export const requestAdminSupervisor = createAsyncThunk(
   }
 );
 
-
 export const submitDeadlineExtensionRequest = createAsyncThunk(
   "student/submitDeadlineExtensionRequest",
   async (formData, thunkAPI) => {
@@ -273,6 +272,38 @@ export const payFees = createAsyncThunk(
   }
 );
 
+export const getLearning = createAsyncThunk(
+  "student/getLearning",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/student/learning");
+      return res.data.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Error");
+    }
+  }
+);
+
+export const completeTopic = createAsyncThunk(
+  "student/completeTopic",
+  async (topicId, thunkAPI) => {
+    try {
+      const res = await axiosInstance.put(`/student/learning/${topicId}`);
+      return res.data.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue("Error");
+    }
+  }
+);
+
+export const getChatHistory = createAsyncThunk(
+  "chat/getHistory",
+  async (receiverId, thunkAPI) => {
+    const res = await axiosInstance.get(`/chat/history/${receiverId}`);
+    return res.data.data.messages;
+  }
+);
+
 const studentSlice = createSlice({
   name: "student",
   initialState: {
@@ -286,6 +317,8 @@ const studentSlice = createSlice({
     feedback: [],
     fees: [],
     status: null,
+    learning: [],
+    progress: 0,
 
     // ✅ NEW
     adminRequestSent: false,
@@ -357,6 +390,15 @@ const studentSlice = createSlice({
           state.project = action.payload.data.project;
           state.files = action.payload.data.project.files || [];
         }
+      })
+      .addCase(getLearning.fulfilled, (state, action) => {
+        state.learning = action.payload.learning;
+        state.progress = action.payload.progress;
+      })
+
+      .addCase(completeTopic.fulfilled, (state, action) => {
+        state.learning = action.payload.learning;
+        state.progress = action.payload.progress;
       });
   },
 });

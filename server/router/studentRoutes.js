@@ -19,6 +19,8 @@ import {
   uploadFiles,
   getDeadlineExtensionRequest,
   requestAdminSupervisor,
+  completeTopic,
+  getLearning,
 } from "../controllers/studentController.js";
 import { handleUploadError, upload } from "../middlewares/upload.js";
 
@@ -138,6 +140,15 @@ router.get(
   isAuthenticated,
   isAuthorized("Student"),
   getDeadlineExtensionRequest,
+);
+
+router.get("/learning", isAuthenticated, isAuthorized("Student"), getLearning);
+
+router.put(
+  "/learning/:topicId",
+  isAuthenticated,
+  isAuthorized("Student"),
+  completeTopic,
 );
 
 export default router;
