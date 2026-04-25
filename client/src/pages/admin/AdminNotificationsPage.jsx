@@ -23,6 +23,7 @@ import {
   XCircle,
   BadgeCheck,
   Calendar,
+  IndianRupee,
 } from "lucide-react";
 
 const AdminNotificationsPage = () => {
@@ -43,6 +44,8 @@ const AdminNotificationsPage = () => {
 
   const getNotificationIcon = notifType => {
     switch (notifType) {
+      case "FEE_PAYMENT":
+        return <IndianRupee className="w-6 h-6 text-emerald-600" />;
       case "deadline":
         return <Clock5 className="w-6 h-6 text-red-500" />;
       case "approval":
@@ -275,6 +278,12 @@ const AdminNotificationsPage = () => {
                   <p className="text-sm text-slate-600 mb-3 leading-relaxed break-words">
                     {notification.message}
                   </p>
+
+                  {notification.type === "FEE_PAYMENT" && notification.data && (
+                    <div className="mb-3 text-xs text-slate-600 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+                      Semester {notification.data.semester} | Paid: Rs. {notification.data.amountPaid} | Remaining: Rs. {notification.data.remainingFees}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <span

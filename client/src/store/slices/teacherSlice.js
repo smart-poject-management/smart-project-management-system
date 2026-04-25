@@ -168,63 +168,6 @@ export const getTeacherFiles = createAsyncThunk(
   }
 );
 
-export const getAssignments = createAsyncThunk(
-  "teacher/getAssignments",
-  async (studentId, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get(`/assignment/${studentId}`);
-      return res.data.assignments;
-    } catch (error) {
-      return thunkAPI.rejectWithValue("Failed to fetch assignments");
-    }
-  }
-);
-
-export const createAssignment = createAsyncThunk(
-  "teacher/createAssignment",
-  async (data, thunkAPI) => {
-    try {
-      const res = await axiosInstance.post("/assignment/create", data);
-      return res.data.assignment;
-    } catch (error) {
-      return thunkAPI.rejectWithValue("Failed to create assignment");
-    }
-  }
-);
-
-// Get messages
-export const getMessages = createAsyncThunk(
-  "teacher/getMessages",
-  async ({ senderId, receiverId }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.get(`/chat/${senderId}/${receiverId}`);
-      return res.data.messages;
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
-
-// Save message
-export const sendMessage = createAsyncThunk(
-  "teacher/sendMessage",
-  async ({ sender, receiver, message }, thunkAPI) => {
-    try {
-      const res = await axiosInstance.post("/chat/send", {
-        sender,
-        receiver,
-        message,
-      });
-      return res.data.chat;
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      toast.error(msg);
-      return thunkAPI.rejectWithValue(msg);
-    }
-  }
-);
 
 const teacherSlice = createSlice({
   name: "teacher",
@@ -316,13 +259,6 @@ const teacherSlice = createSlice({
 
       .addCase(getTeacherFiles.fulfilled, (state, action) => {
         state.files = action.payload?.data?.files || [];
-      })
-
-      .addCase(getMessages.fulfilled, (state, action) => {
-        state.messages = action.payload;
-      })
-      .addCase(sendMessage.fulfilled, (state, action) => {
-        state.messages.push(action.payload);
       });
   },
 });

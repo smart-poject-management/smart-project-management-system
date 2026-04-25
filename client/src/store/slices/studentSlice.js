@@ -243,6 +243,35 @@ export const getFeedback = createAsyncThunk(
   }
 );
 
+export const getMyFees = createAsyncThunk(
+  "student/getMyFees",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/student/my-fees");
+      return res.data?.data?.fees || [];
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
+export const payFees = createAsyncThunk(
+  "student/payFees",
+  async ({ semester, amount }, thunkAPI) => {
+    try {
+      const res = await axiosInstance.post("/student/pay-fees", { semester, amount });
+      toast.success(res.data?.message || "Fee paid successfully");
+      return res.data?.data?.fee;
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 export const getLearning = createAsyncThunk(
   "student/getLearning",
   async (_, thunkAPI) => {
@@ -286,6 +315,7 @@ const studentSlice = createSlice({
     supervisor: null,
     deadlines: [],
     feedback: [],
+    fees: [],
     status: null,
     learning: [],
     progress: 0,
@@ -336,6 +366,17 @@ const studentSlice = createSlice({
 
       .addCase(getFeedback.fulfilled, (state, action) => {
         state.feedback = action.payload?.data?.feedback || [];
+      })
+      .addCase(getMyFees.fulfilled, (state, action) => {
+        state.fees = action.payload || [];
+      })
+      .addCase(payFees.fulfilled, (state, action) => {
+        const updatedFee = action.payload;
+        if (!updatedFee) return;
+
+        state.fees = state.fees.map((fee) =>
+          fee.semester === updatedFee.semester ? updatedFee : fee
+        );
       })
 
       .addCase(deleteProjectFile.fulfilled, (state, action) => {

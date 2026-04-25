@@ -167,7 +167,11 @@ export const getAssignedStudents = asyncHandler(async (req, res) => {
   const teacherId = req.user._id;
 
   const projects = await Project.find({ supervisor: teacherId })
-    .populate("student", "name email department")
+    .populate({
+      path: "student",
+      select: "name email department roll_no",
+      populate: { path: "department", select: "department" },
+    })
     .select("title status student createdAt")
     .sort({ createdAt: -1 });
 
@@ -175,7 +179,8 @@ export const getAssignedStudents = asyncHandler(async (req, res) => {
     _id: project.student._id,
     name: project.student.name,
     email: project.student.email,
-    department: project.student.department,
+    department: project.student.department, // now populated: { _id, department }
+    rollNo: project.student.roll_no,
     projectTitle: project.title,
     status: project.status,
     projectId: project._id,

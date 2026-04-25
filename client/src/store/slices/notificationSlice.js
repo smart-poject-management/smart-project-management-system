@@ -6,7 +6,9 @@ export const getNotifications = createAsyncThunk(
   "notification/getNotifications",
   async (_, thunkAPI) => {
     try {
-      const res = await axiosInstance.get("/notification");
+      const role = thunkAPI.getState()?.auth?.authUser?.role;
+      const endpoint = role === "Admin" ? "/admin/notifications" : "/notification";
+      const res = await axiosInstance.get(endpoint);
       const list = res.data?.data || res.data?.notifications || res.data || [];
 
       return {
@@ -27,7 +29,12 @@ export const markAsRead = createAsyncThunk(
   "notification/markAsRead",
   async (id, thunkAPI) => {
     try {
-      await axiosInstance.put(`/notification/${id}/read`);
+      const role = thunkAPI.getState()?.auth?.authUser?.role;
+      if (role === "Admin") {
+        await axiosInstance.patch(`/admin/notifications/${id}`);
+      } else {
+        await axiosInstance.put(`/notification/${id}/read`);
+      }
       return id;
     } catch (error) {
       return thunkAPI.rejectWithValue(

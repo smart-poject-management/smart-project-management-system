@@ -1,6 +1,10 @@
 import express from "express";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
-import { saveMessage, getMessages, getChatHistory } from "../controllers/chatController.js";
+import {
+  saveMessage,
+  getMessages,
+  getChatHistory,
+} from "../controllers/chatController.js";
 
 const router = express.Router();
 

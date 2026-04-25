@@ -6,6 +6,11 @@ import { Project } from "../models/project.js";
 import { SupervisorRequest } from "../models/supervisorRequest.js";
 import ErrorHandler from "../middlewares/error.js";
 import * as notificationService from "../services/notificationService.js";
+import {
+  mapStudentFees,
+  normalizeFees,
+  validateFees,
+} from "../services/feeService.js";
 
 export const createStudent = asyncHandler(async (req, res) => {
   const {
@@ -20,6 +25,7 @@ export const createStudent = asyncHandler(async (req, res) => {
     father_name,
     mother_name,
     phone_no,
+    fees,
   } = req.body;
 
   if (!name || !password || !email || !department) {
@@ -27,6 +33,13 @@ export const createStudent = asyncHandler(async (req, res) => {
       .status(400)
       .json({ error: "Please provide all required fields" });
   }
+
+  const normalizedFees = normalizeFees(fees || []);
+  const feeValidationError = validateFees(normalizedFees);
+  if (feeValidationError) {
+    return res.status(400).json({ error: feeValidationError });
+  }
+
   const user = await userServices.createUser({
     name,
     email,
@@ -40,6 +53,7 @@ export const createStudent = asyncHandler(async (req, res) => {
     father_name,
     mother_name,
     phone_no,
+    fees: normalizedFees,
   });
   const populatedUser = await User.findById(user._id)
     .populate("department", "department")
@@ -49,6 +63,51 @@ export const createStudent = asyncHandler(async (req, res) => {
     success: true,
     message: "Student Created Successfully",
     data: { user: populatedUser },
+  });
+});
+
+export const getAllStudentsFeeStatus = asyncHandler(async (req, res) => {
+  const students = await User.find({ role: "Student" })
+    .select("name fees")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const feeStatus = students.map(mapStudentFees);
+
+  res.status(200).json({
+    success: true,
+    message: "Student fee status fetched successfully",
+    data: { feeStatus },
+  });
+});
+
+export const getAdminNotifications = asyncHandler(async (req, res) => {
+  const notifications = await notificationService.getAdminNotifications(req.user._id);
+
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+
+  res.status(200).json({
+    success: true,
+    data: notifications,
+    unreadCount,
+  });
+});
+
+export const markAdminNotificationAsRead = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const notification = await notificationService.markAdminNotificationAsRead(
+    id,
+    req.user._id,
+  );
+
+  if (!notification) {
+    return next(new ErrorHandler("Notification not found", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    data: notification,
   });
 });
 

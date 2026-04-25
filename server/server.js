@@ -1,7 +1,7 @@
 import { connectDb } from "./config/db.js";
 import app from "./app.js";
 import { Server } from "socket.io";
-import Message from "./models/Chat.js";
+import Message from "./models/Message.js";
 
 await connectDb();
 

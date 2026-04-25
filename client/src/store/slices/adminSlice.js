@@ -124,6 +124,20 @@ export const getDashboardStats = createAsyncThunk(
   }
 );
 
+export const getFeesStatus = createAsyncThunk(
+  "admin/getFeesStatus",
+  async (_, thunkAPI) => {
+    try {
+      const res = await axiosInstance.get("/admin/all-fees");
+      return res.data?.data?.feeStatus || [];
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return thunkAPI.rejectWithValue(msg);
+    }
+  }
+);
+
 export const assignSupervisor = createAsyncThunk(
   "admin/assignSupervisor",
   async (data, thunkAPI) => {
@@ -192,6 +206,7 @@ const adminSlice = createSlice({
   initialState: {
     users: [],
     projects: [],
+    feeStatus: [],
     stats: null,
     loading: false,
     error: null,
@@ -233,6 +248,9 @@ const adminSlice = createSlice({
       })
       .addCase(getDashboardStats.fulfilled, (state, action) => {
         state.stats = action.payload;
+      })
+      .addCase(getFeesStatus.fulfilled, (state, action) => {
+        state.feeStatus = action.payload;
       })
       .addCase(approveProject.fulfilled, (state, action) => {
         const projectId = action.payload;

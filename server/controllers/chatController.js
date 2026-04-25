@@ -1,49 +1,81 @@
-import Chat from "../models/Chat.js";
-
-// Save message
+import Message from "../models/Message.js";
 export const saveMessage = async (req, res) => {
   try {
-    const { sender, receiver, message } = req.body;
+    const { sender, receiver, text } = req.body;
 
-    const chat = await Chat.create({ sender, receiver, message });
+    if (!sender || !receiver || !text) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
 
-    res.status(201).json({ success: true, chat });
+    const newMessage = await Message.create({
+      sender,
+      receiver,
+      text,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: newMessage,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
-
-// Get chat history
 export const getMessages = async (req, res) => {
   try {
     const { senderId, receiverId } = req.params;
 
-    const messages = await Chat.find({
+    const messages = await Message.find({
       $or: [
         { sender: senderId, receiver: receiverId },
         { sender: receiverId, receiver: senderId },
       ],
-    }).sort({ createdAt: 1 });
+    })
+      .sort({ createdAt: 1 })
+      .populate("sender", "name email")
+      .populate("receiver", "name email");
 
-    res.status(200).json({ success: true, messages });
+    res.status(200).json({
+      success: true,
+      data: messages,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 export const getChatHistory = async (req, res) => {
-  const { userId } = req.user;
-  const { receiverId } = req.params;
+  try {
+    const userId = req.user._id; 
+    const { receiverId } = req.params;
 
-  const messages = await Message.find({
-    $or: [
-      { sender: userId, receiver: receiverId },
-      { sender: receiverId, receiver: userId },
-    ],
-  }).sort({ createdAt: 1 });
+    const messages = await Message.find({
+      $or: [
+        { sender: userId, receiver: receiverId },
+        { sender: receiverId, receiver: userId },
+      ],
+    })
+      .sort({ createdAt: 1 })
+      .populate("sender", "name email")
+      .populate("receiver", "name email");
 
-  res.json({
-    success: true,
-    data: { messages },
-  });
+    res.status(200).json({
+      success: true,
+      data: messages,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };

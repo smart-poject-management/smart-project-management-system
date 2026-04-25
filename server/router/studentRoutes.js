@@ -11,8 +11,10 @@ import {
   getFeedback,
   getStudentProject,
   getSupervisor,
+  getMyFees,
   requestSupervisor,
   requestDeadlineExtension,
+  payMyFees,
   submitProposal,
   uploadFiles,
   getDeadlineExtensionRequest,
@@ -23,6 +25,27 @@ import {
 import { handleUploadError, upload } from "../middlewares/upload.js";
 
 const router = express.Router();
+
+router.get(
+  "/my-fees",
+  isAuthenticated,
+  isAuthorized("Student"),
+  getMyFees,
+);
+
+router.get(
+  "/fees",
+  isAuthenticated,
+  isAuthorized("Student"),
+  getMyFees,
+);
+
+router.post(
+  "/pay-fees",
+  isAuthenticated,
+  isAuthorized("Student"),
+  payMyFees,
+);
 
 router.get(
   "/project",

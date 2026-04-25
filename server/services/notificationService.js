@@ -62,6 +62,7 @@ export const notifyAllAdmins = async (
   sender = null,
   entityId = null,
   entityType = "system",
+  notificationData = {},
 ) => {
   const admins = await User.find({ role: "Admin" }).select("_id").lean();
 
@@ -79,8 +80,38 @@ export const notifyAllAdmins = async (
         receiverRole: "admin",
         entityId,
         entityType,
+        ...notificationData,
       }),
     ),
+  );
+};
+
+export const notifyAdminsOnFeePayment = async ({
+  studentId,
+  studentName,
+  semester,
+  amountPaid,
+  totalFees,
+  remainingFees,
+  paymentDate,
+}) => {
+  const message = `Student ${studentName} paid Rs. ${amountPaid} for Semester ${semester}. Remaining: Rs. ${remainingFees}`;
+
+  return await notifyAllAdmins(
+    message,
+    "FEE_PAYMENT",
+    "/admin/fees",
+    "medium",
+    studentId,
+    studentId,
+    "system",
+    {
+      semester,
+      amountPaid,
+      totalFees,
+      remainingFees,
+      paymentDate,
+    },
   );
 };
 
@@ -91,9 +122,24 @@ export const getUserNotifications = async (userId) => {
     .populate("entityId", "name email");
 };
 
+export const getAdminNotifications = async (adminId) => {
+  return await Notification.find({
+    user: adminId,
+    receiverRole: "admin",
+  }).sort({ createdAt: -1 });
+};
+
 export const markAsRead = async (notificationId, userId) => {
   return await Notification.findOneAndUpdate(
     { _id: notificationId, user: userId },
+    { isRead: true },
+    { new: true },
+  );
+};
+
+export const markAdminNotificationAsRead = async (notificationId, adminId) => {
+  return await Notification.findOneAndUpdate(
+    { _id: notificationId, user: adminId, receiverRole: "admin" },
     { isRead: true },
     { new: true },
   );

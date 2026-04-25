@@ -24,8 +24,14 @@ const assignmentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "submitted", "completed"],
-      default: "pending",
+      enum: ["unread", "read", "submitted", "completed"],
+      default: "unread",
+    },
+
+
+    isRead: {
+      type: Boolean,
+      default: false,
     },
 
     submission: {
@@ -33,7 +39,7 @@ const assignmentSchema = new mongoose.Schema(
       submittedAt: Date,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export const Assignment = mongoose.model("Assignment", assignmentSchema);

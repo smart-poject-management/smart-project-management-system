@@ -29,6 +29,16 @@ const Navbar = ({ sidebarOpen, setSidebarOpen, userRole }) => {
     }
   }, [dispatch, authUser]);
 
+  useEffect(() => {
+    if (!authUser?._id) return undefined;
+
+    const intervalId = setInterval(() => {
+      dispatch(getNotifications());
+    }, 8000);
+
+    return () => clearInterval(intervalId);
+  }, [dispatch, authUser?._id]);
+
   const handleLogout = () => {
     dispatch(logout()).then(() => {
       navigate("/");

@@ -18,6 +18,7 @@ const AddStudent = () => {
     roll_no: "",
     semester: 1,
     session: defaultSession,
+    fees: [{ semester: 1, totalAmount: 0 }],
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -58,10 +59,35 @@ const AddStudent = () => {
         roll_no: "",
         semester: 1,
         session: defaultSession,
+        fees: [{ semester: 1, totalAmount: 0 }],
       });
 
       dispatch(toggleStudentModel());
     }
+  };
+
+  const updateFeeRow = (index, key, value) => {
+    const nextFees = [...studentData.fees];
+    nextFees[index] = {
+      ...nextFees[index],
+      [key]: Number(value || 0),
+    };
+    setStudentData({ ...studentData, fees: nextFees });
+  };
+
+  const addFeeRow = () => {
+    setStudentData({
+      ...studentData,
+      fees: [...studentData.fees, { semester: 1, totalAmount: 0 }],
+    });
+  };
+
+  const removeFeeRow = (index) => {
+    const nextFees = studentData.fees.filter((_, i) => i !== index);
+    setStudentData({
+      ...studentData,
+      fees: nextFees.length ? nextFees : [{ semester: 1, totalAmount: 0 }],
+    });
   };
 
   return (
@@ -273,6 +299,52 @@ const AddStudent = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[11px] font-semibold text-gray-400 uppercase">
+                Semester Fees
+              </label>
+              <button
+                type="button"
+                onClick={addFeeRow}
+                className="text-xs text-indigo-600 hover:text-indigo-700"
+              >
+                + Add Semester
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {studentData.fees.map((fee, index) => (
+                <div key={index} className="grid grid-cols-5 gap-2 items-center">
+                  <input
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={fee.semester}
+                    onChange={(e) => updateFeeRow(index, "semester", e.target.value)}
+                    placeholder="Sem"
+                    className="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    value={fee.totalAmount}
+                    onChange={(e) => updateFeeRow(index, "totalAmount", e.target.value)}
+                    placeholder="Total"
+                    className="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFeeRow(index)}
+                    className="text-xs text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </form>
