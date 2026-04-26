@@ -74,8 +74,6 @@ export const getAssignedStudents = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const res = await axiosInstance.get("/teacher/assigned-students");
-
-      // ✅ SAFE NORMALIZATION
       return res?.data?.data?.students || [];
     } catch (error) {
       const msg = getErrorMessage(error);
@@ -168,7 +166,6 @@ export const getTeacherFiles = createAsyncThunk(
   }
 );
 
-
 const teacherSlice = createSlice({
   name: "teacher",
   initialState: {
@@ -197,9 +194,6 @@ const teacherSlice = createSlice({
       .addCase(getAssignedStudents.fulfilled, (state, action) => {
         state.loading = false;
         state.assignedStudents = action.payload;
-        if (action.payload.length > 0) {
-          state.selectedStudent = action.payload[0];
-        }
       })
       .addCase(getAssignedStudents.rejected, (state, action) => {
         state.loading = false;
@@ -220,6 +214,15 @@ const teacherSlice = createSlice({
           }
           return student;
         });
+        if (state.selectedStudent?.project?._id === projectId) {
+          state.selectedStudent = {
+            ...state.selectedStudent,
+            project: {
+              ...state.selectedStudent.project,
+              feedback: [...(state.selectedStudent.project.feedback || []), feedback],
+            },
+          };
+        }
       })
       .addCase(markComplete.fulfilled, (state, action) => {
         const { projectId } = action.payload;
@@ -236,27 +239,30 @@ const teacherSlice = createSlice({
           }
           return student;
         });
+        if (state.selectedStudent?.project?._id === projectId) {
+          state.selectedStudent = {
+            ...state.selectedStudent,
+            project: {
+              ...state.selectedStudent.project,
+              status: "completed",
+            },
+          };
+        }
       })
       .addCase(getTeacherDashboardStats.fulfilled, (state, action) => {
         state.dashboardStats = action.payload?.data?.dashboardStats;
       })
-
       .addCase(getTeacherRequests.fulfilled, (state, action) => {
         state.list = action.payload?.data?.requests || [];
       })
-
       .addCase(acceptRequest.fulfilled, (state, action) => {
         const updated = action.payload?.data?.request;
-
         state.list = state.list.map(r => (r._id === updated._id ? updated : r));
       })
-
       .addCase(rejectRequest.fulfilled, (state, action) => {
         const rejected = action.payload?.data?.request;
-
         state.list = state.list.filter(r => r._id !== rejected._id);
       })
-
       .addCase(getTeacherFiles.fulfilled, (state, action) => {
         state.files = action.payload?.data?.files || [];
       });

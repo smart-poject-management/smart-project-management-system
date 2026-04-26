@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef } from "react";
-import socket from "../socket";
 import { useDispatch, useSelector } from "react-redux";
+import socket from "../../socket";
 import {
   getMessages,
   sendMessage,
   receiveMessage,
-} from "../store/slices/chatSlice";
-
+} from "../../store/slices/chatSlice";
 const ChatTab = ({ student }) => {
   const dispatch = useDispatch();
 
@@ -47,32 +46,32 @@ const ChatTab = ({ student }) => {
     return () => socket.off("receiveMessage", handleReceive);
   }, [dispatch]);
 
-const handleSend = () => {
-  if (!text.trim()) return;
+  const handleSend = () => {
+    if (!text.trim()) return;
 
-  if (!user?._id || !student?._id) {
-    console.log("Missing user or student:", { user, student });
-    return;
-  }
+    if (!user?._id || !student?._id) {
+      console.log("Missing user or student:", { user, student });
+      return;
+    }
 
-  const msg = text.trim();
+    const msg = text.trim();
 
-  socket.emit("sendMessage", {
-    senderId: user._id,
-    receiverId: student._id,
-    text: msg,
-  });
-
-  dispatch(
-    sendMessage({
-      sender: user._id,
-      receiver: student._id,
+    socket.emit("sendMessage", {
+      senderId: user._id,
+      receiverId: student._id,
       text: msg,
-    })
-  );
+    });
 
-  setText("");
-};
+    dispatch(
+      sendMessage({
+        sender: user._id,
+        receiver: student._id,
+        text: msg,
+      })
+    );
+
+    setText("");
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -99,16 +98,14 @@ const handleSend = () => {
           return (
             <div
               key={i}
-              className={`flex mb-2 ${
-                isMe ? "justify-end" : "justify-start"
-              }`}
+              className={`flex mb-2 ${isMe ? "justify-end" : "justify-start"
+                }`}
             >
               <div
-                className={`px-3 py-2 rounded max-w-[70%] ${
-                  isMe
+                className={`px-3 py-2 rounded max-w-[70%] ${isMe
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200"
-                }`}
+                  }`}
               >
                 {msg.text}
               </div>

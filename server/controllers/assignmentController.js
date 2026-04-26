@@ -26,7 +26,7 @@ export const getAssignments = async (req, res) => {
   const { studentId } = req.params;
 
   const assignments = await Assignment.find({
-    student: new mongoose.Types.ObjectId(studentId), // ✅ FIX
+    student: new mongoose.Types.ObjectId(studentId), 
   });
 
   res.json({ assignments });
@@ -39,7 +39,7 @@ export const submitAssignment = async (req, res) => {
   const assignment = await Assignment.findByIdAndUpdate(
     id,
     {
-      status: "completed", // 🔥 change status
+      status: "completed", 
       submission: {
         fileUrl,
         submittedAt: new Date(),

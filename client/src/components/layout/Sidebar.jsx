@@ -26,7 +26,7 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             icon: "calendar",
           },
           { name: "Supervisor", path: "/student/supervisor", icon: "user" },
-          { name: "Learning", path: "/student/learning", icon: "book" },
+          { name: "Learning", path: "/student/learning", icon: "learning" },
           { name: "Feedback", path: "/student/feedback", icon: "chat" },
           {
             name: "Attendance",
@@ -68,15 +68,11 @@ const Sidebar = ({ open, setOpen, userRole }) => {
             path: "/teacher/notifications",
             icon: "bell",
           },
-          {
-            name: "Students Overview",
-            path: "/teacher/students",
-            icon: "users",
-          },
+
         ].filter(item =>
           item.path === "/teacher/attendance"
             ? Array.isArray(authUser?.ocAssignments) &&
-              authUser.ocAssignments.length > 0
+            authUser.ocAssignments.length > 0
             : true
         );
 
@@ -115,9 +111,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
   };
 
   const getIcon = (iconName, isActive = false) => {
-    const className = `w-5 h-5 ${
-      isActive ? "text-blue-600" : "text-slate-600"
-    }`;
+    const className = `w-5 h-5 ${isActive ? "text-blue-600" : "text-slate-600"
+      }`;
 
     switch (iconName) {
       case "home":
@@ -181,6 +176,29 @@ const Sidebar = ({ open, setOpen, userRole }) => {
               strokeLinejoin="round"
               strokeWidth={2}
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+        );
+      case "learning":
+        return (
+          <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5 
+           5.754 5 4.168 5.477 3 6.253v13
+           C4.168 18.477 5.754 18 7.5 18
+           c1.746 0 3.332.477 4.5 1.253
+           m0-13C13.168 5.477 14.754 5 16.5 5
+           c1.746 0 3.332.477 4.5 1.253v13
+           C19.832 18.477 18.246 18 16.5 18
+           c-1.746 0-3.332.477-4.5 1.253"
             />
           </svg>
         );
@@ -394,9 +412,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`fixed -left-full lg:left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-slate-200 transition-all duration-300 z-30 ${
-          open ? "w-64" : "w-20"
-        }`}
+        className={`fixed -left-full lg:left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r border-slate-200 transition-all duration-300 z-30 ${open ? "w-64" : "w-20"
+          }`}
       >
         <div className="flex flex-col h-full">
           <nav className="flex-1 px-4 py-6 space-y-2">
@@ -410,10 +427,9 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   // isActive is remove
                   className={() => `  
                     flex items-center px-4 py-3 rounded-lg transition-all duration-200
-                    ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
-                        : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                    ${isActive
+                      ? "bg-blue-50 text-blue-700 border-r-4 border-blue-500"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
                     }
                   `}
                   onClick={() => {
@@ -427,9 +443,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                     {getIcon(item.icon, isActive)}
                   </div>
                   <span
-                    className={`ml-3 font-medium transition-opacity duration-300 ${
-                      open ? "opacity-100" : "opacity-0 lg:opacity-0"
-                    } ${open ? "block" : "hidden lg:hidden"}`}
+                    className={`ml-3 font-medium transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 lg:opacity-0"
+                      } ${open ? "block" : "hidden lg:hidden"}`}
                   >
                     {item.name}
                   </span>
@@ -441,9 +456,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
           {/* Sidebar footer */}
           <div className="p-4 border-t border-slate-200">
             <div
-              className={`transition-opacity duration-300 ${
-                open ? "opacity-100" : "opacity-0 lg:opacity-0"
-              } ${open ? "block" : "hidden lg:hidden"}`}
+              className={`transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 lg:opacity-0"
+                } ${open ? "block" : "hidden lg:hidden"}`}
             >
               <p className="text-xs text-slate-500 text-center">
                 Educational Project Management v1.0
@@ -463,9 +477,8 @@ const Sidebar = ({ open, setOpen, userRole }) => {
 
       {/* Mobile Sidebar Drawer */}
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-white z-50 lg:hidden transform transition-transform duration-300 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 w-64 bg-white z-50 lg:hidden transform transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full pt-16">
           {/* Mobile navigation */}
@@ -479,11 +492,10 @@ const Sidebar = ({ open, setOpen, userRole }) => {
                   to={item.path}
                   className={({ isActive }) => `
               flex items-center px-4 py-3 rounded-lg transition-all duration-200
-              ${
-                isActive
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
-              }
+              ${isActive
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
+                    }
             `}
                   onClick={() => setOpen(false)}
                 >

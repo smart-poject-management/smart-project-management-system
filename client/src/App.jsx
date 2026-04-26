@@ -48,10 +48,8 @@ import Unauthorized from "./pages/Unauthorized";
 import Department from "./pages/admin/Department";
 import AdminAttendancePage from "./pages/admin/AttendancePage";
 import FeesStatus from "./pages/admin/FeesStatus";
-import StudentsOverview from "./pages/teacher/StudentsOverview";
-import LearningTab from "./pages/student/LearningTab";
-import StudentWorkspace from "./components/StudentWorkspace";
 import StudentFeesDetail from "./pages/admin/StudentFeesDetail";
+import StudentWorkspace from "./pages/student/StudentWorkspace";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
   if (!authUser) {
@@ -171,7 +169,6 @@ const App = () => {
           <Route path="attendance" element={<TeacherAttendancePage />} />
           <Route path="files" element={<TeacherFiles />} />
           <Route path="notifications" element={<TeacherNotificationsPage />} />
-          <Route path="/teacher/students" element={<StudentsOverview />} />
         </Route>
 
         <Route path="unauthorized" element={<Unauthorized />} />

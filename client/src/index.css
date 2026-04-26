@@ -158,3 +158,19 @@
   background: linear-gradient(135deg, #f3c736, #f59e0b);
   color: #fff;
 }
+#read-tooltip
+ {
+  font-size: 9px;
+  border-radius: 8px;
+  padding: 3px 6px;
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: #fff;
+}
+
+#submit-tooltip {
+  font-size: 9px;
+  border-radius: 8px;
+  padding: 3px 6px;
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: #fff;
+}

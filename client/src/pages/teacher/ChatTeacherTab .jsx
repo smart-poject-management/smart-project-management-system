@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMessages, sendMessage, receiveMessage } from "../../store/slices/teacherSlice";
 import { Send, Paperclip } from "lucide-react";
 import socket from "../../socket";
+import { getMessages,sendMessage, receiveMessage  } from "../../store/slices/chatSlice";
 
 const AVATAR_COLORS = [
   "#4F46E5", "#7C3AED", "#DB2777", "#059669",
@@ -183,5 +183,3 @@ const ChatTeacherTab = ({ student }) => {
 };
 
 export default ChatTeacherTab;
-
-
