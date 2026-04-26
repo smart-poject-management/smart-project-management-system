@@ -1,182 +1,139 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Send, Paperclip } from "lucide-react";
+import { Send, User, Loader2 } from "lucide-react";
+import {
+  getMessages,
+  sendMessage,
+  receiveMessage,
+} from "../../store/slices/chatSlice";
 import socket from "../../socket";
-import { getMessages,sendMessage, receiveMessage  } from "../../store/slices/chatSlice";
-
-const AVATAR_COLORS = [
-  "#4F46E5", "#7C3AED", "#DB2777", "#059669",
-  "#D97706", "#DC2626", "#0284C7", "#65A30D",
-];
-
-const avatarColor = (name) => {
-  let hash = 0;
-  for (let i = 0; i < (name?.length || 0); i++) hash += name.charCodeAt(i);
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-};
-
-const getInitials = (name) =>
-  name ? name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) : "?";
-
-const Avatar = ({ name, size = 48 }) => (
-  <div
-    style={{ width: size, height: size, background: avatarColor(name), fontSize: size * 0.35 }}
-    className="rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 tracking-wide"
-  >
-    {getInitials(name)}
-  </div>
-);
-
 const ChatTeacherTab = ({ student }) => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const allMessages = useSelector((state) => state.teacher.messages ?? []);
-
-  const [newMessage, setNewMessage] = useState("");
-  const bottomRef = useRef(null);
-
-  const messages = useMemo(() => {
-    if (!user?._id || !student?._id) return [];
-
-    return allMessages.filter((msg) => {
-      const senderId = typeof msg.sender === "object" ? msg.sender?._id : msg.sender;
-      const receiverId = typeof msg.receiver === "object" ? msg.receiver?._id : msg.receiver;
-
-      return (
-        (senderId === user._id && receiverId === student._id) ||
-        (senderId === student._id && receiverId === user._id)
-      );
-    });
-  }, [allMessages, user, student]);
+  const scrollRef = useRef(null);
+  const [text, setText] = useState("");
+  const { messages, isLoading } = useSelector(state => state.chat);
+  const { authUser } = useSelector(state => state.auth);
 
   useEffect(() => {
-    if (!user?._id) return;
-    socket.emit("join", { userId: user._id });
-  }, [user]);
+    if (student?._id) {
+      dispatch(getMessages(student._id));
+      socket.connect();
+      socket.emit("join", { userId: authUser._id });
+      socket.on("newMessage", msg => {
+
+        if (
+          msg.sender._id === student._id ||
+          msg.receiver._id === student._id
+        ) {
+          dispatch(receiveMessage(msg));
+        }
+      });
+
+      return () => {
+        socket.off("newMessage");
+      };
+    }
+  }, [student?._id, dispatch, authUser._id]);
 
   useEffect(() => {
-    if (!user?._id || !student?._id) return;
-    dispatch(getMessages({ senderId: user._id, receiverId: student._id }));
-  }, [student, user, dispatch]);
-
-  useEffect(() => {
-    const handleReceive = (data) => {
-      console.log("📩 RECEIVED:", data);
-
-      if (data.senderId === user?._id) return;
-
-      dispatch(
-        receiveMessage({
-          sender: data.senderId,
-          receiver: data.receiverId,
-          text: data.message, // Backend uses 'text'
-          createdAt: new Date().toISOString(),
-        })
-      );
-    };
-
-    socket.on("receiveMessage", handleReceive);
-    return () => socket.off("receiveMessage", handleReceive);
-  }, [dispatch, user]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = (e) => {
+  const handleSend = async e => {
     e.preventDefault();
-
-    if (!newMessage.trim() || !user?._id || !student?._id) return;
-
-    const msgText = newMessage.trim();
-    setNewMessage("");
-
-    // Socket emit
-    socket.emit("sendMessage", {
-      senderId: user._id,
-      receiverId: student._id,
-      message: msgText, // Socket uses 'message'
-    });
+    if (!text.trim()) return;
 
     dispatch(
       sendMessage({
-        sender: user._id,
-        receiver: student._id,
-        message: msgText,
+        receiverId: student._id,
+        text: text.trim(),
       })
     );
+
+    setText("");
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col h-[600px]">
-      <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
-        <Avatar name={student.name} size={40} />
-        <div>
-          <h3 className="font-semibold text-slate-800">{student.name}</h3>
-          <p className="text-xs text-slate-400">{student.email}</p>
+    <div className="flex flex-col h-[550px] bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
+            <User className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-800">{student?.name}</p>
+            <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+              Active Chat
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.length === 0 && (
-          <p className="text-center text-sm text-slate-400 mt-8">
-            No messages yet. Start the conversation!
-          </p>
-        )}
-
-        {messages.map((msg, idx) => {
-          const senderId = typeof msg.sender === "object" ? msg.sender?._id : msg.sender;
-          const isTeacher = senderId === user?._id;
-          const messageText = msg.text || msg.message;
-
-          return (
-            <div key={msg._id || idx} className={`flex ${isTeacher ? "justify-end" : "justify-start"}`}>
+      {/* Messages Window */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[#F1F5F9]">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-20 text-slate-400 text-sm italic">
+            No messages yet. Start a conversation!
+          </div>
+        ) : (
+          messages.map(msg => {
+            const isMe = msg.sender?._id === authUser._id;
+            return (
               <div
-                className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
-                  isTeacher
-                    ? "bg-indigo-600 text-white rounded-br-sm"
-                    : "bg-slate-100 text-slate-800 rounded-bl-sm"
-                }`}
+                key={msg._id}
+                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
               >
-                <p className="text-sm">{messageText}</p>
-                <p className={`text-xs mt-1 ${isTeacher ? "text-indigo-200" : "text-slate-400"}`}>
-                  {msg.createdAt &&
-                    new Date(msg.createdAt).toLocaleTimeString("en-IN", {
+                <div
+                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all ${
+                    isMe
+                      ? "bg-indigo-600 text-white rounded-tr-none"
+                      : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
+                  }`}
+                >
+                  <p className="leading-relaxed">{msg.content}</p>
+                  <p
+                    className={`text-[10px] mt-1.5 opacity-60 font-medium ${isMe ? "text-right" : "text-left"}`}
+                  >
+                    {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
-                </p>
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
-
-        <div ref={bottomRef} />
+            );
+          })
+        )}
+        <div ref={scrollRef} />
       </div>
 
-      <form onSubmit={handleSend} className="px-6 py-4 border-t border-slate-200">
-        <div className="flex items-center gap-3">
-          <button type="button" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400">
-            <Paperclip className="w-5 h-5" />
-          </button>
-
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg
-              focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-
-          <button
-            type="submit"
-            disabled={!newMessage.trim()}
-            className="p-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </div>
+      {/* Message Input */}
+      <form
+        onSubmit={handleSend}
+        className="p-4 bg-white border-t border-slate-100 flex gap-3 items-center"
+      >
+        <input
+          type="text"
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder="Write your message..."
+          className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm 
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all shadow-inner"
+        />
+        <button
+          type="submit"
+          disabled={!text.trim()}
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white p-3 rounded-xl 
+                     transition-all shadow-lg shadow-indigo-100 flex items-center justify-center active:scale-95"
+        >
+          <Send className="w-5 h-5" />
+        </button>
       </form>
     </div>
   );

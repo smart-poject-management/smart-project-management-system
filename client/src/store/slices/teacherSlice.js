@@ -177,7 +177,6 @@ const teacherSlice = createSlice({
     loading: false,
     error: null,
     list: [],
-    messages: [],
   },
 
   reducers: {

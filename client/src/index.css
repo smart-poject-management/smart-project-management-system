@@ -158,8 +158,8 @@
   background: linear-gradient(135deg, #f3c736, #f59e0b);
   color: #fff;
 }
-#read-tooltip
- {
+
+#read-tooltip {
   font-size: 9px;
   border-radius: 8px;
   padding: 3px 6px;
@@ -171,6 +171,6 @@
   font-size: 9px;
   border-radius: 8px;
   padding: 3px 6px;
-  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  background: linear-gradient(135deg, #22c55e, #15803d);
   color: #fff;
 }

@@ -147,10 +147,12 @@ const App = () => {
             element={<DeadlineExtensionRequest />}
           />
           <Route path="supervisor" element={<SupervisorPage />} />
-          <Route path="/student/learning" element={<StudentWorkspace />} />
+          <Route path="learning" element={<StudentWorkspace />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="attendance" element={<StudentAttendancePage />} />
           <Route path="fees" element={<MyFees />} />
+
+          
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 

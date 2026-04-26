@@ -1,61 +1,50 @@
-import Message from "../models/Message.js";
-export const saveMessage = async (req, res) => {
-  try {
-    const { sender, receiver, text } = req.body;
+import { Message } from "../models/Message.js";
+import { getIO } from "../socket/socket.js";
 
-    if (!sender || !receiver || !text) {
+// ✅ SEND MESSAGE
+export const sendMessage = async (req, res) => {
+  try {
+    const senderId = req.user._id;
+    const { receiverId, text } = req.body; // Frontend se 'text' aa raha hai
+
+    if (!receiverId || !text?.trim()) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "Receiver ID and message text are required",
       });
     }
 
+    // 💾 SAVE TO DATABASE
     const newMessage = await Message.create({
-      sender,
-      receiver,
-      text,
+      sender: senderId,
+      receiver: receiverId,
+      content: text.trim(), // Yahan 'text' ko 'content' mein save kar rahe hain
     });
 
-    res.status(201).json({
-      success: true,
-      data: newMessage,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-export const getMessages = async (req, res) => {
-  try {
-    const { senderId, receiverId } = req.params;
-
-    const messages = await Message.find({
-      $or: [
-        { sender: senderId, receiver: receiverId },
-        { sender: receiverId, receiver: senderId },
-      ],
-    })
-      .sort({ createdAt: 1 })
+    // 🔄 POPULATE DATA (Frontend display ke liye)
+    const populatedMessage = await Message.findById(newMessage._id)
       .populate("sender", "name email")
       .populate("receiver", "name email");
 
-    res.status(200).json({
+    // 🔥 SOCKET REALTIME EMIT
+    const io = getIO();
+    // Receiver ke personal room mein message bhejna
+    io.to(receiverId.toString()).emit("newMessage", populatedMessage);
+
+    res.status(201).json({
       success: true,
-      data: messages,
+      data: populatedMessage,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.error("❌ SEND MESSAGE ERROR:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-export const getChatHistory = async (req, res) => {
+// ✅ GET ALL MESSAGES (Between two users)
+export const getMessages = async (req, res) => {
   try {
-    const userId = req.user._id; 
+    const userId = req.user._id;
     const { receiverId } = req.params;
 
     const messages = await Message.find({
@@ -64,7 +53,7 @@ export const getChatHistory = async (req, res) => {
         { sender: receiverId, receiver: userId },
       ],
     })
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: 1 }) // Purane message upar, naye niche
       .populate("sender", "name email")
       .populate("receiver", "name email");
 
@@ -73,9 +62,7 @@ export const getChatHistory = async (req, res) => {
       data: messages,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.error("❌ GET MESSAGES ERROR:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

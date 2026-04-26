@@ -1,15 +1,14 @@
 import express from "express";
+import { sendMessage, getMessages } from "../controllers/chatController.js";
 import { isAuthenticated } from "../middlewares/authMiddleware.js";
-import {
-  saveMessage,
-  getMessages,
-  getChatHistory,
-} from "../controllers/chatController.js";
 
 const router = express.Router();
 
-router.post("/send", isAuthenticated, saveMessage);
-router.get("/:senderId/:receiverId", isAuthenticated, getMessages);
-router.get("/history/:receiverId", isAuthenticated, getChatHistory);
+// 📩 Message bhejne ke liye (POST: /api/chat/send)
+// isAuthenticated check karega ki user logged in hai ya nahi
+router.post("/send", isAuthenticated, sendMessage);
+
+// 📂 Particular student/teacher ke sath messages get karne ke liye (GET: /api/chat/:receiverId)
+router.get("/:receiverId", isAuthenticated, getMessages);
 
 export default router;

@@ -310,7 +310,7 @@ const AssignmentsTab = () => {
                               data-tooltip-content="Mark as Read"
                               onClick={() => handleAction(a, "read")}
                               disabled={!!currentLoading}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-600 text-xs font-medium transition-colors ${currentLoading ? "opacity-50 cursor-not-allowed" : ""
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-100 text-purple-600 text-xs font-medium transition-colors ${currentLoading ? "opacity-50 cursor-not-allowed" : ""
                                 }`}
                             >
                               <Check className="w-3.5 h-3.5" />
@@ -325,7 +325,7 @@ const AssignmentsTab = () => {
                               data-tooltip-content="Submit Assignment"
                               onClick={() => handleAction(a, "submit")}
                               disabled={!!currentLoading}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-600 text-xs font-medium transition-colors ${currentLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 text-green-600 text-xs font-medium transition-colors ${currentLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
                               <Upload className="w-3.5 h-3.5" />
 
