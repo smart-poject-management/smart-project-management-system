@@ -50,7 +50,7 @@ import AdminAttendancePage from "./pages/admin/AttendancePage";
 import FeesStatus from "./pages/admin/FeesStatus";
 import StudentsOverview from "./pages/teacher/StudentsOverview";
 import LearningTab from "./pages/student/LearningTab";
-import StudentWorkspace from "./components/StudentWorkspace";
+import StudentWorkspace from "./pages/student/StudentWorkspace";
 import StudentFeesDetail from "./pages/admin/StudentFeesDetail";
 
 const ProtectedRoute = ({ children, allowedRoles, authUser }) => {
@@ -149,7 +149,7 @@ const App = () => {
             element={<DeadlineExtensionRequest />}
           />
           <Route path="supervisor" element={<SupervisorPage />} />
-          <Route path="/student/learning" element={<StudentWorkspace />} />
+          <Route path="learning" element={<StudentWorkspace />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="attendance" element={<StudentAttendancePage />} />
           <Route path="fees" element={<MyFees />} />
@@ -171,7 +171,7 @@ const App = () => {
           <Route path="attendance" element={<TeacherAttendancePage />} />
           <Route path="files" element={<TeacherFiles />} />
           <Route path="notifications" element={<TeacherNotificationsPage />} />
-          <Route path="/teacher/students" element={<StudentsOverview />} />
+          <Route path="students" element={<StudentsOverview />} />
         </Route>
 
         <Route path="unauthorized" element={<Unauthorized />} />

@@ -8,9 +8,13 @@ export const generateToken = (user, statusCode, message, res) => {
         Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000,
       ),
       httpOnly: true,
-      secure: true,     
-      sameSite: "none",  
-      path: "/" 
+
+      // 🔥 FIX START
+      secure: false, // ❌ पहले true था
+      sameSite: "lax", // ❌ पहले none था
+      // 🔥 FIX END
+
+      path: "/",
     })
     .json({ success: true, user, message, token });
 };

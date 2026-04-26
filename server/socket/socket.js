@@ -1,0 +1,79 @@
+import { Server } from "socket.io";
+
+let io;
+const onlineUsers = new Map(); // Store userId -> socketId mapping
+
+export const initSocket = (server) => {
+  io = new Server(server, {
+    cors: {
+      // FRONTEND_URL environment variable se uthayega,
+      // agar nahi hai to default localhost use karega
+      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      credentials: true,
+      methods: ["GET", "POST"],
+    },
+  });
+
+  io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    // 🟢 Join Room Logic
+    socket.on("join", ({ userId }) => {
+      if (!userId) return;
+      const id = userId.toString();
+
+      socket.join(id); // User joins their private room based on their ID
+      onlineUsers.set(id, socket.id);
+
+      console.log(`User ${id} joined room and is online.`);
+      io.emit("userOnline", { userId: id }); // Notify everyone this user is online
+    });
+
+    // ⌨️ Typing Indicator Logic
+    socket.on("typing", ({ senderId, receiverId }) => {
+      if (receiverId) {
+        io.to(receiverId.toString()).emit("typing", { senderId });
+      }
+    });
+
+    socket.on("stopTyping", ({ senderId, receiverId }) => {
+      if (receiverId) {
+        io.to(receiverId.toString()).emit("stopTyping", { senderId });
+      }
+    });
+
+    // 🔴 Disconnect Logic
+    socket.on("disconnect", () => {
+      let disconnectedUserId = null;
+
+      // Find which user disconnected from the map
+      for (let [userId, sockId] of onlineUsers.entries()) {
+        if (sockId === socket.id) {
+          disconnectedUserId = userId;
+          onlineUsers.delete(userId);
+          break;
+        }
+      }
+
+      if (disconnectedUserId) {
+        console.log(`User ${disconnectedUserId} went offline.`);
+        io.emit("userOffline", {
+          userId: disconnectedUserId,
+          lastSeen: new Date(),
+        });
+      }
+    });
+  });
+
+  return io;
+};
+
+// 🔥 Export for Controller access
+export const getIO = () => {
+  if (!io) {
+    throw new Error(
+      "Socket.io not initialized! Make sure initSocket(server) is called.",
+    );
+  }
+  return io;
+};

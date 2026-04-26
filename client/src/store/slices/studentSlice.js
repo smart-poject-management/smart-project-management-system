@@ -261,7 +261,10 @@ export const payFees = createAsyncThunk(
   "student/payFees",
   async ({ semester, amount }, thunkAPI) => {
     try {
-      const res = await axiosInstance.post("/student/pay-fees", { semester, amount });
+      const res = await axiosInstance.post("/student/pay-fees", {
+        semester,
+        amount,
+      });
       toast.success(res.data?.message || "Fee paid successfully");
       return res.data?.data?.fee;
     } catch (error) {
@@ -374,7 +377,7 @@ const studentSlice = createSlice({
         const updatedFee = action.payload;
         if (!updatedFee) return;
 
-        state.fees = state.fees.map((fee) =>
+        state.fees = state.fees.map(fee =>
           fee.semester === updatedFee.semester ? updatedFee : fee
         );
       })
@@ -394,6 +397,9 @@ const studentSlice = createSlice({
       .addCase(getLearning.fulfilled, (state, action) => {
         state.learning = action.payload.learning;
         state.progress = action.payload.progress;
+
+        // Is line ko add karein taaki project data (jisne supervisor hai) save ho jaye
+        state.project = action.payload.project || action.payload;
       })
 
       .addCase(completeTopic.fulfilled, (state, action) => {
