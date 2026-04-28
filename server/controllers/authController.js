@@ -2,7 +2,7 @@ import { asyncHandler } from "../middlewares/asyncHandler.js";
 import { User } from "../models/user.js";
 import { sendEmail } from "../services/emailService.js";
 import { generateForgotPasswordEmailTemplate } from "../utils/emailTemplates.js";
-import { generateToken } from "../utils/generateToken.js";
+import { generateToken, getTokenCookieOptions } from "../utils/generateToken.js";
 import { seedAdmin } from "../utils/seedAdmin.js";
 import crypto from "crypto";
 
@@ -45,13 +45,16 @@ export const getUser = asyncHandler(async (req, res) => {
 });
 
 export const logout = asyncHandler(async (req, res) => {
+  const cookieOptions = getTokenCookieOptions();
+
   res
     .status(200)
     .cookie("token", null, {
       expires: new Date(Date.now()),
+      maxAge: 0,
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
       path: "/",
     })
     .json({
