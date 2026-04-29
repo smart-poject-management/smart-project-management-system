@@ -17,20 +17,16 @@ const ChatTeacherTab = ({ student }) => {
   useEffect(() => {
     if (student?._id) {
       dispatch(getMessages(student._id));
-      socket.connect();
       socket.emit("join", { userId: authUser._id });
-      socket.on("newMessage", msg => {
-
-        if (
-          msg.sender._id === student._id ||
-          msg.receiver._id === student._id
-        ) {
+      const handleNewMessage = msg => {
+        if (msg.sender._id === student._id || msg.receiver._id === student._id) {
           dispatch(receiveMessage(msg));
         }
-      });
+      };
+      socket.on("newMessage", handleNewMessage);
 
       return () => {
-        socket.off("newMessage");
+        socket.off("newMessage", handleNewMessage);
       };
     }
   }, [student?._id, dispatch, authUser._id]);
@@ -88,11 +84,10 @@ const ChatTeacherTab = ({ student }) => {
                 className={`flex ${isMe ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all ${
-                    isMe
+                  className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm shadow-sm transition-all ${isMe
                       ? "bg-indigo-600 text-white rounded-tr-none"
                       : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
-                  }`}
+                    }`}
                 >
                   <p className="leading-relaxed">{msg.content}</p>
                   <p

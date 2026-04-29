@@ -19,23 +19,21 @@ const StudentChatTab = ({ supervisor }) => {
   const teacherId = supervisor?._id || supervisor;
 
   useEffect(() => {
-    if (teacherId) {
-      dispatch(getMessages(teacherId));
+    if(!teacherId || !authUser._id) return;
+    dispatch(getMessages(teacherId));
+    socket.emit("join", { userId: authUser._id });
 
-      socket.connect();
-      socket.emit("join", { userId: authUser._id });
+    const handleNewMessage = msg => {
+      if (msg.sender._id === teacherId || msg.receiver._id === teacherId) {
+        dispatch(receiveMessage(msg));
+      }
+    };
 
-      socket.on("newMessage", msg => {
-        // Sirf wahi message add karein jo is teacher se aaya ho
-        if (msg.sender._id === teacherId || msg.receiver._id === teacherId) {
-          dispatch(receiveMessage(msg));
-        }
-      });
+    socket.on("newMessage", handleNewMessage);
 
-      return () => {
-        socket.off("newMessage");
-      };
-    }
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
   }, [teacherId, dispatch, authUser._id]);
 
   useEffect(() => {
@@ -75,11 +73,10 @@ const StudentChatTab = ({ supervisor }) => {
                 className={`flex ${isMe ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm shadow-sm ${
-                    isMe
+                  className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm shadow-sm ${isMe
                       ? "bg-blue-600 text-white rounded-tr-none"
                       : "bg-white text-gray-800 border rounded-tl-none"
-                  }`}
+                    }`}
                 >
                   <p>{msg.content || msg.text}</p>
                   <span className="text-[10px] opacity-70 block mt-1">
