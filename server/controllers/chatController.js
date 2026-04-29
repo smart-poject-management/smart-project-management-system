@@ -1,11 +1,10 @@
 import { Message } from "../models/Message.js";
 import { getIO } from "../socket/socket.js";
 
-// ✅ SEND MESSAGE
 export const sendMessage = async (req, res) => {
   try {
     const senderId = req.user._id;
-    const { receiverId, text } = req.body; // Frontend se 'text' aa raha hai
+    const { receiverId, text } = req.body;
 
     if (!receiverId || !text?.trim()) {
       return res.status(400).json({
@@ -14,21 +13,17 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // 💾 SAVE TO DATABASE
     const newMessage = await Message.create({
       sender: senderId,
       receiver: receiverId,
-      content: text.trim(), // Yahan 'text' ko 'content' mein save kar rahe hain
+      content: text.trim(), 
     });
 
-    // 🔄 POPULATE DATA (Frontend display ke liye)
     const populatedMessage = await Message.findById(newMessage._id)
       .populate("sender", "name email")
       .populate("receiver", "name email");
 
-    // 🔥 SOCKET REALTIME EMIT
     const io = getIO();
-    // Receiver ke personal room mein message bhejna
     io.to(receiverId.toString()).emit("newMessage", populatedMessage);
 
     res.status(201).json({
@@ -36,12 +31,10 @@ export const sendMessage = async (req, res) => {
       data: populatedMessage,
     });
   } catch (error) {
-    console.error("❌ SEND MESSAGE ERROR:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-// ✅ GET ALL MESSAGES (Between two users)
 export const getMessages = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -53,7 +46,7 @@ export const getMessages = async (req, res) => {
         { sender: receiverId, receiver: userId },
       ],
     })
-      .sort({ createdAt: 1 }) // Purane message upar, naye niche
+      .sort({ createdAt: 1 }) 
       .populate("sender", "name email")
       .populate("receiver", "name email");
 
@@ -62,7 +55,6 @@ export const getMessages = async (req, res) => {
       data: messages,
     });
   } catch (error) {
-    console.error("❌ GET MESSAGES ERROR:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

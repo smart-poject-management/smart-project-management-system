@@ -2,12 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../lib/axios";
 import { toast } from "react-toastify";
 
-// ✅ FETCH MESSAGES
 export const getMessages = createAsyncThunk(
   "chat/getMessages",
   async (receiverId, thunkAPI) => {
     try {
-      // Backend expects: /api/chat/:receiverId
       const res = await axiosInstance.get(`/chat/${receiverId}`);
       return res.data?.data || [];
     } catch (err) {
@@ -16,12 +14,10 @@ export const getMessages = createAsyncThunk(
   }
 );
 
-// ✅ SEND MESSAGE
 export const sendMessage = createAsyncThunk(
   "chat/sendMessage",
   async ({ receiverId, text }, thunkAPI) => {
     try {
-      // Backend expects: /api/chat/send with body { receiverId, text }
       const res = await axiosInstance.post("/chat/send", {
         receiverId,
         text,
@@ -43,7 +39,6 @@ const chatSlice = createSlice({
   },
 
   reducers: {
-    // 🔥 Socket se aane wale message ko yahan handle karenge
     receiveMessage: (state, action) => {
       const incoming = action.payload;
       if (incoming?._id) {
@@ -60,7 +55,6 @@ const chatSlice = createSlice({
 
   extraReducers: builder => {
     builder
-      // Get Messages Cases
       .addCase(getMessages.pending, state => {
         state.isLoading = true;
       })
@@ -72,7 +66,6 @@ const chatSlice = createSlice({
         state.isLoading = false;
       })
 
-      // Send Message Cases
       .addCase(sendMessage.fulfilled, (state, action) => {
         if (!action.payload) return;
         const incoming = action.payload;

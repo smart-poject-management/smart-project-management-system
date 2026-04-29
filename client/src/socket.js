@@ -1,17 +1,13 @@
 import { io } from "socket.io-client";
 
 const getSocketUrl = () => {
-  if (import.meta.env.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL;
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
   }
 
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
   if (apiBaseUrl) {
-    try {
-      return new URL(apiBaseUrl, window.location.origin).origin;
-    } catch {
-      // Fall through to current origin fallback.
-    }
+    return new URL(apiBaseUrl, window.location.origin).origin;
   }
 
   return window.location.origin;

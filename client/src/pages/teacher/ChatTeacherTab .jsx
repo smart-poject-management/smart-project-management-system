@@ -55,7 +55,6 @@ const ChatTeacherTab = ({ student }) => {
 
   return (
     <div className="flex flex-col h-[550px] bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      {/* Header */}
       <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center border border-indigo-200">
@@ -71,7 +70,6 @@ const ChatTeacherTab = ({ student }) => {
         </div>
       </div>
 
-      {/* Messages Window */}
       <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[#F1F5F9]">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
@@ -113,7 +111,6 @@ const ChatTeacherTab = ({ student }) => {
         <div ref={scrollRef} />
       </div>
 
-      {/* Message Input */}
       <form
         onSubmit={handleSend}
         className="p-4 bg-white border-t border-slate-100 flex gap-3 items-center"

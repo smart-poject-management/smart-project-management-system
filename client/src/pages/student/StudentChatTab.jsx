@@ -16,19 +16,15 @@ const StudentChatTab = ({ supervisor }) => {
   const { messages, isLoading } = useSelector(state => state.chat);
   const { authUser } = useSelector(state => state.auth);
 
-  // Supervisor (Teacher) ID nikaalna
   const teacherId = supervisor?._id || supervisor;
 
   useEffect(() => {
     if (teacherId) {
-      // 1. Backend se messages fetch karein
       dispatch(getMessages(teacherId));
 
-      // 2. Socket setup
       socket.connect();
       socket.emit("join", { userId: authUser._id });
 
-      // 3. Listen for new messages
       socket.on("newMessage", msg => {
         // Sirf wahi message add karein jo is teacher se aaya ho
         if (msg.sender._id === teacherId || msg.receiver._id === teacherId) {
@@ -42,7 +38,6 @@ const StudentChatTab = ({ supervisor }) => {
     }
   }, [teacherId, dispatch, authUser._id]);
 
-  // Auto scroll
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -62,7 +57,6 @@ const StudentChatTab = ({ supervisor }) => {
 
   return (
     <div className="flex flex-col h-[500px] bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-      {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
@@ -102,7 +96,6 @@ const StudentChatTab = ({ supervisor }) => {
         <div ref={scrollRef} />
       </div>
 
-      {/* Input Form */}
       <form onSubmit={handleSend} className="bg-white p-4 border-t flex gap-2">
         <input
           type="text"

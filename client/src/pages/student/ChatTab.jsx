@@ -80,12 +80,10 @@ const ChatTab = ({ student }) => {
   return (
     <div className="flex flex-col h-[500px] border rounded-lg">
 
-      {/* HEADER */}
       <div className="bg-blue-600 text-white p-3 font-semibold">
         Chat
       </div>
 
-      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto p-3 bg-gray-50">
         {messages.map((msg, i) => {
           const senderId =
@@ -116,7 +114,6 @@ const ChatTab = ({ student }) => {
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
       <div className="flex gap-2 p-2 border-t">
         <input
           value={text}

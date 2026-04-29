@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 
 let io;
-const onlineUsers = new Map(); // Store userId -> socketId mapping
+const onlineUsers = new Map();
 
 const allowedOrigins = (process.env.FRONTEND_URL || "")
   .split(",")
@@ -23,19 +23,17 @@ export const initSocket = (server) => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
-    // 🟢 Join Room Logic
     socket.on("join", ({ userId }) => {
       if (!userId) return;
       const id = userId.toString();
 
-      socket.join(id); // User joins their private room based on their ID
+      socket.join(id);
       onlineUsers.set(id, socket.id);
 
       console.log(`User ${id} joined room and is online.`);
-      io.emit("userOnline", { userId: id }); // Notify everyone this user is online
+      io.emit("userOnline", { userId: id }); 
     });
 
-    // ⌨️ Typing Indicator Logic
     socket.on("typing", ({ senderId, receiverId }) => {
       if (receiverId) {
         io.to(receiverId.toString()).emit("typing", { senderId });
@@ -48,11 +46,9 @@ export const initSocket = (server) => {
       }
     });
 
-    // 🔴 Disconnect Logic
     socket.on("disconnect", () => {
       let disconnectedUserId = null;
 
-      // Find which user disconnected from the map
       for (let [userId, sockId] of onlineUsers.entries()) {
         if (sockId === socket.id) {
           disconnectedUserId = userId;
@@ -74,7 +70,6 @@ export const initSocket = (server) => {
   return io;
 };
 
-// 🔥 Export for Controller access
 export const getIO = () => {
   if (!io) {
     throw new Error(
