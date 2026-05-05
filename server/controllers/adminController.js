@@ -12,6 +12,8 @@ import {
   normalizeFees,
   validateFees,
 } from "../services/feeService.js";
+import { sendEmail } from "../services/emailService.js";
+import { generateAccountCreatedEmailTemplate } from "../utils/emailTemplates.js";
 
 export const createStudent = asyncHandler(async (req, res) => {
   const {
@@ -56,6 +58,31 @@ export const createStudent = asyncHandler(async (req, res) => {
     phone_no,
     fees: normalizedFees,
   });
+
+  try {
+    const loginUrl = process.env.FRONTEND_URL
+      ? `${process.env.FRONTEND_URL}`
+      : "";
+
+    await sendEmail({
+      to: email,
+      subject: "FYP SYSTEM - 🎉 Your Account Credentials",
+      message: generateAccountCreatedEmailTemplate({
+        recipientName: name,
+        role: "Student",
+        email,
+        password,
+        loginUrl,
+      }),
+    });
+  } catch (err) {
+    await userServices.deleteUser(user._id);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Student created but email could not be sent",
+    });
+  }
+
   const populatedUser = await User.findById(user._id)
     .populate("department", "department")
     .populate("supervisor", "name email");
@@ -196,6 +223,30 @@ export const createTeacher = asyncHandler(async (req, res) => {
         ? expertise.split(",").map((s) => s.trim())
         : [],
   });
+
+  try {
+    const loginUrl = process.env.FRONTEND_URL
+      ? `${process.env.FRONTEND_URL}`
+      : "";
+
+    await sendEmail({
+      to: email,
+      subject: "FYP SYSTEM - 🎉 Your Account Credentials",
+      message: generateAccountCreatedEmailTemplate({
+        recipientName: name,
+        role: "Teacher",
+        email,
+        password,
+        loginUrl,
+      }),
+    });
+  } catch (err) {
+    await userServices.deleteUser(user._id);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Teacher created but email could not be sent",
+    });
+  }
 
   const populatedUser = await User.findById(user._id)
     .populate("department", "department")

@@ -63,3 +63,59 @@ export function generateRequestRejectedTemplate(supervisorName) {
   `;
 }
 
+// Account created email template (admin-created users)
+export function generateAccountCreatedEmailTemplate({
+  recipientName,
+  role,
+  email,
+  password,
+  loginUrl,
+}) {
+  const safeRole = role || "User";
+  const safeLoginUrl = loginUrl || "";
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #ffffff; color: #111827;">
+      <div style="text-align: center; margin-bottom: 18px;">
+        <h2 style="color: #2563eb; margin: 0;">FYP SYSTEM - 🎉 Account Created</h2>
+        <p style="font-size: 14px; color: #6b7280; margin: 6px 0 0 0;">Your account has been created by the Admin</p>
+      </div>
+
+      <p style="font-size: 15px; color: #374151; margin: 0 0 10px 0;">
+        Dear <strong>${recipientName || "User"}</strong>,
+      </p>
+      <p style="font-size: 15px; color: #374151; margin: 0 0 14px 0;">
+        Your account is ready. Use the credentials below to login:
+      </p>
+
+      <div style="padding: 14px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; margin: 0 0 16px 0;">
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: #111827;"><strong>Email:</strong> ${email}</p>
+        <p style="margin: 0; font-size: 14px; color: #111827;"><strong>Password:</strong> ${password}</p>
+      </div>
+
+      ${
+        safeLoginUrl
+          ? `
+      <div style="text-align: center; margin: 18px 0 10px 0;">
+        <a href="${safeLoginUrl}" style="display: inline-block; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; padding: 12px 18px; border-radius: 8px; background-color: #2563eb;">
+          Login Now
+        </a>
+      </div>
+      <p style="font-size: 13px; color: #6b7280; margin: 10px 0 0 0; word-wrap: break-word;">
+        If the button doesn't work, use this link: ${safeLoginUrl}
+      </p>
+      `
+          : ""
+      }
+
+      <p style="font-size: 13px; color: #6b7280; margin: 18px 0 0 0;">
+        For security, please change your password after first login.
+      </p>
+
+      <footer style="margin-top: 22px; text-align: center; font-size: 12px; color: #9ca3af;">
+        <p style="margin: 0;">This is an automated message. Please do not reply.</p>
+      </footer>
+    </div>
+  `;
+}
+
