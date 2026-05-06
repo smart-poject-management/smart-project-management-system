@@ -382,7 +382,7 @@ const ManageTeachers = () => {
                       <td className="px-6 py-4 ">
                         <div>
                           <div>{teacher.name}</div>
-                          <div className="text-xs text-slate-500">{teacher.email}</div>
+                          <div className="text-xs text-slate-500 lowercase">{teacher.email}</div>
                         </div>
                       </td>
 
